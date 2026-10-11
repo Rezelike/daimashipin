@@ -1,0 +1,4 @@
+pillow
+pygments
+numpy
+imageio-ffmpeg
