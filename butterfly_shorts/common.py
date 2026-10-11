@@ -1,5 +1,4 @@
 """Shared drawing helpers: palette, fonts, easing, captions."""
-import math
 import skia
 
 W, H = 1080, 1920

@@ -1,6 +1,6 @@
-"""Build Part 1 of the butterfly-effect short video.
+"""Build the full butterfly-effect short video (~86 s).
 
-python render.py                      -> out/part1_完整版_含音乐.mp4 + out/part1_仅音效版.mp4
+python render.py                      -> out/蝴蝶效应_有配乐.mp4 + out/蝴蝶效应_无配乐.mp4
 python render.py --stills 1.9 7.5 ... -> PNG previews in out/preview/
 """
 import os
@@ -13,7 +13,7 @@ import skia
 
 import audio
 from common import W, H, FPS
-from scenes import Part1, D_END
+from video import Video, END
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, 'out')
@@ -37,7 +37,7 @@ def render_silent(part, path):
         FFMPEG, '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', f'{W}x{H}',
         '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18',
         '-pix_fmt', 'yuv420p', path], stdin=subprocess.PIPE)
-    n = int(D_END * FPS)
+    n = int(END * FPS)
     for i in range(n):
         part.draw(c, i / FPS)
         proc.stdin.write(surface.makeImageSnapshot().toarray(colorType=skia.kRGBA_8888_ColorType).tobytes())
@@ -56,19 +56,19 @@ def mux(video, wav, out):
 
 def main():
     t0 = time.time()
-    part = Part1()
+    part = Video()
     print(f'physics simulated in {time.time() - t0:.1f}s', flush=True)
     if len(sys.argv) > 1 and sys.argv[1] == '--stills':
         render_stills(part, [float(x) for x in sys.argv[2:]])
         return
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(BUILD, exist_ok=True)
-    full_wav, sfx_wav = audio.build(BUILD)
-    silent = os.path.join(BUILD, 'part1_silent.mp4')
+    full_wav, sfx_wav = audio.build(BUILD, part)
+    silent = os.path.join(BUILD, 'silent.mp4')
     print('rendering frames ...', flush=True)
     render_silent(part, silent)
-    mux(silent, full_wav, os.path.join(OUT, 'part1_完整版_含音乐.mp4'))
-    mux(silent, sfx_wav, os.path.join(OUT, 'part1_仅音效版.mp4'))
+    mux(silent, full_wav, os.path.join(OUT, '蝴蝶效应_有配乐.mp4'))
+    mux(silent, sfx_wav, os.path.join(OUT, '蝴蝶效应_无配乐.mp4'))
     print(f'done in {time.time() - t0:.0f}s')
 
 

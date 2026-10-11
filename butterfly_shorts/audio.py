@@ -1,9 +1,9 @@
-"""Synthesise original background music + sound effects for Part 1.
+"""Synthesise original background music + sound effects for the full video.
 
 Everything is generated from scratch with numpy (no samples, no copyright issues).
 Ball-collision sounds are placed at the exact times the physics engine reports.
 
-Outputs build/part1_full.wav (music + sfx) and build/part1_sfx.wav (sfx only).
+Outputs build/full.wav (music + sfx) and build/sfx.wav (sfx only).
 """
 import os
 import wave
@@ -12,9 +12,10 @@ import numpy as np
 from scipy import signal
 
 import scenes as sc
+import scenes2 as s2
 
 SR = 44100
-DUR = sc.D_END
+DUR = s2.VIDEO_END
 N = int(DUR * SR)
 ROOT = os.path.dirname(os.path.abspath(__file__))
 rng = np.random.default_rng(7)
@@ -183,38 +184,70 @@ def impact():
     return kick(0.6) * 1.2 + 0.5 * lp(rng.standard_normal(int(0.6 * SR)), 400) * np.exp(-tt(0.6) * 8)
 
 
+# ============================================================== extra sfx
+def tok(freq=520):
+    """Woody 'tok' for a ball hitting a round post."""
+    t = tt(0.12)
+    x = np.sin(2 * np.pi * freq * t) * np.exp(-t * 38) + 0.5 * np.sin(2 * np.pi * freq * 2.7 * t) * np.exp(-t * 70)
+    return x
+
+
+def coin_ping():
+    t = tt(0.9)
+    x = np.zeros_like(t)
+    for ratio, amp, dec in ((1, 1, 5), (2.41, 0.6, 7), (3.93, 0.35, 9), (5.5, 0.2, 12)):
+        x += amp * np.sin(2 * np.pi * 2400 * ratio * t) * np.exp(-t * dec)
+    return x * 0.5 * np.minimum(1, t / 0.001)
+
+
+def coin_land():
+    t = tt(0.25)
+    x = np.sin(2 * np.pi * 900 * t) * np.exp(-t * 30) + 0.4 * coin_ping()[: len(t)] * np.exp(-t * 18)
+    return x + 0.4 * lp(rng.standard_normal(len(t)), 1200) * np.exp(-t * 50)
+
+
+def thud():
+    t = tt(0.25)
+    return np.sin(2 * np.pi * (90 + 60 * np.exp(-t * 30)) * t) * np.exp(-t * 18) + \
+        0.3 * lp(rng.standard_normal(len(t)), 600) * np.exp(-t * 30)
+
+
+def chime(freq):
+    t = tt(0.35)
+    return np.sin(2 * np.pi * freq * t) * np.exp(-t * 14) * np.minimum(1, t / 0.003)
+
+
+PEG_NOTES = [72, 74, 76, 79, 81, 84, 86, 88]
+
+
 # ============================================================== build
-def build_sfx():
+def build_sfx(v):
     s = np.zeros(N)
-    A, B, C = sc.SceneA(), sc.SceneB(), sc.SceneC()
-    D = sc.SceneD()
-    # caption pops
-    for scene, gain in ((A, 0.25), (B, 0.25), (C, 0.0), (D, 0.22)):
+    A, D = v.A, v.D
+    # caption pops (all scenes)
+    for scene, gain in ((A, 0.25), (v.B, 0.25), (D, 0.22), (v.E, 0.2), (v.F, 0.2), (v.G, 0.2), (v.Hs, 0.2),
+                        (v.I, 0.18)):
         for cap in scene.caps:
             place(s, cap.t_in, blip(1100), gain)
-    # cue: draw-back swish + strike
+    # ---------------- part 1
     place(s, 1.3, whoosh(0.5, up=False), 0.12)
     place(s, sc.T_STRIKE - 0.005, cue_hit(), 0.9)
-    # physics events from BOTH tables, merged & capped
     last = {}
     for sim in A.sims:
         for (t, kind, strength) in sim.events[1:]:
             tg = sc.T_STRIKE + t
             if tg > sc.A_END:
                 continue
-            key = kind
-            if tg - last.get(key, -1) < (0.012 if kind == 'ball' else 0.03):
+            if tg - last.get(kind, -1) < (0.012 if kind == 'ball' else 0.03):
                 continue
-            last[key] = tg
+            last[kind] = tg
             if kind == 'ball':
                 place(s, tg, ball_click(strength), 0.55)
             elif kind == 'cushion':
                 place(s, tg, cushion_thud(strength), 0.45)
             elif kind == 'pocket':
                 place(s, tg, pocket_drop(), 0.5)
-    # question mark sting
     place(s, 4.2, pop(), 0.35)
-    # transitions
     place(s, sc.B_START - 0.15, whoosh(0.45), 0.35)
     place(s, 8.6, impact(), 0.55)
     place(s, 8.6, bell(midi(88), 1.0), 0.18)
@@ -222,11 +255,71 @@ def build_sfx():
     for k, n in enumerate((84, 88, 91, 96)):
         place(s, 11.25 + 0.07 * k, bell(midi(n)), 0.16)
     place(s, sc.D_START - 0.1, whoosh(0.45), 0.3)
-    place(s, 15.0, pop(), 0.2)                     # pendulums merge
-    place(s, sc.P_RELEASE, blip(700), 0.35)        # release
+    place(s, 15.0, pop(), 0.2)
+    place(s, sc.P_RELEASE, blip(700), 0.35)
     place(s, D.t_split - 1.6, riser(1.6), 0.22)
     place(s, D.t_split, impact(), 0.5)
     place(s, D.t_split + 2.1, pop(), 0.3)
+    # ---------------- E: bounces
+    E = v.E
+    place(s, s2.E_START - 0.1, whoosh(0.45), 0.3)
+    place(s, s2.E_LAUNCH, blip(800), 0.3)
+    for bl, gain, only_after in ((E.ba, 0.5, None), (E.bb, 0.4, E.t_apart)):
+        for (t, kind, i) in bl:
+            tg = s2.E_LAUNCH + t
+            if tg > s2.E_END or (only_after is not None and tg < only_after):
+                continue
+            if kind == 'peg':
+                place(s, tg, tok(midi(PEG_NOTES[i])), gain)
+            else:
+                place(s, tg, cushion_thud(0.8), gain * 0.6)
+    for (t, g, fac) in E.report:
+        if fac is not None:
+            place(s, s2.E_LAUNCH + t + 0.02, pop(), 0.25)
+    place(s, E.t_apart, impact(), 0.35)
+    # ---------------- F: coin
+    place(s, s2.F_START - 0.1, whoosh(0.45), 0.3)
+    place(s, s2.F_FLICK, coin_ping(), 0.45)
+    place(s, s2.F_FLICK + 0.03, coin_ping(), 0.35)
+    place(s, s2.F_FLICK + 0.1, whoosh(3.0, up=True), 0.08)
+    place(s, s2.F_LAND, coin_land(), 0.55)
+    place(s, s2.F_LAND + 0.04, coin_land(), 0.45)
+    place(s, s2.F_LAND + 0.2, impact(), 0.35)
+    for k, n in enumerate((79, 84, 88)):
+        place(s, s2.F_LAND + 0.25 + 0.06 * k, bell(midi(n), 1.2), 0.12)
+    # ---------------- G: smoke + weather
+    place(s, s2.G_START - 0.1, whoosh(0.8), 0.18)
+    place(s, 51.9, pop(), 0.2)
+    place(s, 54.0, pop(), 0.2)
+    place(s, s2.G_WEATHER - 0.1, whoosh(0.45), 0.25)
+    for k, n in enumerate((84, 86, 88, 76, 71, 67)):
+        place(s, s2.G_WEATHER + 0.25 + 0.28 * k, chime(midi(n)), 0.22)
+    # ---------------- H: contrast
+    Hs = v.Hs
+    place(s, 61.25, whoosh(0.45), 0.25)
+    place(s, s2.H_GO, whoosh(0.7, up=True), 0.25)
+    place(s, s2.H_GO, blip(800), 0.25)
+    for tl in Hs.land_t:
+        place(s, tl, thud(), 0.4)
+    for bl, gain in ((Hs.ba, 0.35), (Hs.bb, 0.3)):
+        for (t, kind, i) in bl:
+            tg = s2.H_GO + t
+            if tg < s2.H_END - 0.2:
+                place(s, tg, tok(midi(PEG_NOTES[i])) if kind == 'peg' else cushion_thud(0.6), gain)
+    place(s, 66.2, pop(), 0.25)
+    # ---------------- I: butterfly
+    place(s, s2.I_START - 0.1, whoosh(0.45), 0.25)
+    for k, t0 in enumerate(v.I.t_pop):
+        if k % 3 == 0:
+            place(s, t0, chime(midi(int(rng.choice([84, 86, 88, 91, 93, 96])))), 0.07)
+    place(s, 73.3, riser(2.5), 0.15)
+    place(s, 75.85, impact(), 0.45)
+    # ---------------- J: ending
+    place(s, s2.J_START, whoosh(0.6), 0.25)
+    place(s, 79.75, impact(), 0.5)
+    place(s, 79.75, bell(midi(84), 2.0), 0.2)
+    place(s, 80.75, bell(midi(91), 2.0), 0.2)
+    place(s, 82.6, pop(), 0.25)
     return s
 
 
@@ -235,56 +328,81 @@ CHORDS = [  # C  Am  F  G  (bright I-vi-IV-V)
 ]
 BPM = 108
 BEAT = 60 / BPM
+BAR = 4 * BEAT
 
 
-def build_music(t_split):
+def groove(m, t0, t1, level, drums=True, arp=True, bass_on=True, pad_on=True, density=2):
+    nbars = int(np.ceil((t1 - t0) / BAR))
+    for b in range(nbars):
+        root, notes = CHORDS[b % 4]
+        tb = t0 + b * BAR
+        if pad_on:
+            d = min(BAR + 0.3, t1 - tb + 0.3)
+            place(m, tb, pad([midi(n) for n in notes[:3]], d, attack=0.25, release=0.3), 0.45 * level)
+        for beat in range(4):
+            tbeat = tb + beat * BEAT
+            if tbeat >= t1:
+                break
+            if bass_on and beat in (0, 2):
+                place(m, tbeat, bass(midi(root), BEAT * 1.8), 0.32 * level)
+            if drums:
+                if beat in (0, 2):
+                    place(m, tbeat, kick(), 0.45 * level)
+                if beat in (1, 3):
+                    place(m, tbeat, clap(), 0.16 * level)
+                for h in range(2):
+                    place(m, tbeat + h * BEAT / 2, hat(), 0.07 * level)
+            if arp:
+                for k in range(density):
+                    tn = tbeat + k * BEAT / density
+                    if tn < t1:
+                        n = notes[(beat * density + k) % 4] + 12
+                        place(m, tn, pluck(midi(n), 0.5), 0.12 * level)
+
+
+def build_music(v):
     m = np.zeros(N)
-    bar = 4 * BEAT
-    # 0-2 s : suspense - soft pad + ticking
+    t_split = v.D.t_split
+    # ---------------- part 1
     place(m, 0.0, pad([midi(60), midi(67)], 2.3, attack=0.4, release=0.4), 0.5)
     for k in range(8):
         place(m, k * BEAT / 2, marimba(midi(79), 0.15), 0.08)
-    # helper to play a groove section
-    def groove(t0, t1, level, drums=True, arp=True, bass_on=True, pad_on=True, density=2):
-        nbars = int(np.ceil((t1 - t0) / bar))
-        for b in range(nbars):
-            root, notes = CHORDS[b % 4]
-            tb = t0 + b * bar
-            if pad_on:
-                place(m, tb, pad([midi(n) for n in notes[:3]], bar + 0.3, attack=0.25, release=0.3), 0.45 * level)
-            for beat in range(4):
-                tbeat = tb + beat * BEAT
-                if tbeat >= t1:
-                    break
-                if bass_on and beat in (0, 2):
-                    place(m, tbeat, bass(midi(root), BEAT * 1.8), 0.32 * level)
-                if drums:
-                    if beat in (0, 2):
-                        place(m, tbeat, kick(), 0.45 * level)
-                    if beat in (1, 3):
-                        place(m, tbeat, clap(), 0.16 * level)
-                    for h in range(2):
-                        place(m, tbeat + h * BEAT / 2, hat(), 0.07 * level)
-                if arp:
-                    for k in range(density):
-                        tn = tbeat + k * BEAT / density
-                        if tn < t1:
-                            n = notes[(beat * density + k) % 4] + 12
-                            place(m, tn, pluck(midi(n), 0.5), 0.12 * level)
-    # 2-8 s : the break - light groove (no kick, so ball clicks stay audible)
-    groove(sc.T_STRIKE, sc.A_END - 0.3, 0.75, drums=False, density=2)
+    groove(m, sc.T_STRIKE, sc.A_END - 0.3, 0.75, drums=False, density=2)
     for k in range(int((sc.A_END - 0.3 - sc.T_STRIKE) / (BEAT / 2))):
         place(m, sc.T_STRIKE + k * BEAT / 2, shaker(), 0.05)
-    # 8-11 s : reveal - only a held pad (space for the "0.001°" moment)
     place(m, 8.6, pad([midi(57), midi(64), midi(71)], 2.8, attack=0.2, release=0.9), 0.55)
-    # 11.2-14 s : title - full groove burst
-    groove(11.25, sc.C_END, 1.0, drums=True, density=4)
-    # 14-split : pendulum calm - gentle arp only
-    groove(sc.D_START + 0.2, t_split, 0.7, drums=False, bass_on=False, density=2)
-    # split -> end : full groove, fade out at the end
-    groove(t_split, sc.D_END, 1.0, drums=True, density=4)
+    groove(m, 11.25, sc.C_END, 1.0, drums=True, density=4)
+    groove(m, sc.D_START + 0.2, t_split, 0.7, drums=False, bass_on=False, density=2)
+    groove(m, t_split, s2.E_START, 1.0, drums=True, density=4)
+    # ---------------- E: question -> calm arp -> drums when the balls separate
+    place(m, s2.E_START, pad([midi(57), midi(64), midi(69)], 2.2, attack=0.2, release=0.6), 0.5)
+    groove(m, s2.E_LAUNCH, v.E.t_apart, 0.6, drums=False, bass_on=False, density=2)
+    groove(m, v.E.t_apart, s2.F_START, 0.95, drums=True, density=4)
+    # ---------------- F: ticking suspense, slow-motion float, groove after landing
+    for k in range(int((s2.F_FLICK - s2.F_START) / (BEAT / 2))):
+        place(m, s2.F_START + k * BEAT / 2, marimba(midi(79 if k % 2 else 84), 0.15), 0.08)
+    place(m, s2.F_FLICK, pad([midi(60), midi(67), midi(74), midi(79)], s2.F_LAND - s2.F_FLICK + 0.4,
+                             attack=0.8, release=0.5), 0.5)
+    groove(m, s2.F_LAND + 0.2, s2.G_START, 0.8, drums=True, density=2)
+    # ---------------- G: airy for the smoke, a little lift for the forecast
+    groove(m, s2.G_START, s2.G_WEATHER, 0.55, drums=False, bass_on=False, density=1)
+    groove(m, s2.G_WEATHER, s2.H_START, 0.7, drums=False, density=2)
+    for k in range(int((s2.H_START - s2.G_WEATHER) / (BEAT / 2))):
+        place(m, s2.G_WEATHER + k * BEAT / 2, shaker(), 0.05)
+    # ---------------- H: steady groove
+    groove(m, s2.H_START, s2.I_START, 0.85, drums=True, density=2)
+    # ---------------- I: soft -> build -> drop
+    place(m, s2.I_START, pad([midi(57), midi(64), midi(72)], 3.0, attack=0.4, release=0.6), 0.5)
+    groove(m, 73.3, 75.85, 0.75, drums=False, density=4)
+    groove(m, 75.85, s2.J_START, 1.0, drums=True, density=4)
+    # ---------------- J: resolve on a big C chord, gentle tail
+    place(m, 79.75, pad([midi(48), midi(60), midi(64), midi(67), midi(72)], s2.VIDEO_END - 79.75,
+                        attack=0.1, release=2.5), 0.75)
+    place(m, 79.75, bass(midi(36), 2.5), 0.4)
+    for k in range(int((s2.VIDEO_END - 81.0) / (BEAT / 2))):
+        place(m, 81.0 + k * BEAT / 2, pluck(midi([72, 76, 79, 84][k % 4]), 0.5), 0.07)
     fade = np.ones(N)
-    k0 = int((sc.D_END - 1.2) * SR)
+    k0 = int((s2.VIDEO_END - 2.0) * SR)
     fade[k0:] = np.linspace(1, 0, N - k0) ** 1.5
     return m * fade
 
@@ -305,13 +423,13 @@ def write_wav(path, x):
         w.writeframes(data.tobytes())
 
 
-def build(out_dir):
-    """Write the two soundtracks into out_dir and return (full_wav, sfx_wav)."""
-    sfx = build_sfx()
-    music = build_music(sc.SceneD().t_split)
+def build(out_dir, video):
+    """Write the two soundtracks into out_dir and return (with_music_wav, sfx_only_wav)."""
+    sfx = build_sfx(video)
+    music = build_music(video)
     sfx_n = sfx / np.max(np.abs(sfx))
     music_n = music / np.max(np.abs(music))
-    full, only_sfx = os.path.join(out_dir, 'part1_full.wav'), os.path.join(out_dir, 'part1_sfx.wav')
+    full, only_sfx = os.path.join(out_dir, 'full.wav'), os.path.join(out_dir, 'sfx.wav')
     write_wav(full, master(0.62 * music_n + 0.8 * sfx_n))
     write_wav(only_sfx, master(sfx_n) * 0.85)
     print('audio written')
@@ -319,5 +437,6 @@ def build(out_dir):
 
 
 if __name__ == '__main__':
+    from video import Video
     os.makedirs(f'{ROOT}/build', exist_ok=True)
-    build(f'{ROOT}/build')
+    build(f'{ROOT}/build', Video())
