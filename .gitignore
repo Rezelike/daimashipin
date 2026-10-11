@@ -1,5 +1,6 @@
 out/audio.wav
 __pycache__/
 .python-version
-butterfly_shorts/build/butterfly_v2/build/
+butterfly_shorts/build/
+butterfly_v2/build/
 butterfly_v2/assets/
