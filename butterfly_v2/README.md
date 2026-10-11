@@ -1,0 +1,51 @@
+# 蝴蝶效应 · 新风格试片（开场 12 秒）
+
+同一段开场，做了三种风格，用来选定全片的风格。竖屏 1080×1920 / 60fps。
+
+![三种风格对比](out/三种风格对比.png)
+
+从上到下依次是：纸张、纯白、深色。
+
+| 风格 | 有配乐 | 无配乐（只有音效） |
+|---|---|---|
+| 纸张 | [`开场_纸张_有配乐.mp4`](out/开场_纸张_有配乐.mp4) | [`开场_纸张_无配乐.mp4`](out/开场_纸张_无配乐.mp4) |
+| 纯白 | [`开场_纯白_有配乐.mp4`](out/开场_纯白_有配乐.mp4) | [`开场_纯白_无配乐.mp4`](out/开场_纯白_无配乐.mp4) |
+| 深色 | [`开场_深色_有配乐.mp4`](out/开场_深色_有配乐.mp4) | [`开场_深色_无配乐.mp4`](out/开场_深色_无配乐.mp4) |
+
+## 开场内容
+
+| 时间 | 画面 |
+|---|---|
+| 0–2s | 球桌线条一笔画出，球杆蓄力 |
+| 2–8s | 同一张桌上叠着两次开球：实心球是第一次，空心圈是第二次。前 1 秒完全重合，之后分开。虚线连着同一颗球在两次里的位置，底部实时显示最大偏差 |
+| 8–9s | 时间倒流回出杆瞬间 |
+| 9–10s | 镜头推近白球，两条瞄准线完全重合 |
+| 10–12s | 画面中出现 0.001°。随后把角度放大一万倍，两条线才分开 |
+
+两次开球的唯一区别，就是出杆角度相差 0.001°，其余物理条件完全相同（物理模拟见 `../butterfly_shorts/billiards.py`）。
+
+## 音乐
+
+- 钢琴：**Salamander Grand Piano V2**（Yamaha C5 录音），作者 Alexander Holm，[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)，样本来自 [Tonejs/audio](https://github.com/Tonejs/audio/tree/master/salamander)
+- 弦乐、大提琴：**FluidR3 GM** 音色库，作者 Frank Wen，[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/us/)，样本来自 [gleitz/midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts)
+- 两者都允许商用。发布视频时请在简介里注明来源，例如：「钢琴音色：Salamander Grand Piano（Alexander Holm, CC BY 3.0）；弦乐音色：FluidR3 GM（Frank Wen, CC BY 3.0）」
+- 编曲和音效由代码生成。碰撞声的时间点取自物理模拟中真实发生的碰撞
+
+## 自己生成
+
+```bash
+pip install -r requirements.txt
+python render.py                       # 三种风格 × 有/无配乐，共 6 个 mp4（约 2 分钟）
+python render.py --theme dark          # 只生成一种风格
+python render.py --stills 3.0 11.5     # 只导出关键帧
+```
+
+首次运行会自动下载约 4 MB 的乐器样本，缓存在 `assets/` 目录。宋体使用系统里的 Noto Serif CJK，没有的话会自动改用仓库里的黑体。
+
+| 文件 | 作用 |
+|---|---|
+| `theme.py` | 三种风格的配色、字体、背景纹理 |
+| `opening.py` | 开场画面与时间轴 |
+| `music.py` | 钢琴和弦乐编曲、音效、混响 |
+| `samples.py` | 下载并读取乐器样本 |
+| `render.py` | 渲染并输出 mp4 |
