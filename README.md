@@ -1,4 +1,11 @@
-# 代码视频：60 秒搞懂「防抖 Debounce」
+# 代码生成的科普视频
+
+- **[蝴蝶效应](butterfly/)**：混沌理论科普，带中文配音（[下载 mp4](butterfly/out/butterfly.mp4)）
+- 防抖 Debounce：编程讲解，见下方
+
+---
+
+# 60 秒搞懂「防抖 Debounce」
 
 用一个 Python 脚本自动生成 1 分钟代码讲解视频（1080p / 30fps / 带音效和字幕）。
 
