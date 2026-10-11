@@ -1,0 +1,4 @@
+numpy
+scipy
+skia-python
+imageio-ffmpeg
