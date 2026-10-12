@@ -1,6 +1,11 @@
 # 蝴蝶效应 · 全片（纸张风格，60 秒）
 
-成片：[`全片_纸张_有配乐.mp4`](out/全片_纸张_有配乐.mp4)。竖屏 1080×1920 / 60fps，60.4 秒，点开后右上角可以下载。
+成片有两个版本，内容、时长（60.4 秒）和配乐完全相同，点开后右上角可以下载：
+
+- 竖屏 9:16（1080×1920 / 60fps）：[`全片_纸张_有配乐.mp4`](out/全片_纸张_有配乐.mp4)，适合抖音、视频号、小红书
+- 横屏 16:9（1920×1080 / 60fps）：[`全片_纸张_横屏_有配乐.mp4`](out/全片_纸张_横屏_有配乐.mp4)，适合 B 站、YouTube、电脑播放
+
+横屏版的每段画面都重新排过：字幕在上，画面居中，底部一行放数据和图例。台球桌横过来放，开球改为朝右。
 
 | 时间 | 画面 | 文字 |
 |---|---|---|
@@ -27,7 +32,8 @@
 
 ```bash
 pip install -r requirements.txt
-python make_film.py                      # 生成全片（约 5 分钟）
+python make_film.py                      # 生成竖屏全片（约 5 分钟）
+python make_film.py --wide               # 生成横屏全片（约 5 分钟）
 python make_film.py --stills 26 36 50    # 导出指定时刻的关键帧
 python make_film.py --range 30 43        # 只渲染一段（无声），快速预览
 python make_film.py --audio-only         # 只生成配乐 wav
@@ -43,7 +49,8 @@ python make_film.py --audio-only         # 只生成配乐 wav
 | `weather_scene.py` | 30.4–42.4s 烟 → 云 → 台风 → 预报路径 |
 | `lorenz_scene.py` | 42.4–60.4s 洛伦兹吸引子 |
 | `lorenz.py` | 洛伦兹方程求解（天气段和吸引子段共用） |
-| `film_common.py` | 字幕、底部数据栏、图例（和开场的位置、字号完全一致） |
+| `opening_wide.py` | 横屏版开场：同一套模拟，球桌横放，文字换到横屏位置 |
+| `film_common.py` | 字幕、底部数据栏、图例的位置（竖屏和开场完全一致；横屏另有一套排版） |
 | `score.py` | 全片配乐和音效（开场部分和 `music.py` 完全相同） |
 | `make_film.py` | 渲染全片 |
 

@@ -26,6 +26,7 @@ S = 17.5                        # px per unit
 CENTER = (540.0, 1010.0)
 Z_MID = 25.0
 TAIL = 70                       # drawn points in the bright tail
+WIDE_SCALE = 0.85               # 16:9: the attractor (about +-440 design px tall) fills the picture height
 
 
 def lorenz_time(u):
@@ -113,14 +114,14 @@ class LorenzScene:
         scale = lerp(1.0, 0.94, turn) * lerp(0.96, 1.0, ease_out(u / 3.0))
         a_all = 255 * (1 - smooth((u - U_FADE[0]) / (U_FADE[1] - U_FADE[0])))
         tail_a = a_all * (1 - smooth((u - (U_DRAW[1] - 0.2)) / 0.8))
-        self.draw_runs(c, th, e, phi, scale, a_all, tail_a)
+        with fc.visual(c, CENTER, WIDE_SCALE):
+            self.draw_runs(c, th, e, phi, scale, a_all, tail_a)
         # text
-        fc.caption(c, th, '蝴蝶效应', u, U_TITLE, U_END1 - 0.3, y=200, size=84, spacing=0.4)
-        fc.caption(c, th, '世界遵守规则，', u, U_END1, LEN + 1, y=185)
-        fc.caption(c, th, '却拒绝被预测。', u, U_END2, LEN + 1, y=275)
+        fc.caption(c, th, '蝴蝶效应', u, U_TITLE, U_END1 - 0.3, line='title', size=84, spacing=0.4)
+        fc.caption(c, th, '世界遵守规则，', u, U_END1, LEN + 1, line=0)
+        fc.caption(c, th, '却拒绝被预测。', u, U_END2, LEN + 1, line=1)
         a_sub = 255 * min(smooth((u - 1.0) / 0.8), 1 - smooth((u - (U_TITLE + 2.4)) / 0.6))
-        if a_sub > 0:
-            th.text(c, '洛伦兹方程，起点只差 0.000127', 540, 1590, 32, th.soft, alpha=a_sub, spacing=0.3)
+        fc.sub(c, th, '洛伦兹方程，起点只差 0.000127', a_sub, 1590)
         a_hud = 255 * smooth((u - 0.8) / 0.5) * (1 - smooth((u - U_TURN[0]) / 0.6))
         g = float(self.gap[e])
         fc.hud(c, th, a_hud, '时间', f'{t:5.2f}', '最大偏差', f'{g:.6f}' if g < 0.01 else f'{g:7.3f}')

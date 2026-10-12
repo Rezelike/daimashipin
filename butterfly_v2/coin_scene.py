@@ -22,6 +22,7 @@ U_NOTE = 4.35                   # the 38 / 39 note appears
 CX, CY = 540, 930
 R = 250
 THICK = 26                      # rim thickness seen edge-on
+WIDE_VIEW = ((540, 1035), 0.88)  # 16:9: design point at the picture centre, and scale
 COPPER = (150, 96, 58)
 COPPER_DARK = (96, 58, 36)
 
@@ -147,19 +148,21 @@ class CoinScene:
         a = 255 * smooth((u - U_NOTE) / 0.6)
         if a <= 0:
             return
-        y1, y2 = 1505, 1570
+        if fc.LY.wide:                                  # to the right of the coin
+            (y1, y2), x, x_face = (410, 474), 1270, 1725
+        else:                                           # under the coin
+            (y1, y2), x, x_face = (1505, 1570), 300, 780
         for k, (y, spin, face) in enumerate(((y1, SPIN[0], '正面'), (y2, SPIN[1], '反面'))):
             ak = a * smooth((u - U_NOTE - 0.45 * k) / 0.6)
             if ak <= 0:
                 continue
-            x = 300
             if k == 0:
                 c.drawCircle(x, y, 10, paint(th.a, ak))
             else:
                 c.drawCircle(x, y, 11, paint(th.b, ak, stroke=2.2))
             th.text(c, f'每秒 {spin} 圈，翻 {spin * FLIGHT:g} 圈', x + 28, y, 32, th.soft, alpha=ak, align='left',
                     spacing=0.12)
-            th.text(c, face, 780, y, 34, th.a if k == 0 else th.b, alpha=ak, align='left', spacing=0.2)
+            th.text(c, face, x_face, y, 34, th.a if k == 0 else th.b, alpha=ak, align='left', spacing=0.2)
 
     # ------------------------------------------------------------ frame
     def draw(self, c, th, u):
@@ -170,19 +173,19 @@ class CoinScene:
         y = CY - 50 * math.sin(math.pi * (0.35 + 0.65 * (1 - (1 - k) ** 2.4)))      # near the top of the arc
         appear = ease_out((u - 0.05) / 0.6)
         z = lerp(0.94, 1.0, ease_out(u / 2.0)) * lerp(1.0, 1.035, ease_in_out((u - U_PLAY[1]) / 1.6))
-        c.save()
-        c.translate(CX, CY)
-        c.scale(z, z)
-        c.translate(-CX, -CY)
-        self.draw_shadow(c, th, CX, y, 255 * appear)
-        self.draw_coin(c, th, CX, y, ang, 255 * appear)
-        c.restore()
+        with fc.visual(c, *WIDE_VIEW):
+            c.save()
+            c.translate(CX, CY)
+            c.scale(z, z)
+            c.translate(-CX, -CY)
+            self.draw_shadow(c, th, CX, y, 255 * appear)
+            self.draw_coin(c, th, CX, y, ang, 255 * appear)
+            c.restore()
         # slow motion marker, then the freeze
         a_slow = 255 * smooth((u - 0.5) / 0.5) * (1 - smooth((u - (U_PLAY[1] - 0.4)) / 0.4))
-        if a_slow > 0:
-            th.text(c, '慢动作', 540, 1440, 30, th.soft, alpha=a_slow, spacing=0.5)
-        fc.caption(c, th, '你以为的随机，', u, U_CAP1, LEN + 1, y=185)
-        fc.caption(c, th, '只是算不清。', u, U_CAP2, LEN + 1, y=275)
+        fc.sub(c, th, '慢动作', a_slow, 1440, size=30, spacing=0.5)
+        fc.caption(c, th, '你以为的随机，', u, U_CAP1, LEN + 1, line=0)
+        fc.caption(c, th, '只是算不清。', u, U_CAP2, LEN + 1, line=1)
         a_hud = 255 * smooth((u - 0.6) / 0.5)
         fc.hud(c, th, a_hud, '时间', f'{tau_at(u):5.3f} s', '已翻', f'{n:5.2f} 圈')
         self.draw_note(c, th, u)

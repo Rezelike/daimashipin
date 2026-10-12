@@ -4,7 +4,10 @@ import os
 import numpy as np
 import skia
 
-W, H, FPS = 1080, 1920, 60
+# BUTTERFLY_FORMAT=wide renders 16:9 landscape (1920x1080); the default is 9:16 portrait.
+# Scenes are designed in portrait coordinates; film_common.Layout maps them onto a wide frame.
+FORMAT = 'wide' if os.environ.get('BUTTERFLY_FORMAT') == 'wide' else 'portrait'
+W, H, FPS = (1920, 1080, 60) if FORMAT == 'wide' else (1080, 1920, 60)
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_FONTS = os.path.join(os.path.dirname(HERE), 'fonts')
 CJK = '/usr/share/fonts/google-noto-cjk/'

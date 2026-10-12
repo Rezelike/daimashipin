@@ -43,6 +43,7 @@ GR = 590.0
 EARTH_KM = 6371.0
 LAT0, LON0 = 24.0, 128.0
 CYC = (16.0, 134.0)             # Philippine Sea
+WIDE_VIEW = ((540, 1000), 0.58)  # 16:9: incense bowl to smoke top, and later the whole globe, fit the height
 
 
 def project(lat, lon):
@@ -354,36 +355,36 @@ class WeatherScene:
         k, target, e = self.camera(u)
         # smoke, shrinking towards the anchor as the camera pulls back
         a_smoke = 255 * smooth(u / 0.4) * (1 - smooth((u - U_SMOKE_OUT[0]) / (U_SMOKE_OUT[1] - U_SMOKE_OUT[0])))
-        if a_smoke > 0:
-            s = k / K0
-            c.save()
-            c.translate(target[0], target[1])
-            c.scale(s, s)
-            c.translate(-ANCHOR[0], -ANCHOR[1])
-            self.draw_smoke(c, th, u, a_smoke)
-            c.restore()
-        # globe + typhoon + tracks, in world coordinates
         a_globe = 255 * smooth((u - U_GLOBE_IN[0]) / (U_GLOBE_IN[1] - U_GLOBE_IN[0]))
         a_cloud = 255 * smooth((u - U_CLOUD_IN[0]) / (U_CLOUD_IN[1] - U_CLOUD_IN[0]))
-        c.save()
-        c.translate(target[0], target[1])
-        c.scale(k, k)
-        c.translate(-self.cyc[0], -self.cyc[1])
-        self.draw_globe(c, th, a_globe, k)
-        c.restore()
-        self.draw_cyclone(c, th, u, a_cloud, k, target)
-        c.save()
-        c.translate(target[0], target[1])
-        c.scale(k, k)
-        c.translate(-self.cyc[0], -self.cyc[1])
-        self.draw_tracks(c, th, u, k)
-        c.restore()
+        with fc.visual(c, *WIDE_VIEW):
+            if a_smoke > 0:
+                s = k / K0
+                c.save()
+                c.translate(target[0], target[1])
+                c.scale(s, s)
+                c.translate(-ANCHOR[0], -ANCHOR[1])
+                self.draw_smoke(c, th, u, a_smoke)
+                c.restore()
+            # globe + typhoon + tracks, in world coordinates
+            c.save()
+            c.translate(target[0], target[1])
+            c.scale(k, k)
+            c.translate(-self.cyc[0], -self.cyc[1])
+            self.draw_globe(c, th, a_globe, k)
+            c.restore()
+            self.draw_cyclone(c, th, u, a_cloud, k, target)
+            c.save()
+            c.translate(target[0], target[1])
+            c.scale(k, k)
+            c.translate(-self.cyc[0], -self.cyc[1])
+            self.draw_tracks(c, th, u, k)
+            c.restore()
         # text
-        fc.caption(c, th, '天气也是如此。', u, U_CAP1, LEN + 1, y=185)
-        fc.caption(c, th, '超过两周，没人算得准。', u, U_CAP2, LEN + 1, y=275)
+        fc.caption(c, th, '天气也是如此。', u, U_CAP1, LEN + 1, line=0)
+        fc.caption(c, th, '超过两周，没人算得准。', u, U_CAP2, LEN + 1, line=1)
         a_t = 255 * smooth((u - (U_TRACK[0] - 0.2)) / 0.5)
-        if a_t > 0:
-            th.text(c, '两次计算，初始数据只差 0.000127', 540, 1668, 32, th.soft, alpha=a_t, spacing=0.3)
+        fc.sub(c, th, '两次计算，初始数据只差 0.000127', a_t, 1668)
         d = self.track_day(u)
         i = min(int(d / (self.days[1] - self.days[0])), len(self.km) - 1)
         fc.hud(c, th, a_t, '预报', f'第 {int(d):2d} 天', '两条路径相距', f'{self.km[i]:5.0f} km')

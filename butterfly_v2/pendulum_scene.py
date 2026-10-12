@@ -36,6 +36,7 @@ S = 195                         # px per metre (each arm is 1 m)
 PIVOT = np.array([540.0, 1000.0])
 REACH = 2 * pd.L * S
 TAIL = int(0.55 * RATE)
+WIDE_SCALE = 0.80               # 16:9: the dial (radius ~464 after the push-in) fills the picture height
 
 
 class Run:
@@ -170,20 +171,20 @@ class PendulumScene:
         s = self.sample(u)
         # a very slow push-in, so the still parts don't feel frozen
         z = lerp(1.0, 1.045, ease_in_out(u / LEN))
-        c.save()
-        c.translate(PIVOT[0], PIVOT[1])
-        c.scale(z, z)
-        c.translate(-PIVOT[0], -PIVOT[1])
-        self.draw_dial(c, th, u, 255)
-        self.draw_exposure(c, th, s, 255, develop=smooth((u - U_DEV[0]) / 1.0))
-        self.draw_rigs(c, th, u, s, 255 * (1 - smooth((u - U_DEV[0]) / (U_DEV[1] - U_DEV[0]))))
-        c.restore()
+        with fc.visual(c, PIVOT, WIDE_SCALE):
+            c.save()
+            c.translate(PIVOT[0], PIVOT[1])
+            c.scale(z, z)
+            c.translate(-PIVOT[0], -PIVOT[1])
+            self.draw_dial(c, th, u, 255)
+            self.draw_exposure(c, th, s, 255, develop=smooth((u - U_DEV[0]) / 1.0))
+            self.draw_rigs(c, th, u, s, 255 * (1 - smooth((u - U_DEV[0]) / (U_DEV[1] - U_DEV[0]))))
+            c.restore()
         # text
-        fc.caption(c, th, '起点相同。', u, U_FIRST, LEN + 1, y=185)
-        fc.caption(c, th, '终点无关。', u, U_SECOND, LEN + 1, y=275)
+        fc.caption(c, th, '起点相同。', u, U_FIRST, LEN + 1, line=0)
+        fc.caption(c, th, '终点无关。', u, U_SECOND, LEN + 1, line=1)
         a_sub = 255 * min(smooth((u - U_SUB[0]) / 0.8), 1 - smooth((u - (U_SUB[1] - 0.6)) / 0.6))
-        if a_sub > 0:
-            th.text(c, '两次放手，角度只差 0.001°', 540, 1590, 32, th.soft, alpha=a_sub, spacing=0.3)
+        fc.sub(c, th, '两次放手，角度只差 0.001°', a_sub, 1590)
         a_hud = 255 * smooth((u - 1.0) / 0.5) * (1 - smooth((u - U_DEV[0]) / 0.6))
         i = min(int(s), len(self.sep) - 1)
         fc.hud(c, th, a_hud, '时间', f'{s / RATE:5.2f} s', '最大偏差', fc.fmt_cm(float(self.sep[i])))

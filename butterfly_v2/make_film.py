@@ -1,6 +1,7 @@
 """Render the full film (paper theme by default).
 
-python make_film.py                         -> out/全片_纸张_有配乐.mp4
+python make_film.py                         -> out/全片_纸张_有配乐.mp4         (9:16, 1080x1920)
+python make_film.py --wide                  -> out/全片_纸张_横屏_有配乐.mp4    (16:9, 1920x1080)
 python make_film.py --audio-only            -> build/film_有配乐.wav (quick check of the score)
 python make_film.py --stills 14 18 22       -> out/preview/全片_<t>s.png (full size)
 python make_film.py --sheet 14 18 22 26     -> build/sheet.png (small contact sheet for quick checks)
@@ -9,13 +10,19 @@ python make_film.py --range 12 25           -> build/range.mp4 (silent, only tha
 import argparse
 import os
 import subprocess
+import sys
 import time
 
-import imageio_ffmpeg
-import skia
+if '--wide' in sys.argv:                      # must be set before theme.py is imported
+    os.environ['BUTTERFLY_FORMAT'] = 'wide'
 
-from film import Film
-from theme import THEMES, W, H, FPS
+import imageio_ffmpeg  # noqa: E402
+import skia  # noqa: E402
+
+from film import Film  # noqa: E402
+from theme import THEMES, W, H, FPS, FORMAT  # noqa: E402
+
+TAG = '_横屏' if FORMAT == 'wide' else ''
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT, BUILD = os.path.join(ROOT, 'out'), os.path.join(ROOT, 'build')
@@ -36,9 +43,9 @@ def encode(film, th, path, t_from, t_to):
         raise SystemExit('ffmpeg failed')
 
 
-def sheet(film, th, times, path, cell_w=270):
+def sheet(film, th, times, path, cell_w=270, cols=6):
     cell_h = cell_w * H // W
-    cols = min(len(times), 6)
+    cols = min(len(times), cols)
     rows = (len(times) + cols - 1) // cols
     big = skia.Surface(W, H)
     out = skia.Surface(cols * cell_w, rows * cell_h)
@@ -60,26 +67,28 @@ def main():
     ap.add_argument('--sheet', nargs='*', type=float)
     ap.add_argument('--sheet-out', default=os.path.join(BUILD, 'sheet.png'))
     ap.add_argument('--cell', type=int, default=270)
+    ap.add_argument('--cols', type=int, default=6)
     ap.add_argument('--range', nargs=2, type=float)
     ap.add_argument('--audio-only', action='store_true')
+    ap.add_argument('--wide', action='store_true', help='16:9 landscape (1920x1080)')
     args = ap.parse_args()
     t0 = time.time()
     th = THEMES[args.theme]
     film = Film()
     os.makedirs(BUILD, exist_ok=True)
     if args.sheet is not None:
-        sheet(film, th, args.sheet, args.sheet_out, args.cell)
+        sheet(film, th, args.sheet, args.sheet_out, args.cell, args.cols)
         return
     if args.stills is not None:
         os.makedirs(f'{OUT}/preview', exist_ok=True)
         surface = skia.Surface(W, H)
         for ts in args.stills:
             film.draw(surface.getCanvas(), th, ts)
-            surface.makeImageSnapshot().save(f'{OUT}/preview/全片_{ts:05.2f}s.png', skia.kPNG)
+            surface.makeImageSnapshot().save(f'{OUT}/preview/全片{TAG}_{ts:05.2f}s.png', skia.kPNG)
         print('stills done')
         return
     if args.range:
-        encode(film, th, os.path.join(BUILD, 'range.mp4'), *args.range)
+        encode(film, th, os.path.join(BUILD, f'range{TAG}.mp4'), *args.range)
         print('wrote build/range.mp4', f'in {time.time() - t0:.0f}s')
         return
 
@@ -88,11 +97,11 @@ def main():
         score.build(film, os.path.join(BUILD, 'film_有配乐.wav'), with_music=True)
         return
     os.makedirs(OUT, exist_ok=True)
-    silent = os.path.join(BUILD, f'film_{th.name}_silent.mp4')
+    silent = os.path.join(BUILD, f'film_{th.name}{TAG}_silent.mp4')
     encode(film, th, silent, 0, film.end)
     print(f'video encoded in {time.time() - t0:.0f}s', flush=True)
     wav = score.build(film, os.path.join(BUILD, 'film_有配乐.wav'), with_music=True)
-    path = os.path.join(OUT, f'全片_{th.label}_有配乐.mp4')
+    path = os.path.join(OUT, f'全片_{th.label}{TAG}_有配乐.mp4')
     subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-i', silent, '-i', wav, '-c:v', 'copy', '-c:a', 'aac',
                     '-b:a', '256k', '-shortest', '-movflags', '+faststart', path], check=True)
     print('wrote', path, flush=True)

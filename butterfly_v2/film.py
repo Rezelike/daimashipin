@@ -4,7 +4,13 @@ Every scene after the opening has:
     LEN                      its length in seconds
     draw(canvas, theme, u)   u = seconds since the scene started
 """
-from opening import Opening, END as OPEN_END
+from opening import END as OPEN_END
+from theme import FORMAT
+
+if FORMAT == 'wide':
+    from opening_wide import OpeningWide as Opening
+else:
+    from opening import Opening
 
 
 def scene_classes():
