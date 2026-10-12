@@ -1,6 +1,7 @@
 """Render the full film (paper theme by default).
 
-python make_film.py                         -> out/全片_纸张_有配乐.mp4, out/全片_纸张_无配乐.mp4
+python make_film.py                         -> out/全片_纸张_有配乐.mp4
+python make_film.py --audio-only            -> build/film_有配乐.wav (quick check of the score)
 python make_film.py --stills 14 18 22       -> out/preview/全片_<t>s.png (full size)
 python make_film.py --sheet 14 18 22 26     -> build/sheet.png (small contact sheet for quick checks)
 python make_film.py --range 12 25           -> build/range.mp4 (silent, only that time range)
@@ -60,6 +61,7 @@ def main():
     ap.add_argument('--sheet-out', default=os.path.join(BUILD, 'sheet.png'))
     ap.add_argument('--cell', type=int, default=270)
     ap.add_argument('--range', nargs=2, type=float)
+    ap.add_argument('--audio-only', action='store_true')
     args = ap.parse_args()
     t0 = time.time()
     th = THEMES[args.theme]
@@ -82,16 +84,18 @@ def main():
         return
 
     import score
+    if args.audio_only:
+        score.build(film, os.path.join(BUILD, 'film_有配乐.wav'), with_music=True)
+        return
     os.makedirs(OUT, exist_ok=True)
     silent = os.path.join(BUILD, f'film_{th.name}_silent.mp4')
     encode(film, th, silent, 0, film.end)
     print(f'video encoded in {time.time() - t0:.0f}s', flush=True)
-    for with_music, tag in ((True, '有配乐'), (False, '无配乐')):
-        wav = score.build(film, os.path.join(BUILD, f'film_{tag}.wav'), with_music=with_music)
-        path = os.path.join(OUT, f'全片_{th.label}_{tag}.mp4')
-        subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-i', silent, '-i', wav, '-c:v', 'copy', '-c:a', 'aac',
-                        '-b:a', '256k', '-shortest', '-movflags', '+faststart', path], check=True)
-        print('wrote', path, flush=True)
+    wav = score.build(film, os.path.join(BUILD, 'film_有配乐.wav'), with_music=True)
+    path = os.path.join(OUT, f'全片_{th.label}_有配乐.mp4')
+    subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-i', silent, '-i', wav, '-c:v', 'copy', '-c:a', 'aac',
+                    '-b:a', '256k', '-shortest', '-movflags', '+faststart', path], check=True)
+    print('wrote', path, flush=True)
     print(f'done in {time.time() - t0:.0f}s')
 
 
