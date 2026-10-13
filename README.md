@@ -1,5 +1,7 @@
 # 代码视频：60 秒搞懂「防抖 Debounce」
 
+> 另一期：[日常科普「临时物永久化理论」](linshiwu/)（竖屏 2分39秒，[直接下载](linshiwu/out/linshiwu_9x16.mp4)）
+
 用一个 Python 脚本自动生成 1 分钟代码讲解视频（1080p / 30fps / 带音效和字幕）。
 
 ![预览](out/debounce_preview.gif)
