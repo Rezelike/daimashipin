@@ -1,0 +1,6 @@
+numpy
+pillow
+skia-python
+soundfile
+imageio-ffmpeg
+sherpa-onnx
