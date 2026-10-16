@@ -1,4 +1,13 @@
-# 代码视频：60 秒搞懂「防抖 Debounce」
+# 代码视频
+
+| 作品 | 成片 | 说明 |
+|---|---|---|
+| 费曼学习法（3:51，横屏，中英双语，钢琴 + 小提琴原创配乐） | [`out/feynman.mp4`](out/feynman.mp4) · [封面](out/feynman_cover.png) | [`feynman/`](feynman/README.md) |
+| 60 秒搞懂「防抖 Debounce」 | [`out/debounce.mp4`](out/debounce.mp4) | 见下文 |
+
+---
+
+## 60 秒搞懂「防抖 Debounce」
 
 用一个 Python 脚本自动生成 1 分钟代码讲解视频（1080p / 30fps / 带音效和字幕）。
 
