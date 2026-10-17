@@ -421,6 +421,17 @@ def beat_pulse(t, beat):
     return math.exp(-ph * 5) * (1.0 if down else 0.55)
 
 
+def kick(t, beat, decay=7.0):
+    """'动': sharp hit on every beat (four-on-the-floor), strongest on the bar's downbeat"""
+    ph = (t % beat) / beat
+    return math.exp(-ph * decay) * (1.0 if int(t / beat) % 4 == 0 else 0.6)
+
+
+def hat(t, beat, decay=9.0):
+    """'次': off-beat hi-hat tick, halfway between beats"""
+    return math.exp(-(((t / beat) + 0.5) % 1.0) * decay)
+
+
 def bg_dark_tech(c, t, beat, energy=1.0):
     """grid + perspective floor scrolling one line per beat + drifting particles"""
     make_static()
@@ -447,10 +458,11 @@ def bg_dark_tech(c, t, beat, energy=1.0):
             continue
         aa = clamp((y - hy) / (by - hy)) * (0.35 + 0.35 * pulse)
         c.drawLine(0, y, W, y, paint(CYAN, aa, stroke=1.4, cap_round=False))
-    c.drawRect(skia.Rect.MakeXYWH(0, hy - 2, W, 4), paint(CYAN, 0.25 + 0.3 * pulse, blur=6))
+    hh = hat(t, beat) * energy
+    c.drawRect(skia.Rect.MakeXYWH(0, hy - 2, W, 4), paint(CYAN, 0.25 + 0.3 * pulse + 0.15 * hh, blur=6))
     c.drawCircle(vx, hy, 520, paint(BLUE, 0.05 + 0.07 * pulse, blur=160))
     ys = (_PY - t * _PV) % H
-    tw = 0.35 + 0.65 * (0.5 + 0.5 * np.sin(t * 2.2 + _PPH))
+    tw = 0.35 + 0.65 * (0.5 + 0.5 * np.sin(t * 2.2 + _PPH)) + 0.45 * hh
     for i in range(_NP):
         c.drawCircle(float(_PX[i]), float(ys[i]), float(_PS[i]), paint(_PC[i], float(tw[i]) * 0.55))
 

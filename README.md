@@ -2,6 +2,7 @@
 
 | 作品 | 成片 | 说明 |
 |---|---|---|
+| 艾宾浩斯遗忘曲线（1:16，无配乐，按 128 BPM 的节拍剪辑） | [`out/forgetting_curve.mp4`](out/forgetting_curve.mp4) · [封面](out/forgetting_curve_cover.png) · [发布文案](out/forgetting_curve_publish.txt) | [`episodes/forgetting_curve/`](episodes/forgetting_curve/episode.py) |
 | 费曼学习法 · 短版（1:12，新结构） | [`out/feynman_short.mp4`](out/feynman_short.mp4) · [无配乐版](out/feynman_short_nomusic.mp4) · [封面](out/feynman_short_cover.png) · [发布文案](out/feynman_short_publish.txt) | [`episodes/feynman_short/`](episodes/feynman_short/episode.py) |
 | 费曼学习法（3:51，横屏，中英双语，钢琴 + 小提琴原创配乐） | [`out/feynman.mp4`](out/feynman.mp4) · [封面](out/feynman_cover.png) | [`feynman/`](feynman/README.md) |
 | 60 秒搞懂「防抖 Debounce」 | [`out/debounce.mp4`](out/debounce.mp4) | 见下文 |

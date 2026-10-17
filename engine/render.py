@@ -52,9 +52,12 @@ class Episode:
     slug: str
     title: str
     scenes: list
-    bpm: int = 136
-    transpose: int = 0          # shift the whole score (e.g. +2 -> B minor) so episodes don't sound identical
+    bpm: int = 128              # beat grid; with music=False use the BPM of the song the user will add
+    music: bool = False         # False: silent video, user adds music in-app (default, user preference)
+    transpose: int = 0          # (music=True) shift the whole score so episodes don't sound identical
     tail: float = 1.5
+    cut: str = "punch"          # scene entry: "punch" (hard cut on the downbeat, zoom-in, flash) | "slide"
+    bounce: float = 0.010       # whole-frame zoom kick on every beat (DJ "beat zoom"); 0 = off
     progress_bar: bool = True
     glitch_cuts: bool = True
     background: Callable = K.bg_dark_tech
@@ -110,6 +113,9 @@ class Episode:
         rows.append(f"  total {self.total_bars} bars = {self.total_bars * self.bar:.1f}s (+{self.tail}s tail) @ {self.bpm} BPM")
         return "\n".join(rows)
 
+    def cut_times(self):
+        return [self.span(s.sid)[0] for s in self.scenes[1:]]
+
 
 class _S:
     pass
@@ -145,18 +151,38 @@ def render_frame(ep, c, surf, t, fi):
     sc, s0, s1 = ep.scene_at(t)
     lt = t - s0
     ep.background(c, t, ep.beat)
-    a_in = K.e_out(lt / 0.28)
     last = sc is ep.scenes[-1]
-    a_out = 1.0 if last else 1 - K.clamp((lt - (s1 - s0 - 0.22)) / 0.22)
+    if ep.cut == "punch":       # content is fully there ON the downbeat, zooms in over half a beat
+        a_in = K.e_out(lt / 0.06)
+        a_out = 1.0 if last else 1 - K.clamp((lt - (s1 - s0 - 0.07)) / 0.07)
+        zoom = K.lerp(1.07, 1.0, K.e_out(lt / (0.5 * ep.beat)))
+    else:
+        a_in = K.e_out(lt / 0.28)
+        a_out = 1.0 if last else 1 - K.clamp((lt - (s1 - s0 - 0.22)) / 0.22)
+        zoom = 1.0
     a = min(a_in, a_out)
     S = _S()
     S.t, S.B, S.dur, S.bars, S.gt, S.rng, S.beat = lt, lt / ep.beat, s1 - s0, sc.bars, t, rng, ep.beat
     c.saveLayerAlpha(None, int(255 * K.clamp(a)))
-    c.translate(0, (1 - a_in) * 18)
+    if ep.cut == "punch":
+        c.translate(W / 2, H / 2)
+        c.scale(zoom, zoom)
+        c.translate(-W / 2, -H / 2)
+    else:
+        c.translate(0, (1 - a_in) * 18)
     sc.fn(c, S)
     c.restore()
     if ep.progress_bar:
         draw_progress(c, ep, t)
+    if ep.bounce:
+        kz = 1 + ep.bounce * K.kick(t, ep.beat)
+        if kz > 1.0005:
+            snap = surf.makeImageSnapshot()
+            c.clear(skia.ColorBLACK)
+            c.drawImageRect(snap, skia.Rect.MakeXYWH(W / 2 * (1 - kz), H / 2 * (1 - kz), W * kz, H * kz),
+                            skia.SamplingOptions(skia.FilterMode.kLinear))
+    if ep.cut == "punch" and lt < 0.5 * ep.beat and t > 0.02:
+        c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H), K.paint("#FFFFFF", 0.16 * (1 - lt / (0.5 * ep.beat))))
     if ep.glitch_cuts and (0.05 < t and lt < 0.2 or t < 0.12):
         snap = surf.makeImageSnapshot()
         k = 1 - lt / 0.2 if t > 0.05 else 1 - t / 0.12
@@ -282,6 +308,26 @@ def mp4_sheet(path, out_png, duration, n=12):
                     "-vf", "tile=4x3", "-frames:v", "1", out_png], check=True)
 
 
+def rhythm_check(path, ep):
+    """From the FINAL file: which tempo the picture pulses at, and where the hard cuts are."""
+    raw = subprocess.run([ffmpeg(), "-v", "error", "-i", path, "-vf", "scale=96:54,format=gray", "-f", "rawvideo", "-"],
+                         capture_output=True).stdout
+    fr = np.frombuffer(raw, np.uint8).reshape(-1, 54, 96).astype(np.float32)
+    end = int(ep.span(ep.scenes[-1].sid)[0] * FPS)             # skip the end card + fade-out
+    win = int(round(ep.beat * FPS)) | 1                          # high-pass at ~1 beat: keeps the beat, drops scene-level changes
+    lum = fr.mean((1, 2))[:end]
+    x = (lum - np.convolve(lum, np.ones(win) / win, mode="same"))[win:-win]
+    t = (np.arange(len(x)) + win) / FPS
+    strength = lambda bpm: abs(np.mean(x * np.exp(-2j * np.pi * t * bpm / 60))) / (np.std(x) + 1e-9)
+    cands = np.arange(90, 181)
+    sc = np.array([strength(b) for b in cands])
+    d = np.abs(np.diff(fr, axis=0)).mean((1, 2))
+    n = len(ep.cut_times())
+    big = np.sort(np.argsort(-d)[:n] + 1) / FPS
+    hit = all(min(abs(b - c) for b in big) < 1.5 / FPS for c in ep.cut_times())
+    return int(cands[np.argmax(sc)]), float(sc.max() / np.median(sc)), hit, big
+
+
 def write_publish(ep):
     if not ep.publish:
         return None
@@ -293,6 +339,10 @@ def write_publish(ep):
             f.write(f"简介：\n{pub['desc']}\n\n")
         if pub.get("tags"):
             f.write("话题：" + " ".join("#" + t.lstrip("#") for t in pub["tags"]) + "\n")
+        if not ep.music:
+            f.write(f"\n配乐：视频本身无配乐，请自己加。画面按 {ep.bpm} BPM 的节拍剪辑（每拍有轻微放大，切镜头都在小节的第一拍）。\n")
+            f.write("对齐方法：把歌的一个重拍（「动」）对齐到视频第 0 秒；歌的 BPM 不同的话，告诉 Kiro 改 bpm 重新渲染（约 1 分钟）。\n")
+            f.write("切镜头时间点（秒）：" + "、".join(f"{t:.2f}" for t in ep.cut_times()) + "\n")
     return p
 
 
@@ -345,7 +395,7 @@ def run(ep):
         print(out)
         return
 
-    music = make_music(ep)
+    music = make_music(ep) if ep.music else None
     total = int(round(ep.duration * FPS))
     n = args.workers * 3
     bounds = [round(i * total / n) for i in range(n + 1)]
@@ -362,16 +412,21 @@ def run(ep):
     with open(lst, "w") as f:
         f.writelines(f"file '{j[3]}'\n" for j in jobs)
     out = os.path.join(OUT, f"{ep.slug}.mp4")
-    subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-i", music,
-                    "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
-                    "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest", "-movflags", "+faststart", out],
-                   check=True)
-    # silent-audio copy, for choosing music inside the Douyin / Xiaohongshu app
-    out_nm = os.path.join(OUT, f"{ep.slug}_nomusic.mp4")
-    subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst,
-                    "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-map", "0:v", "-map", "1:a",
-                    "-c:v", "copy", "-c:a", "aac", "-b:a", "64k", "-shortest", "-movflags", "+faststart", out_nm],
-                   check=True)
+    silent = ["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-map", "0:v", "-map", "1:a",
+              "-c:v", "copy", "-c:a", "aac", "-b:a", "64k", "-shortest", "-movflags", "+faststart"]
+    out_nm = None
+    if music:
+        subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-i", music,
+                        "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
+                        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest", "-movflags", "+faststart", out],
+                       check=True)
+        # silent-audio copy, for choosing music inside the Douyin / Xiaohongshu app
+        out_nm = os.path.join(OUT, f"{ep.slug}_nomusic.mp4")
+        subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst] + silent + [out_nm],
+                       check=True)
+    else:   # user adds their own music: one silent video (a silent AAC track keeps editors / apps happy)
+        subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst] + silent + [out],
+                       check=True)
     for j in jobs:
         os.remove(j[3])
     pub = write_publish(ep)
@@ -380,10 +435,19 @@ def run(ep):
     sheet = os.path.join(ep.build, "mp4_sheet.png")
     mp4_sheet(out, sheet, ep.duration)
     print("\n==== VERIFY ====")
-    print(f"file      {out}  ({os.path.getsize(out) / 1e6:.1f} MB)")
-    print(f"no-music  {out_nm}  ({os.path.getsize(out_nm) / 1e6:.1f} MB)")
+    print(f"file      {out}  ({os.path.getsize(out) / 1e6:.1f} MB){'' if music else '  [silent: user adds music]'}")
+    if out_nm:
+        print(f"no-music  {out_nm}  ({os.path.getsize(out_nm) / 1e6:.1f} MB)")
     for k, v in info.items():
+        if k in ("lufs", "true_peak") and not music:
+            continue
         print(f"{k:9s} {v}")
+    bad = [round(t / ep.bar, 3) for t in ep.cut_times() if abs(t / ep.bar - round(t / ep.bar)) > 1e-6]
+    print(f"beatgrid  {ep.bpm} BPM, bar {ep.bar:.4f}s, cuts on bar lines: {'OK' if not bad else bad}; "
+          f"cut times: {', '.join(f'{t:.2f}' for t in ep.cut_times())}")
+    bpm, ratio, hit, big = rhythm_check(out, ep)
+    print(f"rhythm    picture pulses at {bpm} BPM (target {ep.bpm}, {ratio:.1f}x stronger than other tempos); "
+          f"hardest frame changes at {', '.join(f'{v:.2f}' for v in big)} -> {'= scene cuts OK' if hit else 'MISMATCH'}")
     print(K.lint_report({"small": small, "missing": missing, "edge": edge}))
     if pub:
         print(f"publish   {pub}")

@@ -7,6 +7,7 @@ Append a row after every episode (ask the user for 总览 + 流量分析 screens
 | 蝴蝶效应 Butterfly effect | 2026-10-12 | ~1:03 | beige minimal; AI-made piano+strings | 950 | 24 | 1 | 2.53% | 0.11% | 36.3% | **45.9%** | 13 s | **9.07%** | 98.1% |
 | 临时物永久化理论 | 2026-10-14 | ~2:20 | 16:9, piano+strings | 527 | 11 | 4 | 2.27% | 0.76% | 48.0% | 18.8% | 5 s | 1.11% | 97.6% |
 | 费曼学习法 Feynman (long) | 2026-10-17 | 3:51 | dark-tech; user replaced score with 《清明上河图》DJ版 | **1.1万** | 401 | 267 | **3.61%** | **2.39%** | 39.1% | 27.5% | 9 s | 0.39% | 99.1% |
+| 艾宾浩斯遗忘曲线 Forgetting curve | (not posted yet) | 1:16 | dark-tech, new short structure, silent, cut to 128 BPM for the user's DJ track | | | | | | | | | | |
 
 Extra facts:
 - Feynman: cover CTR 14.29%, shares 16, comments 2, got 3793 platform "流量激励". Plays came in one burst the morning after posting, then stopped.
@@ -20,8 +21,8 @@ Extra facts:
    Practical, self-improvement, "use it on yourself" topics > pure science spectacle.
 2. **Length / payoff timing capped the reach.** Avg watch 9 s on a 3:51 video, first real step at 0:56.
    -> 60-75 s, the core answer + overview must be on screen within 10 s, examples inside each step.
-3. **Music did not measurably matter.** No music-page traffic; Feynman's retention was not better despite the trending DJ track.
-   Keep the original piano+violin score; also deliver a silent copy so the user can pick any in-app sound.
+3. **Music did not measurably matter for reach** (no music-page traffic). User preference since 2026-10-17:
+   deliver **silent** videos, the user adds a four-on-the-floor DJ track ("动次打次") and wants the picture cut to its beat.
 4. **The hook's 2 s bounce was similar across styles** (36-48%). Relatable pain-point questions are fine; don't over-invest there.
 5. Keep: dark-tech style (best result so far), bilingual, summary card + "收藏" prompt at the end (protects the save rate).
 
