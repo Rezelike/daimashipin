@@ -27,8 +27,12 @@ if __name__ == "__main__":
     run(EP)
 ```
 - Episode fields: `bpm` (beat grid = the song's BPM; 128: beat 0.469 s, bar 1.875 s, 40 bars = 75 s),
-  `music` (False = silent file, default), `cut` ("punch" default | "slide"), `bounce` (frame kick per beat,
-  0.010 default), `tail`, `progress_bar`, `glitch_cuts`, `cover`, `publish`; music only: `transpose`, `score`.
+  `music` (False = silent file, default), `cut` ("hard" default | "slide" | "punch" = zoom-in, shakes),
+  `bounce` (frame kick per beat, 0 default; >0 shakes - the user rejected it), `flash` (0), `pulse`
+  (background brightness pulse, 0.6), `glitch_cuts` (False), `tail`, `progress_bar`, `cover`, `publish`;
+  music only: `transpose`, `score`.
+- A scene fn may declare `fn.static_region = (x0, y0, x1, y1)` + `fn.static_after = beats`: pixels there
+  must stay still; VERIFY's `shake` line measures them (step headers and the summary title do this).
 - Inside a scene function `fn(c, S)`: `S.B` = local beat (use it for all timing; put events on integers),
   `S.t` local seconds, `S.bars`, `S.rng` (per-frame RNG), `S.beat`; in a step `visual`, `S.vb` = beat
   the card appears (8 with one point line): time the visual's events from it (`S.vb + 2*i` = half bars).
@@ -72,8 +76,9 @@ $V episodes/<slug>/episode.py --music        # music only
 $V episodes/<slug>/episode.py --cover        # out/<slug>_cover.png
 $V episodes/<slug>/episode.py                # out/<slug>.mp4 (silent), out/<slug>_publish.txt + VERIFY
 ```
-Full render of 75 s takes ~1 min on 8 cores. VERIFY includes `beatgrid` (cuts on bar lines) and
-`rhythm` (pulse tempo + hardest frame changes measured from the final MP4).
+Full render of 75 s takes ~1 min on 8 cores. VERIFY includes `beatgrid` (cuts on bar lines), `rhythm`
+(share of visual events landing on a beat + strength of every cut) and `shake` (still areas on vs
+between beats), all measured from the final MP4.
 Custom visual helpers worth copying from `episodes/forgetting_curve/episode.py`: `smooth()` (Catmull-Rom
 through data points), `partial_path()` (curve that arrives at each point ON a beat), `burst()` (ring
 explosion on a landing beat), `axes()` (0-100% grid). The long Feynman video (`feynman/`) is the reference for richer

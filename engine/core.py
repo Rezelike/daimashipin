@@ -445,7 +445,7 @@ def bg_dark_tech(c, t, beat, energy=1.0):
         c.drawLine(0, float(y), W, float(y), g)
     hy, by, vx = 700, H, W / 2
     c.drawRect(skia.Rect.MakeXYWH(0, hy, W, H - hy), paint("#030712", 0.55))
-    fl = paint(CYAN, 0.10 + 0.12 * pulse, stroke=1.3, cap_round=False)
+    fl = paint(CYAN, 0.12 + 0.12 * pulse, stroke=1.3, cap_round=False)
     for k in range(-16, 17):
         c.drawLine(vx + k * 34, hy, vx + k * 260, by, fl)
     ph = (t / beat) % 1.0
@@ -456,7 +456,7 @@ def bg_dark_tech(c, t, beat, energy=1.0):
         y = hy + (by - hy) * (0.9 / z)
         if y > by:
             continue
-        aa = clamp((y - hy) / (by - hy)) * (0.35 + 0.35 * pulse)
+        aa = clamp((y - hy) / (by - hy)) * (0.42 + 0.35 * pulse)
         c.drawLine(0, y, W, y, paint(CYAN, aa, stroke=1.4, cap_round=False))
     hh = hat(t, beat) * energy
     c.drawRect(skia.Rect.MakeXYWH(0, hy - 2, W, 4), paint(CYAN, 0.25 + 0.3 * pulse + 0.15 * hh, blur=6))

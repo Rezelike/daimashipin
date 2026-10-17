@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Vibe knowledge video
@@ -38,8 +38,8 @@ Latest worked example: `episodes/forgetting_curve/episode.py` (custom chart / sa
    Fix everything the lint prints (small text, missing glyphs, text off-screen or overflowing a card).
    Max 2 preview rounds.
 6. **Render** — `$V episodes/<slug>/episode.py` (~1 min). Read the VERIFY block: duration, 1920x1080,
-   30 fps, size < 95 MB, lint OK, `beatgrid ... OK`, and `rhythm` must show the target BPM and
-   "= scene cuts OK". View `build/mp4_sheet.png` once, then `--cover` (view once).
+   30 fps, size < 95 MB, lint OK, `beatgrid ... OK`, `rhythm ... OK` and `shake ... stable`.
+   View `build/mp4_sheet.png` once, then `--cover` (view once).
 7. **Deliver** — new branch, commit `episodes/<slug>/episode.py` + `out/<slug>.mp4`, `_cover.png`,
    `_publish.txt`; open a PR with `gh api repos/Rezelike/daimashipin/pulls ...` (`gh pr create` does
    not work here). In chat: the MP4 is silent on purpose, the BPM it is cut to, the cut times, how to
@@ -58,14 +58,15 @@ Latest worked example: `episodes/forgetting_curve/episode.py` (custom chart / sa
 - One idea per screen; one highlighted `[keyword]` per line.
 
 ## Rhythm rules (the user's music is a four-on-the-floor DJ beat)
-- Everything lives on the beat grid of `Episode(bpm=...)`: scenes are **4 or 8 bars** (DJ phrases),
-  cuts land on bar downbeats, every element appears ON a beat (use integer `S.B` values), new
-  content every 1-2 bars, data points / nodes land one per half bar.
-- Engine defaults do the rest: hard "punch" cut (zoom 1.07→1 + white flash) on each downbeat,
-  whole-frame kick on every beat (`bounce=0.010`, "动"), off-beat flicker in the background ("次").
+- **The picture must never shake** (user feedback, 2026-10-17: "画面不要一抖一抖的"). Nothing moves the
+  whole frame on the beat: keep the defaults `bounce=0`, `cut="hard"`, `glitch_cuts=False`; no per-beat
+  scale pulsing of text / icons, no jitter, no repeated pops on the same element.
+- The beat is shown only by **when** things happen: scenes are **4 or 8 bars** (DJ phrases), clean cuts
+  exactly on bar downbeats, every element appears ON a beat (integer `S.B`), new content every 1-2 bars,
+  data points / nodes land one per half bar; plus a soft background brightness pulse (`pulse=0.6`).
 - Unknown tempo → 128 BPM, say so, and offer to re-render once the user tells you the song's BPM.
-- Verify by numbers, not by eye: VERIFY's `rhythm` line measures the pulse tempo and cut positions
-  in the final file.
+- Verify by numbers, not by eye: VERIFY `rhythm` (share of visual events on the beat, should be ≥ 80%)
+  and `shake` (still areas, must be < 2.5; ≈1.4 is normal, a beat-zoom measures ~30).
 
 ## Visual / readability rules (enforced by the lint)
 Landscape video sits in ~1/3 of a phone screen in the feed:

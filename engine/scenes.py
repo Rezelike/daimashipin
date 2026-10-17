@@ -35,14 +35,9 @@ def hook(question, en, pains=(), accent=PINK):
         B = S.B
         qs = min(124, 1600 * 100 / max(1, K.rich_width(question, 100)))
         qw = K.rich_width(question, qs)
-        s = pop(B, 0, 0.6, max(1.0, min(1.5, 1780 / max(1, qw * 1.07))), 1.4)   # slam-in; stays on screen incl. cut zoom x1.07
-        hit = (B % 4) < 0.3          # chromatic split on every bar downbeat
-        jit = S.rng.uniform(-1, 1) * 12 if hit else 0
+        s = pop(B, 0, 0.5, max(1.0, min(1.25, 1780 / max(1, qw * 1.07))), 0.8)   # one smooth zoom-in, no jitter
         with at(c, W / 2, 300, s):
-            if hit:
-                for dx, col in [(-6 + jit, RED), (6 - jit, CYAN)]:
-                    rich(c, question, dx, 0, qs, "black", col, col, 0.55, glow_accent=False)
-            rich(c, question, 0, 0, qs, "black", WHITE, accent, 1.0)
+            rich(c, question, 0, 0, qs, "black", WHITE, accent, ap(B, 0, 0.3))
         _typed(c, en, B, 1.0, W / 2, 425, 42, CYAN, cps=16)
         n = len(pains)
         if n:
@@ -116,7 +111,7 @@ def step(num, cn, en, points, example=None, visual=None, color=None, splash_beat
         k = e_inout((B - splash_beats) / 0.5)
         if k < 1:
             a = ap(B, 0, 0.3) * (1 - k)
-            with at(c, W / 2, 440, lerp(1.25, 1.0, e_back(B / 0.7)) * (1 + 0.03 * K.kick(S.t, S.beat))):
+            with at(c, W / 2, 440, lerp(1.25, 1.0, e_back(B / 0.7))):
                 text(c, "STEP", 0, -200, 44, "mono", col, a, ls=14)
                 text(c, f"{num:02d}", 0, -50, 220, "mono", col, a * 0.9, stroke=3.5, glow=col, gsig=22)
                 text(c, cn, 0, 130, 96, "black", WHITE, a, glow=col, gsig=14, glow_a=0.6)
@@ -157,6 +152,8 @@ def step(num, cn, en, points, example=None, visual=None, color=None, splash_beat
                         if len_:
                             text(c, len_, 202, yy + 52, 34, "monor", DIM, kj, "l")
                     yy += 118
+    fn.static_region = (140, 100, 700, 220)     # docked header: must not move once docked (shake check)
+    fn.static_after = splash_beats + 1.5
     return fn
 
 
@@ -186,6 +183,8 @@ def summary(title, en, items, accent=CYAN, hint=("截图保存", "Screenshot")):
             kh = ap(B, 2 + n * 2, 0.5)
             pill(c, W / 2, 955, 460, 70, AMBER, kh * (0.8 + 0.2 * K.beat_pulse(S.t, S.beat)))
             text(c, f"{hint[0]} · {hint[1]}", W / 2, 955, 36, "bold", WHITE, kh)
+    fn.static_region = (460, 95, 1460, 245)     # title
+    fn.static_after = 1.5
     return fn
 
 
@@ -208,7 +207,7 @@ def cta(question, q_en, end_title, end_en, next_teaser=None):
                 kk = ap(B, b0, 0.4) * out
                 if kk <= 0:
                     continue
-                with at(c, W / 2 + (i - 1) * 400, 600, pop(B, b0, 0.7, 0.4, 2.4) * (1 + 0.05 * K.beat_pulse(S.t, S.beat))):
+                with at(c, W / 2 + (i - 1) * 400, 600, pop(B, b0, 0.7, 0.4, 2.4)):
                     c.drawCircle(0, -20, 90, K.paint(col, 0.14 * kk))
                     c.drawCircle(0, -20, 90, K.paint(col, 0.9 * kk, stroke=3))
                     c.drawCircle(0, -20, 104, K.paint(col, 0.35 * kk, blur=18))

@@ -23,6 +23,8 @@ Extra facts:
    -> 60-75 s, the core answer + overview must be on screen within 10 s, examples inside each step.
 3. **Music did not measurably matter for reach** (no music-page traffic). User preference since 2026-10-17:
    deliver **silent** videos, the user adds a four-on-the-floor DJ track ("动次打次") and wants the picture cut to its beat.
+   Feedback on the first beat-cut version: "画面不要一抖一抖的" -> no frame bounce / zoom cuts / glitch; rhythm only through
+   timing (elements on beats, cuts on downbeats). Measured: still areas 29x more change on beats with the beat-zoom, 1.4x without.
 4. **The hook's 2 s bounce was similar across styles** (36-48%). Relatable pain-point questions are fine; don't over-invest there.
 5. Keep: dark-tech style (best result so far), bilingual, summary card + "收藏" prompt at the end (protects the save rate).
 

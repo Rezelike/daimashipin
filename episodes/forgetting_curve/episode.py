@@ -133,7 +133,7 @@ def forgetting_curve(c, S, x, y, w, h, a):
     i = max(0, n - 1)
     text(c, "还剩", cx, 580, 44, "bold", DIM, a)
     if n:
-        s = lerp(1.25, 1.0, e_out((B - lands[i]) / 0.5))
+        s = lerp(1.08, 1.0, e_out((B - lands[i]) / 0.5))       # gentle: no jumping
         with at(c, cx, 680, s):
             text(c, f"{EBB[i][1]:.0f}%", 0, 0, 120, "mono", PINK if i else WHITE, a, glow=PINK, gsig=14)
         text(c, EBB[i][0] if i == 0 else f"{EBB[i][0]}后", cx, 790, 44, "bold", WHITE, a)
@@ -243,7 +243,7 @@ def schedule(c, S, x, y, w, h, a):
     for i, (lbl, sub) in enumerate(NODES):
         on = B >= lands[i]
         if on:
-            s = lerp(1.35, 1.0, e_back((B - lands[i]) / 0.6))
+            s = lerp(1.15, 1.0, e_out((B - lands[i]) / 0.6))
             with at(c, xs[i], ny, s):
                 badge(c, "check", 0, 0, 26, AMBER, a)
             burst(c, xs[i], ny, B, lands[i], AMBER, a, 26, 70)

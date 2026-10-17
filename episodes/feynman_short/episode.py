@@ -55,6 +55,7 @@ EP = Episode(
     music=True,       # this one ships with the engine's original piano + violin score
     cut="slide",
     bounce=0.0,
+    glitch_cuts=True,   # the style this one was rendered with
     scenes=[
         Scene("hook", 4, SC.hook("为什么你[学了就忘]？", "Why do you forget what you learn?", pains=[
             ("book-open", "书看了 3 遍", "合上全忘", "Read 3x, forgot all"),

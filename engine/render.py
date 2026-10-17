@@ -56,10 +56,14 @@ class Episode:
     music: bool = False         # False: silent video, user adds music in-app (default, user preference)
     transpose: int = 0          # (music=True) shift the whole score so episodes don't sound identical
     tail: float = 1.5
-    cut: str = "punch"          # scene entry: "punch" (hard cut on the downbeat, zoom-in, flash) | "slide"
-    bounce: float = 0.010       # whole-frame zoom kick on every beat (DJ "beat zoom"); 0 = off
+    # Stable picture by default (user: no shaking). The beat shows through elements appearing ON beats
+    # and the background's brightness pulse - nothing moves the whole frame.
+    cut: str = "hard"           # scene entry: "hard" (clean cut on the downbeat) | "slide" | "punch" (zoom-in, shakes)
+    bounce: float = 0.0         # whole-frame zoom kick on every beat; looks like shaking -> keep 0
+    flash: float = 0.0          # white flash on cuts (0..0.3)
+    pulse: float = 0.6          # background brightness pulse on the beat (floor grid / particles), 0 = none
     progress_bar: bool = True
-    glitch_cuts: bool = True
+    glitch_cuts: bool = False   # RGB slice glitch on cuts (also reads as shaking)
     background: Callable = K.bg_dark_tech
     cover: Optional[Callable] = None     # cover(c) draws a 1920x1080 cover
     publish: dict = field(default_factory=dict)   # {"title":..., "desc":..., "tags": [...]}
@@ -150,9 +154,12 @@ def render_frame(ep, c, surf, t, fi):
     K.FRAME_CARDS.clear()
     sc, s0, s1 = ep.scene_at(t)
     lt = t - s0
-    ep.background(c, t, ep.beat)
+    ep.background(c, t, ep.beat, ep.pulse)
     last = sc is ep.scenes[-1]
-    if ep.cut == "punch":       # content is fully there ON the downbeat, zooms in over half a beat
+    if ep.cut == "hard":                # instant cut exactly on the downbeat; elements animate in on their beats
+        a_in = a_out = 1.0
+        zoom = 1.0
+    elif ep.cut == "punch":
         a_in = K.e_out(lt / 0.06)
         a_out = 1.0 if last else 1 - K.clamp((lt - (s1 - s0 - 0.07)) / 0.07)
         zoom = K.lerp(1.07, 1.0, K.e_out(lt / (0.5 * ep.beat)))
@@ -181,8 +188,9 @@ def render_frame(ep, c, surf, t, fi):
             c.clear(skia.ColorBLACK)
             c.drawImageRect(snap, skia.Rect.MakeXYWH(W / 2 * (1 - kz), H / 2 * (1 - kz), W * kz, H * kz),
                             skia.SamplingOptions(skia.FilterMode.kLinear))
-    if ep.cut == "punch" and lt < 0.5 * ep.beat and t > 0.02:
-        c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H), K.paint("#FFFFFF", 0.16 * (1 - lt / (0.5 * ep.beat))))
+    flash = 0.16 if ep.cut == "punch" else ep.flash
+    if flash and lt < 0.5 * ep.beat and t > 0.02:
+        c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H), K.paint("#FFFFFF", flash * (1 - lt / (0.5 * ep.beat))))
     if ep.glitch_cuts and (0.05 < t and lt < 0.2 or t < 0.12):
         snap = surf.makeImageSnapshot()
         k = 1 - lt / 0.2 if t > 0.05 else 1 - t / 0.12
@@ -309,23 +317,45 @@ def mp4_sheet(path, out_png, duration, n=12):
 
 
 def rhythm_check(path, ep):
-    """From the FINAL file: which tempo the picture pulses at, and where the hard cuts are."""
-    raw = subprocess.run([ffmpeg(), "-v", "error", "-i", path, "-vf", "scale=96:54,format=gray", "-f", "rawvideo", "-"],
+    """Measured on the FINAL file:
+    - events: frames where the picture changes noticeably (local peaks of frame difference); share that land
+      within 1.5 frames of a beat of ep.bpm, vs the best of other tempos (chance level ~10-30%)
+    - cuts: change at each scene cut relative to the median frame change
+    - shake: regions declared still by the scene factories (docked step headers, summary title): how much more
+      they change ON the beat than between beats (1 = perfectly still; a beat-zoom gives ~30)"""
+    raw = subprocess.run([ffmpeg(), "-v", "error", "-i", path, "-vf", "scale=192:108,format=gray", "-f", "rawvideo", "-"],
                          capture_output=True).stdout
-    fr = np.frombuffer(raw, np.uint8).reshape(-1, 54, 96).astype(np.float32)
+    fr = np.frombuffer(raw, np.uint8).reshape(-1, 108, 192).astype(np.float32)     # 1 cell = 10x10 px
     end = int(ep.span(ep.scenes[-1].sid)[0] * FPS)             # skip the end card + fade-out
-    win = int(round(ep.beat * FPS)) | 1                          # high-pass at ~1 beat: keeps the beat, drops scene-level changes
-    lum = fr.mean((1, 2))[:end]
-    x = (lum - np.convolve(lum, np.ones(win) / win, mode="same"))[win:-win]
-    t = (np.arange(len(x)) + win) / FPS
-    strength = lambda bpm: abs(np.mean(x * np.exp(-2j * np.pi * t * bpm / 60))) / (np.std(x) + 1e-9)
-    cands = np.arange(90, 181)
-    sc = np.array([strength(b) for b in cands])
-    d = np.abs(np.diff(fr, axis=0)).mean((1, 2))
-    n = len(ep.cut_times())
-    big = np.sort(np.argsort(-d)[:n] + 1) / FPS
-    hit = all(min(abs(b - c) for b in big) < 1.5 / FPS for c in ep.cut_times())
-    return int(cands[np.argmax(sc)]), float(sc.max() / np.median(sc)), hit, big
+    d = np.abs(np.diff(fr, axis=0)).mean((1, 2))                # d[i] = change from frame i to i+1
+    dd = d[:end]
+    thr = np.median(dd) * 3
+    ev = np.array([i + 1 for i in range(3, len(dd) - 3) if dd[i] > thr and dd[i] == dd[i - 3:i + 4].max()])
+
+    def on_grid(bpm):
+        bf = 60 / bpm * FPS
+        return float(np.mean(np.abs(((ev / bf + 0.5) % 1.0) - 0.5) * bf <= 1.5)) if len(ev) else 0.0
+
+    frac = on_grid(ep.bpm)
+    other = max(on_grid(b) for b in range(90, 181) if abs(b - ep.bpm) >= 6 and abs(b - ep.bpm / 2) >= 3
+                and abs(b - ep.bpm * 2) >= 6)
+    med = float(np.median(dd)) + 1e-6
+    cut_ratio = [float(d[max(0, int(round(ct * FPS)) - 2): int(round(ct * FPS)) + 1].max() / med) for ct in ep.cut_times()]
+    tt = np.arange(1, len(fr)) / FPS
+    ph = (tt / ep.beat) % 1.0
+    on_sum, off_sum = [], []
+    for sc_ in ep.scenes:
+        reg = getattr(sc_.fn, "static_region", None)
+        if not reg:
+            continue
+        s0, s1 = ep.span(sc_.sid)
+        m = (tt > s0 + sc_.fn.static_after * ep.beat) & (tt < s1 - 3.5 / FPS)
+        x0, y0, x1, y1 = (int(v / 10) for v in reg)
+        rd = np.abs(np.diff(fr[:, y0:y1, x0:x1], axis=0)).mean((1, 2))
+        on_sum += list(rd[m & (ph < 0.15)])
+        off_sum += list(rd[m & (ph > 0.35) & (ph < 0.9)])
+    shake = float(np.mean(on_sum) / max(0.02, np.mean(off_sum))) if on_sum and off_sum else None
+    return dict(events=len(ev), on_beat=frac, other=other, cut_min=min(cut_ratio) if cut_ratio else None, shake=shake)
 
 
 def write_publish(ep):
@@ -340,7 +370,7 @@ def write_publish(ep):
         if pub.get("tags"):
             f.write("话题：" + " ".join("#" + t.lstrip("#") for t in pub["tags"]) + "\n")
         if not ep.music:
-            f.write(f"\n配乐：视频本身无配乐，请自己加。画面按 {ep.bpm} BPM 的节拍剪辑（每拍有轻微放大，切镜头都在小节的第一拍）。\n")
+            f.write(f"\n配乐：视频本身无配乐，请自己加。画面按 {ep.bpm} BPM 的节拍剪辑：文字和图形都在拍点上出现，切镜头都在小节的第一拍；画面不抖动。\n")
             f.write("对齐方法：把歌的一个重拍（「动」）对齐到视频第 0 秒；歌的 BPM 不同的话，告诉 Kiro 改 bpm 重新渲染（约 1 分钟）。\n")
             f.write("切镜头时间点（秒）：" + "、".join(f"{t:.2f}" for t in ep.cut_times()) + "\n")
     return p
@@ -445,9 +475,19 @@ def run(ep):
     bad = [round(t / ep.bar, 3) for t in ep.cut_times() if abs(t / ep.bar - round(t / ep.bar)) > 1e-6]
     print(f"beatgrid  {ep.bpm} BPM, bar {ep.bar:.4f}s, cuts on bar lines: {'OK' if not bad else bad}; "
           f"cut times: {', '.join(f'{t:.2f}' for t in ep.cut_times())}")
-    bpm, ratio, hit, big = rhythm_check(out, ep)
-    print(f"rhythm    picture pulses at {bpm} BPM (target {ep.bpm}, {ratio:.1f}x stronger than other tempos); "
-          f"hardest frame changes at {', '.join(f'{v:.2f}' for v in big)} -> {'= scene cuts OK' if hit else 'MISMATCH'}")
+    r = rhythm_check(out, ep)
+    shake = r["shake"]
+    ok = r["on_beat"] >= 0.8 and r["on_beat"] > r["other"] + 0.3 and (r["cut_min"] or 99) > 4
+    print(f"rhythm    {r['events']} visual events, {r['on_beat'] * 100:.0f}% land on a {ep.bpm} BPM beat (±1.5 frames; "
+          f"best other tempo {r['other'] * 100:.0f}%); weakest scene cut {r['cut_min']:.0f}x the median frame change"
+          f" -> {'OK' if ok else 'CHECK'}")
+    if shake is None:
+        print("shake     (no static regions declared by the scenes; settings: "
+              f"bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts})")
+    else:
+        print(f"shake     still areas change {shake:.2f}x more on the beat than between beats "
+              f"({'stable, no shaking' if shake < 2.5 else 'SHAKING: the frame moves on the beat'}); "
+              f"bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts}")
     print(K.lint_report({"small": small, "missing": missing, "edge": edge}))
     if pub:
         print(f"publish   {pub}")
