@@ -55,7 +55,8 @@ class Episode:
     bpm: int = 128              # beat grid; with music=False use the BPM of the song the user will add
     music: bool = False         # False: silent video, user adds music in-app (default, user preference)
     transpose: int = 0          # (music=True) shift the whole score so episodes don't sound identical
-    tail: float = 1.5
+    tail: float = 0.0           # seconds after the last bar; 0 = ends exactly on the last bar line (user preference)
+    fade_out: float = 0.0       # fade to black over the last N seconds; 0 = end directly (user preference)
     # Stable picture by default (user: no shaking). The beat shows through elements appearing ON beats
     # and the background's brightness pulse - nothing moves the whole frame.
     cut: str = "hard"           # scene entry: "hard" (clean cut on the downbeat) | "slide" | "punch" (zoom-in, shakes)
@@ -127,7 +128,9 @@ class _S:
 
 # ----------------------------------------------------------------------------- frame
 def draw_progress(c, ep, t):
-    a = K.clamp((t - 0.8) / 0.6) * (1 - K.clamp((t - (ep.duration - 2.4)) / 1.2))
+    a = K.clamp((t - 0.8) / 0.6)
+    if ep.fade_out:
+        a *= 1 - K.clamp((t - (ep.duration - ep.fade_out - 1.2)) / 1.2)
     if a <= 0:
         return
     chs = ep.chapters()
@@ -202,8 +205,9 @@ def render_frame(ep, c, surf, t, fi):
                             skia.SamplingOptions(), p)
         c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H), K.paint(K.CYAN, 0.10 * k))
     K.overlay(c)
-    if t > ep.duration - 1.2:
-        c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H), K.paint("#000000", K.clamp((t - (ep.duration - 1.2)) / 1.0)))
+    if ep.fade_out and t > ep.duration - ep.fade_out:
+        c.drawRect(skia.Rect.MakeXYWH(0, 0, W, H),
+                   K.paint("#000000", K.clamp((t - (ep.duration - ep.fade_out)) / (0.85 * ep.fade_out))))
 
 
 def _surface():
@@ -416,6 +420,8 @@ def run(ep):
     if args.cover:
         if not ep.cover:
             raise SystemExit("episode has no cover() function")
+        for v in K.LINT.values():
+            v.clear()
         arr, surf = _surface()
         c = surf.getCanvas()
         ep.cover(c)
@@ -423,6 +429,7 @@ def run(ep):
         out = os.path.join(OUT, f"{ep.slug}_cover.png")
         surf.makeImageSnapshot().save(out)
         print(out)
+        print("cover " + K.lint_report())
         return
 
     music = make_music(ep) if ep.music else None

@@ -158,8 +158,8 @@ def step(num, cn, en, points, example=None, visual=None, color=None, splash_beat
 
 
 # ----------------------------------------------------------------------------- summary (screenshot card)
-def summary(title, en, items, accent=CYAN, hint=("截图保存", "Screenshot")):
-    """items: [(cn, en)] 2-4 rows"""
+def summary(title, en, items, accent=CYAN, hint=("截图保存", "Screenshot"), colors=None):
+    """items: [(cn, en)] 2-4 rows; colors: per-row colours (match the step scenes)"""
     def fn(c, S):
         B = S.B
         k = ap(B, 0)
@@ -172,7 +172,7 @@ def summary(title, en, items, accent=CYAN, hint=("截图保存", "Screenshot")):
             kk = ap(B, b0, 0.4)
             if kk <= 0:
                 continue
-            col = STEP_COLORS[i % len(STEP_COLORS)]
+            col = (colors or STEP_COLORS)[i % len(colors or STEP_COLORS)]
             y = 290 + i * (rh + 14)
             with at(c, W / 2, y + rh / 2, pop(B, b0, 0.6, 0.85)):
                 card(c, -720, -rh / 2, 1440, rh, kk, col, r=18, brackets=False)
@@ -189,11 +189,14 @@ def summary(title, en, items, accent=CYAN, hint=("截图保存", "Screenshot")):
 
 
 # ----------------------------------------------------------------------------- cta / end card
-def cta(question, q_en, end_title, end_en, next_teaser=None):
-    """question: comment prompt. Last 2 bars: end title (+ optional next-episode teaser (cn, en))."""
+def cta(question, q_en, end_title=None, end_en=None, next_teaser=None, options=None, end_card=False):
+    """question: comment prompt ([keyword] highlight).
+    options:  [(label, colour)] reply pills under the question, e.g. [("扣 1 · 重读", DIM), ("扣 2 · 考自己", VIOLET)]
+    end_card: True -> the last 2 bars show end_title (+ optional next_teaser (cn, en));
+              False -> prompt + icons stay until the video ends (user preference: end directly)"""
     def fn(c, S):
         B = S.B
-        end_b = (S.bars - 2) * 4
+        end_b = (S.bars - 2) * 4 if end_card else 1e9
         out = 1 - K.clamp((B - end_b) / 0.8)
         if out > 0:
             k = ap(B, 0, 0.4) * out
@@ -201,20 +204,30 @@ def cta(question, q_en, end_title, end_en, next_teaser=None):
             badge(c, "message-circle", W / 2 - qw / 2 - 70, 220, 44, VIOLET, k)
             rich(c, question, W / 2 + 10, 220, 72, "black", WHITE, VIOLET, k)
             text(c, q_en, W / 2, 300, 38, "monor", DIM, k)
+            if options:
+                pws = [measure(lbl, "bold", 46) + 90 for lbl, _ in options]
+                gap = 50
+                px = W / 2 - (sum(pws) + gap * (len(pws) - 1)) / 2
+                for j, ((lbl, col), pw) in enumerate(zip(options, pws)):
+                    kj = ap(B, 1 + j, 0.4) * out          # beats 1, 2
+                    pill(c, px + pw / 2, 410, pw, 84, col, kj, fill_a=0.22)
+                    text(c, lbl, px + pw / 2, 410, 46, "bold", WHITE, kj)
+                    px += pw + gap
+            ib, iy = (3, 640) if options else (2, 600)
             for i, (ic, cn, ien, col) in enumerate([("heart", "点赞", "LIKE", PINK), ("star", "收藏", "SAVE", AMBER),
                                                      ("user-plus", "关注", "FOLLOW", CYAN)]):
-                b0 = 2 + i                  # beats 2, 3, 4
+                b0 = ib + i                 # one icon per beat
                 kk = ap(B, b0, 0.4) * out
                 if kk <= 0:
                     continue
-                with at(c, W / 2 + (i - 1) * 400, 600, pop(B, b0, 0.7, 0.4, 2.4)):
+                with at(c, W / 2 + (i - 1) * 400, iy, pop(B, b0, 0.6, 0.6, 1.4)):
                     c.drawCircle(0, -20, 90, K.paint(col, 0.14 * kk))
                     c.drawCircle(0, -20, 90, K.paint(col, 0.9 * kk, stroke=3))
                     c.drawCircle(0, -20, 104, K.paint(col, 0.35 * kk, blur=18))
                     icon(c, ic, 0, -20, 80, col, kk, sw=2.2)
                     text(c, cn, 0, 125, 52, "black", WHITE, kk)
                     text(c, ien, 0, 182, 34, "mono", col, kk, ls=4)
-        k = ap(B, end_b, 0.5) * (1 - K.clamp((B - (S.bars * 4 + 2)) / 2))
+        k = ap(B, end_b, 0.5) * (1 - K.clamp((B - (S.bars * 4 + 2)) / 2)) if end_card else 0
         if k > 0:
             text(c, end_title, W / 2, 400, 130, "black", WHITE, k, glow=CYAN, gsig=24,
                  shader=K.grad_shader("#E0F7FF", "#B9A8FF"))

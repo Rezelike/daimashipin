@@ -285,6 +285,8 @@ EP = Episode(
     title="艾宾浩斯遗忘曲线",
     bpm=BPM,
     music=False,
+    tail=1.5,          # rendered with an end card + teaser and a fade (before the "end directly" preference)
+    fade_out=1.2,
     scenes=[
         Scene("hook", 4, SC.hook("为什么你背的单词，[总是记不住]？", "Why do you keep forgetting what you learn?", pains=[
             ("book-open", "昨晚背 50 个单词", "今早剩 20 个", "50 words → 20 overnight"),
@@ -310,7 +312,8 @@ EP = Episode(
             ("先理解再记，[忘得更慢]", "Understand first, forget slower"),
         ]), chapter="总结"),
         Scene("cta", 4, SC.cta("你最想记住的是[什么]？", "What do you most want to remember?", "艾宾浩斯遗忘曲线",
-                               "THE FORGETTING CURVE", next_teaser=("主动回忆：合上书考自己", "Next: active recall, test yourself")),
+                               "THE FORGETTING CURVE", next_teaser=("主动回忆：合上书考自己", "Next: active recall, test yourself"),
+                               end_card=True),
               chapter="总结"),
     ],
     cover=cover,

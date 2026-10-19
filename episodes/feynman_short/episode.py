@@ -56,6 +56,8 @@ EP = Episode(
     cut="slide",
     bounce=0.0,
     glitch_cuts=True,   # the style this one was rendered with
+    tail=1.5,
+    fade_out=1.2,
     scenes=[
         Scene("hook", 4, SC.hook("为什么你[学了就忘]？", "Why do you forget what you learn?", pains=[
             ("book-open", "书看了 3 遍", "合上全忘", "Read 3x, forgot all"),
@@ -88,7 +90,8 @@ EP = Episode(
             ("卡壳了就[回去重学]", "Stuck? Go back to the source"),
             ("简化，[打个比方]", "Simplify with an analogy"),
         ]), role="recap", chapter="总结"),
-        Scene("cta", 4, SC.cta("你想用它学[什么]？", "Tell me in the comments", "费曼学习法", "THE FEYNMAN TECHNIQUE"),
+        Scene("cta", 4, SC.cta("你想用它学[什么]？", "Tell me in the comments", "费曼学习法", "THE FEYNMAN TECHNIQUE",
+                               end_card=True),
               role="outro", chapter="总结"),
     ],
     cover=SC.cover("学了就忘？", "费曼学习法", "THE FEYNMAN TECHNIQUE", "1 分钟学会 · 4 步", "诺贝尔奖得主的学习法 · 中英双语"),

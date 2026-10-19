@@ -21,12 +21,13 @@ EP = Episode(slug="my_topic", title="...", bpm=128, music=False, scenes=[
     Scene("step2",   8, SC.step(2, "标题", "Title", [(point_cn, en)], example=("例子", "Example", [(cn, en), ...])), chapter="3 步"),
     Scene("step3",   8, SC.step(3, ...),                                                                         chapter="3 步"),
     Scene("summary", 4, SC.summary("一图总结", "EN", [(cn, en), ...]),                                           chapter="总结"),
-    Scene("cta",     4, SC.cta("你会用它[做什么]？", "Tell me in the comments", "END TITLE", "EN", next_teaser=(cn, en)), chapter="总结"),
+    Scene("cta",     4, SC.cta("你是[A]，还是[B]？", "Tell me below", options=[("扣 1 · A", DIM), ("扣 2 · B", VIOLET)]), chapter="总结"),
 ], cover=my_cover_fn, publish=dict(title=..., desc=..., tags=[...]))
 if __name__ == "__main__":
     run(EP)
 ```
 - Episode fields: `bpm` (beat grid = the song's BPM; 128: beat 0.469 s, bar 1.875 s, 40 bars = 75 s),
+  `tail` (0 = ends exactly on the last bar line, default) and `fade_out` (0 = no fade, default),
   `music` (False = silent file, default), `cut` ("hard" default | "slide" | "punch" = zoom-in, shakes),
   `bounce` (frame kick per beat, 0 default; >0 shakes - the user rejected it), `flash` (0), `pulse`
   (background brightness pulse, 0.6), `glitch_cuts` (False), `tail`, `progress_bar`, `cover`, `publish`;
@@ -38,7 +39,10 @@ if __name__ == "__main__":
   the card appears (8 with one point line): time the visual's events from it (`S.vb + 2*i` = half bars).
 - Factory beat plans: hook question 0, pain cards 4/6/8 · answer lead 0, headline 1, cards 4,5,6,(7),
   save hint after · step splash 0-4, header + point 4, card 8, example lines 10, 14 · summary rows
-  2,4,6,8, hint after · cta question 0, icons 2,3,4, end card on the last 2 bars, teaser +2 beats.
+  2,4,6,8, hint after · cta question 0, reply pills 1,2, icons 3,4,5 (2,3,4 without pills).
+- `cta(question, q_en, end_title=None, end_en=None, next_teaser=None, options=None, end_card=False)`:
+  default = prompt + icons stay to the very end. `end_card=True` (+ `next_teaser`) only if the user asks.
+- `answer(..., colors=[...])` and `summary(..., colors=[...])` take per-step colours to match the steps.
 - `[keyword]` in Chinese strings = accent colour + glow (`rich`, `pair`, scene factories).
 
 ## core primitives
