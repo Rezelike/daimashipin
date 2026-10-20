@@ -1,4 +1,4 @@
-"""Scene factories for the proven short structure (60-75 s):
+"""Scene factories for the short structure (60-75 s). Data: the opening is the bottleneck, see hook().
 
     hook (4 bars)  -> answer (4)  -> step x N (8 each, example inside the step)  -> summary (4)  -> cta (4)
 
@@ -12,6 +12,7 @@ For special visuals (charts, diagrams) pass visual=fn(c, S, x, y, w, h, a) to st
 your own scene function with the primitives in engine.core.
 """
 import math
+import re
 
 import skia
 
@@ -28,17 +29,38 @@ def _typed(c, s, B, b0, x, y, size, color, a=1.0, cps=14):
 
 
 # ----------------------------------------------------------------------------- hook
-def hook(question, en, pains=(), accent=PINK):
-    """question: '为什么你[背了就忘]？'
-    pains: [(icon, line1, line2_red, en)] up to 3 cards under the question; keep en <= 22 chars"""
+HOOK_MAX_CHARS = 10
+
+
+def hook(question, en, pains=(), accent=PINK, visual=None):
+    """The first 2 s decide (主动回忆: 48% swiped away within 2 s, 83% within 5 s), so:
+    - frame 0 already shows the full question (no fade-in from an empty screen)
+    - keep it short: one line, or two big lines split with '|', e.g. '为什么你|[学了就忘]？'
+      (Feynman, 2 s bounce 39%) vs one 15-character line (主动回忆, 48%); > HOOK_MAX_CHARS is linted
+    - visual: fn(c, S) drawn under the text (y ~ 500-1000), already visible and moving on frame 0, ideally
+      the surprising result itself (the butterfly video opened on a billiards shot: 36%, the best so far)
+    - pains: optional cards [(icon, line1, line2_red, en)] from beat 4 (Douyin chapter clicks: 痛点 2.6%)"""
+    lines = question.split("|")
+    assert len(lines) <= 2, "hook: at most two lines (use '|' once)"
+    n_chars = len(re.sub(r"[\[\]\s]", "", "".join(lines)))
+    if n_chars > HOOK_MAX_CHARS:
+        K.LINT["hook"].add((n_chars, question))
+
     def fn(c, S):
         B = S.B
-        qs = min(124, 1600 * 100 / max(1, K.rich_width(question, 100)))
-        qw = K.rich_width(question, qs)
-        s = pop(B, 0, 0.5, max(1.0, min(1.25, 1780 / max(1, qw * 1.07))), 0.8)   # one smooth zoom-in, no jitter
-        with at(c, W / 2, 300, s):
-            rich(c, question, 0, 0, qs, "black", WHITE, accent, ap(B, 0, 0.3))
-        _typed(c, en, B, 1.0, W / 2, 425, 42, CYAN, cps=16)
+        settle = lerp(1.04, 1.0, K.e_out(B / 0.6))      # one gentle settle; the text is fully there on frame 0
+        if len(lines) == 2:
+            qs = min(150, 1600 * 100 / max(1, max(K.rich_width(l, 100) for l in lines)))
+            ys, en_y = (190, 350), 455
+        else:
+            qs = min(124, 1600 * 100 / max(1, K.rich_width(question, 100)))
+            ys, en_y = (300,), 425
+        for line, y in zip(lines, ys):
+            with at(c, W / 2, y, settle):
+                rich(c, line, 0, 0, qs, "black", WHITE, accent, 1.0)
+        _typed(c, en, B, 1.0, W / 2, en_y, 42, CYAN, cps=16)
+        if visual:
+            visual(c, S)
         n = len(pains)
         if n:
             cw, gap = 540, 30

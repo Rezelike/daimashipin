@@ -90,7 +90,7 @@ FACE_FILES = {
     "mono": "JetBrainsMono-Bold.ttf", "monor": "JetBrainsMono-Regular.ttf",
 }
 FALLBACK = {"mono": "bold", "monor": "reg"}
-LINT = {"small": set(), "missing": set(), "edge": set()}
+LINT = {"small": set(), "missing": set(), "edge": set(), "hook": set()}
 SAFE = 60   # px margin; text crossing it is reported
 FRAME_CARDS = []   # card rects drawn in the current frame (device coords), for the overflow lint
 _TF = {}
@@ -481,11 +481,13 @@ def lint_report(lint=None):
         lines.append(f"OUT OF SAFE AREA (text crosses the {SAFE}px screen margin; also check it fits its card):")
         for l, r, s in sorted(lint["edge"])[:30]:
             lines.append(f"   x {l}..{r}  {s!r}")
+    for n, q in sorted(lint.get("hook", ())):
+        lines.append(f"HOOK TOO LONG: {n} characters {q!r} - the first 2 s decide; keep it <= 10 (two lines with '|' are fine)")
     if lint["small"]:
         lines.append(f"SMALL TEXT (< {MIN_TEXT}px, unreadable in the phone feed; enlarge or pass small=True):")
         for size, s in sorted(lint["small"])[:30]:
             lines.append(f"   {size:3d}px  {s!r}")
-    return "\n".join(lines) if lines else "lint: OK (no small text, no missing glyphs, all text inside the safe area)"
+    return "\n".join(lines) if lines else "lint: OK (short hook, no small text, no missing glyphs, all text inside the safe area)"
 
 
 def warn(msg):

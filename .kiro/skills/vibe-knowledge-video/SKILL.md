@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "1.3"
+  version: "1.4"
 ---
 
 # Vibe knowledge video
@@ -27,8 +27,9 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
    can it be *shown* with code visuals (curve, timer, chart, diagram), fact base solid.
    Recommend one. **Gate 1: user picks.**
 2. **Script** — storyboard in chat: scene · bars · seconds · visual · on-screen CN / EN text.
-   Structure (proven): hook 4 bars → answer + overview 4 → 3-4 steps × 8 (example inside each step)
-   → summary card 4 → CTA 4 (no teaser). Use **128 BPM** unless the user names a different song.
+   Structure (current): hook 4 bars → answer + overview 4 → 3-4 steps × 8 (example inside each step)
+   → summary card 4 → CTA 4 (no teaser). The hook must carry the payoff (see Content rules): it is the
+   only part most viewers see. Use **128 BPM** unless the user names a different song.
    Fact-check every claim (dates, numbers, quotes); state sources; label illustrations and
    "common practice" as such; add "不构成投资/医疗建议" where relevant. **Gate 2: user approves.**
 3. **Environment** (~40 s, idempotent):
@@ -38,7 +39,7 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
    strings, write 1-3 custom `visual=` functions for the key idea (the data shows the example is what
    viewers look for). Keep `music=False` unless the user asks for the engine's own score.
 5. **Preview** — `$V episodes/<slug>/episode.py --preview` → view **only** `build/contact_sheet.png`.
-   Fix everything the lint prints (small text, missing glyphs, text off-screen or overflowing a card).
+   Fix everything the lint prints (hook too long, small text, missing glyphs, text off-screen or overflowing a card).
    Max 2 preview rounds.
 6. **Render** — `$V episodes/<slug>/episode.py` (~1 min). Read the VERIFY block: duration, 1920x1080,
    30 fps, size < 95 MB, lint OK, `beatgrid ... OK`, `rhythm ... OK` and `shake ... stable`.
@@ -46,7 +47,9 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
    if you designed a new cover layout).
 7. **Deliver** — new branch, commit `episodes/<slug>/episode.py` + `out/<slug>.mp4`, `_cover.png`,
    `_publish.txt`; open a PR with `gh api repos/Rezelike/daimashipin/pulls ...` (`gh pr create` does
-   not work here). In chat: the MP4 is silent on purpose, the BPM it is cut to, the cut times, how to
+   not work here). Put the comment question in `publish["pin"]` (pinned comment) and as the caption's
+   first line; tell the user to copy-paste the title, not retype it (「主动回忆」 went out as 「主动会议」).
+   In chat: the MP4 is silent on purpose, the BPM it is cut to, the cut times, how to
    align (song's first strong beat at 0:00), where to cut the song (video length), and that changing
    `bpm` + re-render takes ~1 min. Each episode branch is stacked on the previous one: say which single
    PR to merge (it contains all earlier ones) — skills only load from `main`.
@@ -57,12 +60,18 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
 ## Content rules (from the data)
 - Topic must be **save-worthy and about the viewer** (Feynman: 2.39% saves → 11k plays; butterfly
   effect: 0.11% saves → 950 plays). Pure spectacle science keeps viewers but nobody saves it.
-- Payoff within **10 s**: say the answer and show the full overview in the `answer` scene.
-- Average viewer watches ~9-13 s: no biography, no long intro, no section that only "sets up".
+- **The first 2 seconds decide everything** (主动回忆: 48% gone at 2 s, 83% at 5 s, avg watch 5 s; every video so
+  far stopped after one burst). Frame 0 must already show the hook (the engine does this): ≤ 10 characters,
+  two big lines allowed (`hook("为什么你|[学了就忘]？", ...)`), ideally the surprising result itself or an action in
+  motion (`hook(..., visual=fn)`). Best so far: butterfly effect opening on a billiards shot (2 s bounce 36%),
+  Feynman's two-line question (39%). Worst: a concept title card, a 15-character one-line question (48%).
+  Show the overview by ~0:04. No biography, no long intro, no section that only "sets up".
 - Put a concrete example inside every step; end with a screenshot-able summary card + 收藏 prompt.
 - CTA: a two-choice question with reply pills (`cta(..., options=[("扣 1 · …", DIM), ("扣 2 · …", VIOLET)])`)
-  to lift comments (0-0.11% so far), plus like / save / follow. No "下期" teaser (user, 2026-10-19).
-- Hook = one relatable pain-point question + up to 3 short pain cards.
+  plus like / save / follow. No "下期" teaser (user, 2026-10-19). But the end is seen by only ~1% of viewers:
+  the same question goes into the caption's first line and a pinned comment (`publish["pin"]`).
+- Pain points are the least-wanted part (Douyin chapter clicks: 痛点 2.6% vs 三步 44.9%): pain cards are
+  optional and never in the first 2 s.
 - One idea per screen; one highlighted `[keyword]` per line.
 
 ## Rhythm rules (the user's music is a four-on-the-floor DJ beat)

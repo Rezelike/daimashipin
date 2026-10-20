@@ -15,7 +15,7 @@ from engine import core as K, scenes as SC
 from engine.render import Episode, Scene, run
 
 EP = Episode(slug="my_topic", title="...", bpm=128, music=False, scenes=[
-    Scene("hook",    4, SC.hook("为什么你[背了就忘]？", "Why ...?", pains=[(icon, line1, line2_red, en<=22ch), ...]), chapter="痛点"),
+    Scene("hook",    4, SC.hook("读 14 遍|输给[考 3 次]", "EN line", visual=my_opening), chapter="开头"),   # <= 10 chars, '|' = 2 lines
     Scene("answer",  4, SC.answer("lead", "[核心方法]", "EN TITLE", [(cn, en), ...2-4], colors=[...]),           chapter="答案"),
     Scene("step1",   8, SC.step(1, "标题", "Title", [(point_cn, en)], visual=my_chart, color=PINK),              chapter="3 步"),
     Scene("step2",   8, SC.step(2, "标题", "Title", [(point_cn, en)], example=("例子", "Example", [(cn, en), ...])), chapter="3 步"),
@@ -37,7 +37,11 @@ if __name__ == "__main__":
 - Inside a scene function `fn(c, S)`: `S.B` = local beat (use it for all timing; put events on integers),
   `S.t` local seconds, `S.bars`, `S.rng` (per-frame RNG), `S.beat`; in a step `visual`, `S.vb` = beat
   the card appears (8 with one point line): time the visual's events from it (`S.vb + 2*i` = half bars).
-- Factory beat plans: hook question 0, pain cards 4/6/8 · answer lead 0, headline 1, cards 4,5,6,(7),
+- `hook(question, en, pains=(), accent=PINK, visual=None)`: the question is fully visible on frame 0 (no fade-in),
+  one line (<= 124 px) or two lines split with '|' (<= 150 px); `visual(c, S)` draws under it from frame 0 (make it
+  already move); pain cards are optional; questions > 10 characters are linted (HOOK TOO LONG).
+- `publish=dict(title=..., desc=..., tags=[...], pin="置顶评论")`: `_publish.txt` also gets the pinned comment.
+- Factory beat plans: hook question on frame 0, English typed from beat 1, optional pain cards 4/6/8 · answer lead 0, headline 1, cards 4,5,6,(7),
   save hint after · step splash 0-4, header + point 4, card 8, example lines 10, 14 · summary rows
   2,4,6,8, hint after · cta question 0, reply pills 1,2, icons 3,4,5 (2,3,4 without pills).
 - `cta(question, q_en, end_title=None, end_en=None, next_teaser=None, options=None, end_card=False)`:

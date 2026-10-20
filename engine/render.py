@@ -373,6 +373,9 @@ def write_publish(ep):
             f.write(f"简介：\n{pub['desc']}\n\n")
         if pub.get("tags"):
             f.write("话题：" + " ".join("#" + t.lstrip("#") for t in pub["tags"]) + "\n")
+        if pub.get("pin"):
+            f.write(f"\n置顶评论（发布后马上自己发一条，然后置顶）：{pub['pin']}\n")
+        f.write("\n标题请直接复制，不要手打（同音字：回忆 → 会议）。\n")
         if not ep.music:
             f.write(f"\n配乐：视频本身无配乐，请自己加。画面按 {ep.bpm} BPM 的节拍剪辑：文字和图形都在拍点上出现，切镜头都在小节的第一拍；画面不抖动。\n")
             f.write("对齐方法：把歌的一个重拍（「动」）对齐到视频第 0 秒；歌的 BPM 不同的话，告诉 Kiro 改 bpm 重新渲染（约 1 分钟）。\n")
@@ -495,7 +498,7 @@ def run(ep):
         print(f"shake     still areas change {shake:.2f}x more on the beat than between beats "
               f"({'stable, no shaking' if shake < 2.5 else 'SHAKING: the frame moves on the beat'}); "
               f"bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts}")
-    print(K.lint_report({"small": small, "missing": missing, "edge": edge}))
+    print(K.lint_report({"small": small, "missing": missing, "edge": edge, "hook": K.LINT["hook"]}))
     if pub:
         print(f"publish   {pub}")
     print(f"MP4 SHEET (12 frames decoded from the final file; view this ONE image): {sheet}")
