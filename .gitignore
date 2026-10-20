@@ -1,3 +1,8 @@
 out/audio.wav
 __pycache__/
 .python-version
+feynman/.assets/
+feynman/build/
+.assets/
+episodes/*/build/
+engine/build/
