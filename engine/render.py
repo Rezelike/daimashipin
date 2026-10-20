@@ -327,6 +327,7 @@ def rhythm_check(path, ep):
     - cuts: change at each scene cut relative to the median frame change
     - shake: regions declared still by the scene factories (docked step headers, summary title): how much more
       they change ON the beat than between beats (1 = perfectly still; a beat-zoom gives ~30)"""
+    from scipy.ndimage import uniform_filter
     raw = subprocess.run([ffmpeg(), "-v", "error", "-i", path, "-vf", "scale=192:108,format=gray", "-f", "rawvideo", "-"],
                          capture_output=True).stdout
     fr = np.frombuffer(raw, np.uint8).reshape(-1, 108, 192).astype(np.float32)     # 1 cell = 10x10 px
@@ -355,10 +356,15 @@ def rhythm_check(path, ep):
         s0, s1 = ep.span(sc_.sid)
         m = (tt > s0 + sc_.fn.static_after * ep.beat) & (tt < s1 - 3.5 / FPS)
         x0, y0, x1, y1 = (int(v / 10) for v in reg)
-        rd = np.abs(np.diff(fr[:, y0:y1, x0:x1], axis=0)).mean((1, 2))
+        sub = fr[:, y0:y1, x0:x1]
+        hp = sub - uniform_filter(sub, size=(1, 5, 5), mode="nearest")   # edges only: ignore the smooth glow pulse
+        rd = np.abs(np.diff(hp, axis=0)).mean((1, 2))
         on_sum += list(rd[m & (ph < 0.15)])
         off_sum += list(rd[m & (ph > 0.35) & (ph < 0.9)])
-    shake = float(np.mean(on_sum) / max(0.02, np.mean(off_sum))) if on_sum and off_sum else None
+    shake = None
+    if on_sum and off_sum:      # judged in absolute gray levels: a ratio of two tiny numbers is meaningless
+        on, off = float(np.mean(on_sum)), float(np.mean(off_sum))
+        shake = dict(excess=on - off, ratio=on / max(0.02, off))
     return dict(events=len(ev), on_beat=frac, other=other, cut_min=min(cut_ratio) if cut_ratio else None, shake=shake)
 
 
@@ -495,9 +501,9 @@ def run(ep):
         print("shake     (no static regions declared by the scenes; settings: "
               f"bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts})")
     else:
-        print(f"shake     still areas change {shake:.2f}x more on the beat than between beats "
-              f"({'stable, no shaking' if shake < 2.5 else 'SHAKING: the frame moves on the beat'}); "
-              f"bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts}")
+        print(f"shake     still edges change {shake['excess']:.2f} gray levels more on the beat than between beats "
+              f"({'stable, no shaking' if shake['excess'] < 1.0 else 'SHAKING: the frame moves on the beat'}; "
+              f"limit 1.0, the rejected beat-zoom measured 7.4); bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts}")
     print(K.lint_report({"small": small, "missing": missing, "edge": edge, "hook": K.LINT["hook"]}))
     if pub:
         print(f"publish   {pub}")

@@ -41,6 +41,11 @@ if __name__ == "__main__":
   one line (<= 124 px) or two lines split with '|' (<= 150 px); `visual(c, S)` draws under it from frame 0 (make it
   already move); pain cards are optional; questions > 10 characters are linted (HOOK TOO LONG).
 - `publish=dict(title=..., desc=..., tags=[...], pin="置顶评论")`: `_publish.txt` also gets the pinned comment.
+- Openers (`from engine import openers as OP`, pass as `hook(..., visual=OP.xxx(...))`; demo: `episodes/openers_demo`):
+  `race(a, b, a_vals=(83, 40), b_vals=(71, 61), phases=("5 分钟后", "一周后"), flip=4, land=8, note=, source=)` ·
+  `dissolve(words, keep=4, counter_label="还记得")` · `diverge(a_tag, b_tag, a_vals=(1, 37.8), b_vals=(1, 0.03),
+  end_label=)` · `timer(t0="14:00", t1="18:00", distractions=[(icon, label)], result=("真正在学", "30 分钟"),
+  focus_share=0.125)`. All draw in y 480-1000 under a two-line headline, move from frame 0, land by beat 8.
 - Factory beat plans: hook question on frame 0, English typed from beat 1, optional pain cards 4/6/8 · answer lead 0, headline 1, cards 4,5,6,(7),
   save hint after · step splash 0-4, header + point 4, card 8, example lines 10, 14 · summary rows
   2,4,6,8, hint after · cta question 0, reply pills 1,2, icons 3,4,5 (2,3,4 without pills).

@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "1.4"
+  version: "1.5"
 ---
 
 # Vibe knowledge video
@@ -36,7 +36,8 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
    `bash .kiro/skills/vibe-knowledge-video/scripts/setup_env.sh` then
    `/projects/sandbox/.videoenv/vpy -m engine.assets` (from repo root).
 4. **Build** — `cp -r episodes/active_recall episodes/<slug>`, rename `slug`, set `bpm`, replace
-   strings, write 1-3 custom `visual=` functions for the key idea (the data shows the example is what
+   strings, give the hook an animated opener (`engine.openers`, see Content rules; demo:
+   `out/openers_demo.mp4`), write 1-3 custom `visual=` functions for the key idea (the data shows the example is what
    viewers look for). Keep `music=False` unless the user asks for the engine's own score.
 5. **Preview** — `$V episodes/<slug>/episode.py --preview` → view **only** `build/contact_sheet.png`.
    Fix everything the lint prints (hook too long, small text, missing glyphs, text off-screen or overflowing a card).
@@ -66,6 +67,11 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
   motion (`hook(..., visual=fn)`). Best so far: butterfly effect opening on a billiards shot (2 s bounce 36%),
   Feynman's two-line question (39%). Worst: a concept title card, a 15-character one-line question (48%).
   Show the overview by ~0:04. No biography, no long intro, no section that only "sets up".
+- **Never a text-only opening** (user, 2026-10-20: "开头多做几个动画，不要光是文字"). Every hook gets an animated
+  visual: `engine.openers` — `race` (A looks better, then loses after a time skip: comparisons, experiments),
+  `dissolve` (learned items dissolve while a counter drops: forgetting), `diverge` (two lines from one point
+  end far apart: habits, compounding), `timer` (a clock races through an afternoon: focus) — or a custom one
+  built the same way: moving on frame 0, events on beats, the reveal lands by beat 8, nothing shakes.
 - Put a concrete example inside every step; end with a screenshot-able summary card + 收藏 prompt.
 - CTA: a two-choice question with reply pills (`cta(..., options=[("扣 1 · …", DIM), ("扣 2 · …", VIOLET)])`)
   plus like / save / follow. No "下期" teaser (user, 2026-10-19). But the end is seen by only ~1% of viewers:
@@ -83,7 +89,8 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
   data points / nodes land one per half bar; plus a soft background brightness pulse (`pulse=0.6`).
 - Unknown tempo → 128 BPM, say so, and offer to re-render once the user tells you the song's BPM.
 - Verify by numbers, not by eye: VERIFY `rhythm` (share of visual events on the beat, should be ≥ 80%)
-  and `shake` (still areas, must be < 2.5; ≈1.4 is normal, a beat-zoom measures ~30).
+  and `shake` (extra edge change in still areas on the beat, in gray levels: must be < 1.0; stable videos
+  measure 0.04-0.09, the rejected beat-zoom measured 7.4-8.0).
 
 ## Visual / readability rules (enforced by the lint)
 Landscape video sits in ~1/3 of a phone screen in the feed:

@@ -32,6 +32,8 @@ Extra facts:
    question about the viewer (Feynman: 39%). Lost: a 6.4 s concept title card (临时物: 48%) and a 15-character one-line question +
    English + cards (主动回忆: 48%).
    -> frame 0 = the full hook; ≤ 10 characters (two lines OK); show the surprising result or an action in motion; overview by ~0:04.
+   User, 2026-10-20: "开头多做几个动画，不要光是文字" -> `engine/openers.py` (race / dissolve / diverge / timer), demo
+   `out/openers_demo.mp4`: all four move from frame 0, 96% of visual events on the beat, shake 0.09 (limit 1.0).
 3. **Viewers want the method, not the pain point** (chapter clicks 三步 44.9% vs 痛点 2.6%). Pain cards are optional, never in the first 2 s.
 4. **End-of-video CTAs reach ~1% of viewers** (completion 0.4-0.6% on the dark-tech videos): 扣1/扣2 at 1:07 got 0 comments, so it
    was never really tested. Put the comment question in the caption's first line + a pinned comment. Follows are tiny (+2 per 6k plays).
@@ -45,7 +47,8 @@ Extra facts:
    summary card + 收藏 prompt (the save rate is what triggers the push).
 
 ## Open questions to test
-- **Next episode (one change only: the opening):** frame-0 hook ≤ 10 characters with the surprising result / an action in motion,
+- **Next episode (one change only: the opening):** frame-0 hook ≤ 10 characters + an animated opener (e.g. `race` for
+  交错练习: blocked practice 89% vs mixed 60% during practice, 20% vs 63% one week later, Rohrer & Taylor 2007 Exp. 2),
   no pain cards, overview by ~0:04. Keep everything else (learning-method topic, ~75 s, posting ~23:00). Target: 2 s bounce < 40%,
   5 s retention > 27%.
 - Forgetting curve data (same structure, 15-character one-line hook): a ~48% 2 s bounce would strengthen conclusion 2.

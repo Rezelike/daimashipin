@@ -77,6 +77,8 @@ def hook(question, en, pains=(), accent=PINK, visual=None):
                 text(c, l1, x + cw / 2, y + 168, 52, "bold", WHITE, k)
                 text(c, l2, x + cw / 2, y + 250, 68, "black", RED, ap(B, b0 + 1, 0.4), glow=RED, gsig=12, glow_a=0.6)
                 text(c, pen, x + cw / 2, y + 328, 36, "monor", DIM, k)
+    fn.static_region = (160, 110, 1760, 430) if len(lines) == 2 else (160, 240, 1760, 360)   # headline
+    fn.static_after = 1.5
     return fn
 
 
