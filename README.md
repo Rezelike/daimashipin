@@ -1,4 +1,13 @@
-# 代码视频：60 秒搞懂「防抖 Debounce」
+# 代码视频
+
+| 作品 | 成片 | 说明 |
+|---|---|---|
+| 钱能买到快乐吗？· 样片（0:38，横屏 60fps，片头 + 研究 01，无旁白，中英双语字幕） | [`out/money_happiness_sample.mp4`](out/money_happiness_sample.mp4) · [预览拼图](out/money_happiness_preview.png) | [`money_happiness/`](money_happiness/README.md) |
+| 60 秒搞懂「防抖 Debounce」 | [`out/debounce.mp4`](out/debounce.mp4) | 见下文 |
+
+---
+
+## 60 秒搞懂「防抖 Debounce」
 
 用一个 Python 脚本自动生成 1 分钟代码讲解视频（1080p / 30fps / 带音效和字幕）。
 
@@ -27,4 +36,4 @@ python make_video.py --preview  # 只导出关键帧 PNG，快速检查画面
 
 ## 字体
 
-`fonts/` 内为 [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) 与 [Noto Sans SC](https://github.com/notofonts/noto-cjk)，均为 SIL Open Font License。
+`fonts/` 内为 [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono)、[Noto Sans SC / Noto Serif SC](https://github.com/notofonts/noto-cjk)、[EB Garamond](https://github.com/octaviopardo/EBGaramond12) 与 [IBM Plex Mono](https://github.com/IBM/plex)，均为 SIL Open Font License。
