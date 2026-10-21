@@ -248,10 +248,41 @@ function drawPaddle(ctx, hand, p) {
   ctx.restore();
 }
 
+/** Phone held upright just above the hand. `lit` (0..1) lights the screen. */
+const PHONE_W = 10;
+const PHONE_H = 17;
+const PHONE_LIFT = 8;
+
+/** Centre of a held phone's screen, in figure units (multiply by scale, add feet position). */
+export function phoneCenter(side, theta) {
+  const h = handPos(side, theta);
+  return { x: h.x, y: h.y - PHONE_LIFT };
+}
+
+function drawPhoneProp(ctx, hand, lit) {
+  ctx.save();
+  ctx.translate(hand.x, hand.y - PHONE_LIFT);
+  rr(ctx, -PHONE_W / 2, -PHONE_H / 2, PHONE_W, PHONE_H, 2.6);
+  ctx.fillStyle = '#1A2133';
+  ctx.fill();
+  ctx.lineWidth = 0.9;
+  ctx.strokeStyle = 'rgba(220,228,245,0.35)';
+  ctx.stroke();
+  rr(ctx, -PHONE_W / 2 + 1.4, -PHONE_H / 2 + 1.7, PHONE_W - 2.8, PHONE_H - 3.8, 1.4);
+  if (lit > 0) {
+    ctx.shadowColor = 'rgba(110,235,200,0.95)';
+    ctx.shadowBlur = 10 * lit;
+  }
+  ctx.fillStyle = lit > 0 ? `rgba(150,240,210,${(0.35 + 0.65 * lit).toFixed(3)})` : '#33405E';
+  ctx.fill();
+  ctx.restore();
+}
+
 /**
  * Draw one folk figure.
  * o: { x, y, s, alpha, mood, look, lookY, armL, armR, t, blink, bob, prop }
  * prop: { kind: 'paddle', side: ±1, text?, sub?, meter?, k?, dx?, lift?, w?, h?, fs? }
+ *     | { kind: 'phone', side: ±1, lit?: 0..1 }
  */
 export function drawFolk(ctx, f, o = {}) {
   const { x = 0, y = 0, s = 1, alpha = 1, mood = 0.3, look = 0, lookY = 0, bob = 0, prop = null } = o;
@@ -312,6 +343,11 @@ export function drawFolk(ctx, f, o = {}) {
     drawPaddle(ctx, hand, { ...prop, side: propSide });
     circle(ctx, hand.x, hand.y, 4.3, f.skin);
   }
+  if (prop && prop.kind === 'phone') {
+    const hand = propSide === -1 ? hl : hr;
+    drawPhoneProp(ctx, hand, prop.lit ?? 0);
+    circle(ctx, hand.x, hand.y, 4.3, f.skin);
+  }
   ctx.restore();
 }
 
@@ -322,11 +358,23 @@ const SPR_H = 132;
 const SPR_OX = 40;
 const SPR_OY = 124;
 
+/** Sprites bake one fixed pose: f.mood, f.look, f.lookY, f.armL, f.armR and f.prop (e.g. an unlit phone). */
 export function drawFolkSprite(ctx, f, x, y, s, alpha = 1) {
   if (alpha <= 0 || s <= 0) return;
   if (!f.sprite) {
     const c = createCanvas(SPR_W, SPR_H);
-    drawFolk(c.getContext('2d'), f, { x: SPR_OX, y: SPR_OY, s: 1, mood: f.mood ?? 0.3, look: f.look ?? 0, blink: false });
+    drawFolk(c.getContext('2d'), f, {
+      x: SPR_OX,
+      y: SPR_OY,
+      s: 1,
+      mood: f.mood ?? 0.3,
+      look: f.look ?? 0,
+      lookY: f.lookY ?? 0,
+      armL: f.armL,
+      armR: f.armR,
+      prop: f.prop ?? null,
+      blink: false,
+    });
     f.sprite = c;
   }
   ctx.save();

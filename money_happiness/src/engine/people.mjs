@@ -59,6 +59,25 @@ export const PEOPLE = {
     phase: 1.1,
     blink: 0.9,
   },
+  mellers: {
+    zh: '梅勒斯',
+    tag: '裁判 · ARBITER',
+    skin: '#F3D2B3',
+    skinShade: '#E0B494',
+    hair: '#D6C8AE',
+    brow: '#A39785',
+    hairStyle: 'bob',
+    glasses: false,
+    beard: false,
+    top: '#7B6BB5',
+    topShade: '#68599E',
+    topStyle: 'sweater',
+    shirt: '#F1ECE4',
+    pants: '#2F2B3F',
+    shoe: '#141A29',
+    phase: 2.4,
+    blink: 2.2,
+  },
 };
 
 function rrFill(ctx, x, y, w, h, r, fill) {
@@ -107,6 +126,21 @@ function drawHair(ctx, p) {
     ctx.quadraticCurveTo(42.6, -311, 26.9, -315.5);
     ctx.quadraticCurveTo(4.5, -306.6, -13.4, -317.8);
     ctx.quadraticCurveTo(-33.6, -313.3, -47, -289);
+    ctx.closePath();
+    ctx.fillStyle = p.hair;
+    ctx.fill();
+  } else if (p.hairStyle === 'bob') {
+    // Chin-length bob with a side-swept fringe; the sides cover the ears.
+    ctx.beginPath();
+    ctx.moveTo(-52, -258);
+    ctx.bezierCurveTo(-60, -332, -28, -351, 2, -350);
+    ctx.bezierCurveTo(32, -349, 60, -332, 52, -258);
+    ctx.quadraticCurveTo(47, -251, 39, -255);
+    ctx.quadraticCurveTo(44, -296, 33, -316);
+    ctx.quadraticCurveTo(10, -322, -10, -312);
+    ctx.quadraticCurveTo(-30, -318, -37, -302);
+    ctx.quadraticCurveTo(-44, -282, -39, -255);
+    ctx.quadraticCurveTo(-47, -251, -52, -258);
     ctx.closePath();
     ctx.fillStyle = p.hair;
     ctx.fill();
@@ -195,12 +229,14 @@ export function drawPerson(ctx, p, t, alpha = 1) {
     ctx.stroke();
   }
 
-  // neck, ears, head
+  // neck, ears (a bob covers them), head
   rrFill(ctx, -11, -256, 22, 22, 6, p.skinShade);
-  circle(ctx, -46, -292, 10, p.skin);
-  circle(ctx, 46, -292, 10, p.skin);
-  circle(ctx, -46, -292, 5, p.skinShade);
-  circle(ctx, 46, -292, 5, p.skinShade);
+  if (p.hairStyle !== 'bob') {
+    circle(ctx, -46, -292, 10, p.skin);
+    circle(ctx, 46, -292, 10, p.skin);
+    circle(ctx, -46, -292, 5, p.skinShade);
+    circle(ctx, 46, -292, 5, p.skinShade);
+  }
   circle(ctx, 0, -296, 46, p.skin);
 
   drawHair(ctx, p);

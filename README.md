@@ -2,7 +2,7 @@
 
 | 作品 | 成片 | 说明 |
 |---|---|---|
-| 钱能买到快乐吗？· 样片（0:38，横屏 60fps，片头 + 研究 01，加小人版，无旁白，中英双语字幕） | [`out/money_happiness_sample.mp4`](out/money_happiness_sample.mp4) · [预览拼图](out/money_happiness_preview.png) · [新旧对比](out/money_happiness_compare.png) · [旧版 v1](out/money_happiness_sample_v1.mp4) | [`money_happiness/`](money_happiness/README.md) |
+| 钱能买到快乐吗？· 完整版（2:03，横屏 60fps，片头 + 三项研究 + 结尾，无旁白，中英双语字幕） | [`out/money_happiness_sample.mp4`](out/money_happiness_sample.mp4) · [预览拼图](out/money_happiness_preview.png) · [新旧对比](out/money_happiness_compare.png) · [旧版 v1](out/money_happiness_sample_v1.mp4) | [`money_happiness/`](money_happiness/README.md) |
 | 60 秒搞懂「防抖 Debounce」 | [`out/debounce.mp4`](out/debounce.mp4) | 见下文 |
 
 ---

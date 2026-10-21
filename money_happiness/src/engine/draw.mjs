@@ -13,6 +13,9 @@ export const C = {
   line: 'rgba(232,206,150,0.5)',
   coral: '#FF8A7A',
   coralGlow: 'rgba(255,120,95,0.9)',
+  // 2021 study colour (Killingsworth's tee is teal too).
+  mint: '#6FE3C1',
+  mintGlow: 'rgba(80,220,180,0.85)',
 };
 
 /* ---------- path helpers ---------- */
