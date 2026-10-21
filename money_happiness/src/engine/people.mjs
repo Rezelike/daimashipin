@@ -40,6 +40,25 @@ export const PEOPLE = {
     phase: 1.9,
     blink: 2.9,
   },
+  killingsworth: {
+    zh: '基林斯沃思',
+    tag: '2021',
+    skin: '#F1CBA6',
+    skinShade: '#DDAD86',
+    hair: '#4A3426',
+    brow: '#3E2C22',
+    hairStyle: 'short',
+    glasses: false,
+    beard: false,
+    top: '#3E9C93',
+    topShade: '#33827A',
+    topStyle: 'tee',
+    shirt: '#EAF4F1',
+    pants: '#2A3550',
+    shoe: '#141A29',
+    phase: 1.1,
+    blink: 0.9,
+  },
 };
 
 function rrFill(ctx, x, y, w, h, r, fill) {
@@ -80,6 +99,17 @@ function drawHair(ctx, p) {
     ctx.fill();
     rrFill(ctx, -48, -306, 9, 22, 4, p.hair);
     rrFill(ctx, 39, -306, 9, 22, 4, p.hair);
+  } else if (p.hairStyle === 'short') {
+    ctx.beginPath();
+    ctx.moveTo(-47, -289);
+    ctx.bezierCurveTo(-51.5, -334, -22.4, -348.6, 2.2, -347.5);
+    ctx.bezierCurveTo(31.4, -346.4, 51.5, -329.6, 47, -288.5);
+    ctx.quadraticCurveTo(42.6, -311, 26.9, -315.5);
+    ctx.quadraticCurveTo(4.5, -306.6, -13.4, -317.8);
+    ctx.quadraticCurveTo(-33.6, -313.3, -47, -289);
+    ctx.closePath();
+    ctx.fillStyle = p.hair;
+    ctx.fill();
   }
 }
 
@@ -153,6 +183,16 @@ export function drawPerson(ctx, p, t, alpha = 1) {
   } else if (p.topStyle === 'sweater') {
     tri(ctx, -19, -240, -2, -240, -10, -222, p.shirt);
     tri(ctx, 2, -240, 19, -240, 10, -222, p.shirt);
+  } else if (p.topStyle === 'tee') {
+    ctx.beginPath();
+    ctx.arc(0, -238, 15, 0, Math.PI);
+    ctx.fillStyle = p.skinShade;
+    ctx.fill();
+    ctx.strokeStyle = p.topShade;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, -238, 16, 0.05 * Math.PI, 0.95 * Math.PI);
+    ctx.stroke();
   }
 
   // neck, ears, head
@@ -169,23 +209,35 @@ export function drawPerson(ctx, p, t, alpha = 1) {
   // face
   const blinking = (t + p.blink) % 4.2 < 0.12;
   const eyeRy = blinking ? 0.8 : 5.4;
-  ellipse(ctx, -16, -290, 4.4, eyeRy, '#272A36');
-  ellipse(ctx, 16, -290, 4.4, eyeRy, '#272A36');
+  // look: -1..1 shifts the pupils sideways (characters facing each other).
+  const ex = (p.look ?? 0) * 3.5;
+  ellipse(ctx, -16 + ex, -290, 4.4, eyeRy, '#272A36');
+  ellipse(ctx, 16 + ex, -290, 4.4, eyeRy, '#272A36');
+  // browTilt > 0 lowers the inner ends (determined); 0 keeps the original brows.
+  const bt = p.browTilt ?? 0;
   ctx.strokeStyle = p.brow;
   ctx.lineWidth = 3;
   ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.moveTo(-23, -306);
-  ctx.lineTo(-10, -308);
-  ctx.moveTo(10, -308);
-  ctx.lineTo(23, -306);
+  ctx.moveTo(-23, -306 - bt);
+  ctx.lineTo(-10, -308 + bt * 4);
+  ctx.moveTo(10, -308 + bt * 4);
+  ctx.lineTo(23, -306 - bt);
   ctx.stroke();
   circle(ctx, -27, -275, 7, 'rgba(235,120,110,0.22)');
   circle(ctx, 27, -275, 7, 'rgba(235,120,110,0.22)');
   ctx.strokeStyle = '#9A5A4A';
   ctx.lineWidth = 2.6;
   ctx.beginPath();
-  ctx.arc(0, -277, 7, 0.2 * Math.PI, 0.8 * Math.PI);
+  if (p.mood === undefined) {
+    ctx.arc(0, -277, 7, 0.2 * Math.PI, 0.8 * Math.PI);
+  } else {
+    // mood: -1 frown … 0 flat … 1 wide smile
+    const m = p.mood;
+    const w = 6 + 2 * Math.max(0, m);
+    ctx.moveTo(-w, -272.5 - 2.6 * m);
+    ctx.quadraticCurveTo(0, -272.5 + 7 * m, w, -272.5 - 2.6 * m);
+  }
   ctx.stroke();
 
   if (p.glasses) {

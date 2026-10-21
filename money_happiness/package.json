@@ -5,7 +5,7 @@
   "description": "钱能买到快乐吗？代码生成的 16:9 数据解说视频（无旁白，中英双语字幕）",
   "scripts": {
     "render": "node src/render.mjs --fps 60 --out ../out/money_happiness_sample.mp4",
-    "preview": "node src/render.mjs --sheet 1.2,3.6,6,7.6,9,11.3,13.4,17,19.6,22.4,25.2,27.6,30.4,33.2,35.6 --out ../out/money_happiness_preview.png"
+    "preview": "node src/render.mjs --sheet 1.2,3.6,6,9,11.6,14.6,17,19.8,22.6,24,27.6,30.4,32.2,34.6,36.6 --out ../out/money_happiness_preview.png"
   },
   "engines": {
     "node": ">=18"

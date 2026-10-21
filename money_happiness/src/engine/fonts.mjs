@@ -24,8 +24,8 @@ const withWeight = (family, weight) => (weight ? `${family} ${weight}` : family)
 export const FONT = {
   /** Chinese serif (subtitles, titles). weight: '', 'Medium', 'SemiBold' */
   zh: (px, weight = '') => `${px}px "${withWeight('SerifSC', weight)}"`,
-  /** English italic serif (subtitle translation line). */
-  en: (px) => `${px}px "Garamond Italic"`,
+  /** English italic serif (subtitle translation line). EB Garamond has no ①②, so they fall back to the serif. */
+  en: (px) => `${px}px "Garamond Italic", "SerifSC"`,
   /** Monospace labels and numbers; Chinese falls back to the serif. weight: '', 'SemiBold' */
   mono: (px, weight = '') => `${px}px "${withWeight('Plex Mono', weight)}", "SerifSC"`,
 };

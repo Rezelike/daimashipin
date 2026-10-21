@@ -17,6 +17,12 @@ const NUM_FONT = FONT.zh(200, 'SemiBold');
 
 let numImgs = null;
 let CRACK = null; // jagged split line, placed right after the comma: "$75," | "000"
+let HALF_X = null; // screen x of each fragment's glyph centre once fully split
+
+// "到底谁对？": the 2010 and 2021 authors stand under the two fragments.
+const FO_FLOOR = 752;
+const FO_S = 0.56;
+const SPLIT_DX = 70;
 
 /** Wrap crisp glyphs in their own glow. Applying the glow after cutting keeps each fragment's halo intact. */
 function withGlow(src) {
@@ -67,6 +73,9 @@ function numberImages() {
     [cut + 15, 300],
     [cut + 4, 360],
   ];
+  const left = NUM_W / 2 - total / 2;
+  const right = NUM_W / 2 + total / 2;
+  HALF_X = [NX - NUM_W / 2 + (left + cut) / 2 - SPLIT_DX, NX - NUM_W / 2 + (cut + right) / 2 + SPLIT_DX];
   numImgs = {
     full: withGlow(crispNumber()),
     halves: [withGlow(crispNumber(0)), withGlow(crispNumber(1))],
@@ -155,8 +164,42 @@ function drawDuo(ctx, t, tIn, tOut) {
   });
 }
 
+function drawFaceOff(ctx, t, tIn) {
+  const stageA = clamp((t - tIn) / 0.3);
+  if (stageA <= 0) return;
+  numberImages();
+  drawStage(ctx, FO_FLOOR, stageA * 0.8);
+  const pair = [
+    { ...PEOPLE.kahneman, x: HALF_X[0], look: 1, tag: '2010' },
+    { ...PEOPLE.killingsworth, x: HALF_X[1], look: -1, tag: '2021' },
+  ];
+  pair.forEach((p, i) => {
+    const k = clamp((t - tIn - 0.05 - i * 0.1) / 0.38);
+    if (k <= 0) return;
+    const pin = ease.outBack(k);
+    const a = clamp(k * 2.5);
+    const y = FO_FLOOR + (1 - pin) * 36;
+    drawPerson(ctx, { ...p, y, s: FO_S, mood: 0, browTilt: 1 }, t, a);
+    glowText(ctx, p.zh, p.x, FO_FLOOR + 40, {
+      font: FONT.zh(24),
+      color: C.white,
+      alpha: a * 0.92,
+      baseline: 'middle',
+    });
+    glowText(ctx, p.tag, p.x, FO_FLOOR + 68, {
+      font: FONT.mono(15, 'SemiBold'),
+      color: C.gold,
+      glow: C.goldGlow,
+      blur: 8,
+      alpha: a * 0.85,
+      letterSpacing: 3,
+      baseline: 'middle',
+    });
+  });
+}
+
 function drawMiniPlateau(ctx, t, t0, tFade) {
-  const a = clamp((t - t0) / 0.3) * (1 - clamp((t - tFade) / 0.6));
+  const a = clamp((t - t0) / 0.3) * (1 - clamp((t - tFade) / 0.35));
   if (a <= 0) return;
   const x0 = 560;
   const x1 = 1360;
@@ -262,7 +305,7 @@ function drawNumber(ctx, t, tIn, tCrack, tSplit) {
     for (const side of [0, 1]) {
       const dir = side ? 1 : -1;
       ctx.save();
-      ctx.translate(NX + dir * 70 * sp, NY + dir * 16 * sp);
+      ctx.translate(NX + dir * SPLIT_DX * sp, NY + dir * 16 * sp);
       ctx.rotate(dir * 0.04 * sp);
       ctx.globalAlpha *= lerp(1, 0.55, sp);
       ctx.drawImage(imgs.halves[side], -NUM_W / 2, -NUM_H / 2);
@@ -286,5 +329,6 @@ export function drawHook(ctx, t) {
   drawTitle(ctx, t, h2.t0);
   drawDuo(ctx, t, h2.t0, h3.t0);
   drawNumber(ctx, t, h3.t0, h4.t0, h5.t0);
+  drawFaceOff(ctx, t, h5.t0 + 0.1);
   ctx.restore();
 }

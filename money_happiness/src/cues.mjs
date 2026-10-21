@@ -20,8 +20,9 @@ export const CUES = [
   { id: 'c1f', t0: 26.2, t1: 28.8, zh: '“昨天开心吗”也跟着涨——', en: '“Happy yesterday?” rose too—' },
   { id: 'c1g', t0: 28.8, t1: 31.6, zh: '但过了 7.5 万美元，就平了。', en: 'but past $75,000, it flattened.' },
   // 原文结论："high income buys life satisfaction but not happiness"
-  { id: 'c1h', t0: 31.6, t1: 34.6, zh: '结论：高收入买得到满意，买不到快乐。', en: 'Verdict: high income buys satisfaction, not happiness.' },
-  { id: 'c1i', t0: 34.6, t1: 37.2, zh: '这个数字，一火就是十年。', en: 'That number reigned for a decade.' },
+  // 结论段多给 0.8 秒：先在图上画出差距，再让三个小人把它演一遍。
+  { id: 'c1h', t0: 31.6, t1: 35.4, zh: '结论：高收入买得到满意，买不到快乐。', en: 'Verdict: high income buys satisfaction, not happiness.' },
+  { id: 'c1i', t0: 35.4, t1: 38.0, zh: '这个数字，一火就是十年。', en: 'That number reigned for a decade.' },
 ];
 
 export function cue(id) {

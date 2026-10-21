@@ -5,12 +5,12 @@ import { drawCh1 } from './scenes/ch1.mjs';
 
 const SCENES = [
   { start: 0, end: 12.8, draw: drawHook },
-  { start: 12.6, end: 37.6, draw: drawCh1 },
+  { start: 12.6, end: 38.4, draw: drawCh1 },
 ];
 
 const SHAKES = [...hookShakes()];
 
-export const DURATION = 37.6;
+export const DURATION = 38.4;
 
 export function drawFrame(ctx, t, frameIndex) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
