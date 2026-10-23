@@ -9,8 +9,9 @@ metadata:
 # Vibe knowledge video
 
 Repo: `https://github.com/Rezelike/daimashipin` (clone it if it is not in the workspace).
-User defaults: landscape 16:9, **no voice-over**, **no music in the delivered file** (the user adds a
-four-on-the-floor "动次打次" DJ track themselves, usually 《清明上河图》DJ版 — **128 BPM lines up with
+User defaults: landscape 16:9, **no voice-over**, **sound effects but no music** (user, 2026-10-23:
+"视频不要无声了，你给我加几个音效，但是不要配乐" → `Episode(sfx=[...])`, every effect on the beat of its visual
+event; the user may still add a four-on-the-floor DJ track, usually 《清明上河图》DJ版 — **128 BPM lines up with
 it**, confirmed by the user 2026-10-19), Chinese + English text, dark-tech style, picture never shakes,
 **no next-episode teaser: the CTA is the last screen and the video ends directly on the last bar**
 (no end card, no fade), posts to 抖音 / 小红书 / B站, titles start with `Vibe知识大赏/` (≤ 30 characters in total),
@@ -40,21 +41,26 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
 4. **Build** — `cp -r episodes/if_then_plan episodes/<slug>`, rename `slug`, set `bpm`, replace
    strings, give the hook an animated opener (`engine.openers`, or figures acting it out; see Content rules; demo:
    `out/openers_demo.mp4`), write 1-3 custom `visual=` functions for the key idea (the data shows the example is what
-   viewers look for). Keep `music=False` unless the user asks for the engine's own score.
+   viewers look for). Keep `music=False` unless the user asks for the engine's own score. Write the `sfx=` cue list
+   last, one cue per visual event, on the same local beat (copy the one in `episodes/if_then_plan/`): hit on frame 0,
+   whoosh on every cut, pops for things appearing, chime when the result lands, room sounds for what the figures do.
 5. **Preview** — `$V episodes/<slug>/episode.py --preview` → view **only** `build/contact_sheet.png`.
    Fix everything the lint prints (hook too long, small text, missing glyphs, text off-screen or overflowing a card).
    Max 2 preview rounds.
 6. **Render** — `$V episodes/<slug>/episode.py` (~1 min). Read the VERIFY block: duration, 1920x1080,
-   30 fps, size < 95 MB, lint OK, `beatgrid ... OK`, `rhythm ... OK` and `shake ... stable`.
+   30 fps, size < 95 MB, lint OK, `beatgrid ... OK`, `rhythm ... OK` and `shake ... stable`; with sound effects also
+   `lufs` (about -18), `true_peak` (≤ -1 dBTP) and the `sfx` line (transients within a few ms of their beats).
+   You cannot hear: say so, and judge the sound only by these numbers. Re-level or swap effects without re-rendering
+   the picture: `$V episodes/<slug>/episode.py --sfx` (~10 s).
    View `build/mp4_sheet.png` once, then run `--cover` (3:4, 1080x1440 with `cover_size`; it prints a lint;
    view the cover image only if you designed a new cover layout; keep its bottom-left empty for the play count).
 7. **Deliver** — new branch (ask the user first), commit `episodes/<slug>/episode.py` + `out/<slug>.mp4`, `_cover.png`,
    `_publish.txt`; open a PR with `gh api repos/Rezelike/daimashipin/pulls ...` (`gh pr create` does
    not work here). Put the comment question in `publish["pin"]` (pinned comment) and as the caption's
    first line; tell the user to copy-paste the title, not retype it (「主动回忆」 went out as 「主动会议」).
-   In chat: the MP4 is silent on purpose, the BPM it is cut to, the cut times, how to
-   align (song's first strong beat at 0:00), where to cut the song (video length), and that changing
-   `bpm` + re-render takes ~1 min. Each episode branch is stacked on the previous one: say which single
+   In chat: the MP4 has sound effects and no music, the BPM it is cut to, the cut times, how to
+   align a song if the user adds one (a strong beat at 0:00, song volume low enough not to cover the effects),
+   and that changing `bpm` + re-render takes ~1 min. Each episode branch is stacked on the previous one: say which single
    PR to merge (it contains all earlier ones) — skills only load from `main`.
 8. **Data review** (when the user comes back with screenshots) — compare with the table in
    `references/lessons.md` (save %, 2 s bounce, 5 s retention, avg watch, completion, traffic sources),
@@ -105,6 +111,13 @@ Landscape video sits in ~1/3 of a phone screen in the feed:
 headline ≥ 96 px, main line ≥ 64 px, English / secondary ≥ 36 px, nothing visible < 34 px
 (except progress-bar labels / credits with `small=True`). No tiny corner HUD text.
 Noto Sans SC lacks ✗ and emoji: use Lucide icons (`x`, `check`, ...).
+
+## Sound effects (default since 2026-10-23)
+`engine.sfx` synthesizes every effect with numpy (nothing to license) and levels each one by loudness
+(BS.1770 momentary), not by ear; one effect per visual event, on its beat, never a melody or a bed (no music).
+Typical: `hit` on frame 0 (Douyin's own advice: open with a short punchy sound), `whoosh` peaking on each cut,
+`pop` (pitch steps up through a list), `chime` when the result lands, `tick` / `clock`, `buzz`, `step`, `door`,
+`page`, `scribble` for what the figures do. Start walks on half beats so the footsteps fall on the beats.
 
 ## Optional: original score
 `Episode(music=True, bpm=136, cut="slide", bounce=0)` renders the engine's piano + violin score

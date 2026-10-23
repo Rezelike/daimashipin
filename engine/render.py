@@ -70,6 +70,7 @@ class Episode:
     cover_size: tuple = (1920, 1080)     # Douyin's profile grid shows 3:4 -> (1080, 1440) keeps the side text
     publish: dict = field(default_factory=dict)   # {"title":..., "desc":..., "tags": [...]}
     score: Optional[Callable] = None     # score(Score, sections) to override auto_score
+    sfx: list = field(default_factory=list)   # [(scene_id, beat, kind[, opts])] sound effects, no music (engine.sfx)
 
     def __post_init__(self):
         self.beat = 60.0 / self.bpm
@@ -294,6 +295,49 @@ def make_music(ep):
     return out
 
 
+def sfx_cues(ep):
+    """Episode.sfx (scene, local beat) -> [(seconds, kind, opts)]"""
+    out = []
+    for cue in ep.sfx:
+        sid, beat, kind = cue[:3]
+        out.append((ep.starts[sid] * ep.bar + beat * ep.beat, kind, cue[3] if len(cue) > 3 else {}))
+    return out
+
+
+def make_sfx(ep):
+    from . import sfx as FX
+    out = os.path.join(ep.build, "sfx.wav")
+    st = FX.render(sfx_cues(ep), ep.duration, out)
+    print(f"sfx: {st['events']} effects -> {out} (true peak {st['true_peak_db']:.1f} dBTP)")
+    return out, st
+
+
+def mux_audio(video_src, audio, out, concat=False):
+    src = ["-f", "concat", "-safe", "0", "-i", video_src] if concat else ["-i", video_src]
+    subprocess.run([ffmpeg(), "-y", "-v", "error"] + src + ["-i", audio, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+                    "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest", "-movflags", "+faststart", out],
+                   check=True)
+
+
+def sfx_report(path, ep):
+    """measured on the FINAL file: where each transient effect actually starts vs its beat"""
+    from . import sfx as FX
+    raw = subprocess.run([ffmpeg(), "-v", "error", "-i", path, "-map", "0:a", "-ac", "1", "-ar", str(FX.SR),
+                          "-f", "f32le", "-"], capture_output=True).stdout
+    x = np.frombuffer(raw, np.float32)
+    offs, active = FX.onset_offsets(x, sfx_cues(ep))
+    grid = sum(1 for c in ep.sfx if abs(c[1] * 2 - round(c[1] * 2)) < 1e-6)
+    a = np.abs(offs) * 1000
+    return dict(n=len(ep.sfx), grid=grid, checked=len(offs), med=float(np.median(a)) if len(a) else 0.0,
+                worst=float(a.max()) if len(a) else 0.0, active=active, audio_s=len(x) / FX.SR)
+
+
+def print_sfx(r):
+    print(f"sfx       {r['n']} effects, {r['grid']} on the beat grid; in the final file the transients start "
+          f"{r['med']:.0f} ms (median) / {r['worst']:.0f} ms (worst) from their beats ({r['checked']} checked); "
+          f"sound on {r['active'] * 100:.0f}% of the time; audio {r['audio_s']:.2f}s; no music")
+
+
 def probe(path):
     r = subprocess.run([ffmpeg(), "-hide_banner", "-i", path, "-map", "0:a", "-af", "ebur128=peak=true",
                         "-f", "null", "-"], capture_output=True, text=True)
@@ -383,7 +427,12 @@ def write_publish(ep):
         if pub.get("pin"):
             f.write(f"\n置顶评论（发布后马上自己发一条，然后置顶）：{pub['pin']}\n")
         f.write("\n标题请直接复制，不要手打（同音字：回忆 → 会议）。\n")
-        if not ep.music:
+        if not ep.music and ep.sfx:
+            f.write(f"\n声音：视频里只有音效，没有配乐。音效和画面都卡在 {ep.bpm} BPM 的拍点上，画面不抖动。\n")
+            f.write(f"还想在抖音里加歌的话：选 {ep.bpm} BPM 左右的歌，把一个重拍（「动」）对齐视频第 0 秒，"
+                    "把歌的音量调低，别盖住音效。\n")
+            f.write("切镜头时间点（秒）：" + "、".join(f"{t:.2f}" for t in ep.cut_times()) + "\n")
+        elif not ep.music:
             f.write(f"\n配乐：视频本身无配乐，请自己加。画面按 {ep.bpm} BPM 的节拍剪辑：文字和图形都在拍点上出现，切镜头都在小节的第一拍；画面不抖动。\n")
             f.write("对齐方法：把歌的一个重拍（「动」）对齐到视频第 0 秒；歌的 BPM 不同的话，告诉 Kiro 改 bpm 重新渲染（约 1 分钟）。\n")
             f.write("切镜头时间点（秒）：" + "、".join(f"{t:.2f}" for t in ep.cut_times()) + "\n")
@@ -400,6 +449,7 @@ def run(ep):
     p.add_argument("--music", action="store_true")
     p.add_argument("--cover", action="store_true")
     p.add_argument("--lint", action="store_true")
+    p.add_argument("--sfx", action="store_true", help="re-make only the sound effects and swap them into out/<slug>.mp4")
     p.add_argument("--workers", type=int, default=os.cpu_count() or 4)
     args = p.parse_args()
     os.makedirs(ep.build, exist_ok=True)
@@ -427,6 +477,21 @@ def run(ep):
     if args.music:
         make_music(ep)
         return
+    if args.sfx:
+        out = os.path.join(OUT, f"{ep.slug}.mp4")
+        if not os.path.exists(out) or not ep.sfx:
+            raise SystemExit("needs Episode.sfx and an existing out/<slug>.mp4 (run the full render once)")
+        fx, _ = make_sfx(ep)
+        tmp = out[:-4] + ".tmp.mp4"
+        mux_audio(out, fx, tmp)
+        os.replace(tmp, out)
+        info = probe(out)
+        print(f"file      {out}  ({os.path.getsize(out) / 1e6:.1f} MB)  [video stream copied, new sound effects]")
+        for k, v in info.items():
+            print(f"{k:9s} {v}")
+        print_sfx(sfx_report(out, ep))
+        print(f"publish   {write_publish(ep)}")
+        return
     if args.cover:
         if not ep.cover:
             raise SystemExit("episode has no cover() function")
@@ -446,6 +511,7 @@ def run(ep):
         return
 
     music = make_music(ep) if ep.music else None
+    fx = make_sfx(ep)[0] if (ep.sfx and not ep.music) else None
     total = int(round(ep.duration * FPS))
     n = args.workers * 3
     bounds = [round(i * total / n) for i in range(n + 1)]
@@ -474,6 +540,8 @@ def run(ep):
         out_nm = os.path.join(OUT, f"{ep.slug}_nomusic.mp4")
         subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst] + silent + [out_nm],
                        check=True)
+    elif fx:    # sound effects only, no music (user, 2026-10-23)
+        mux_audio(lst, fx, out, concat=True)
     else:   # user adds their own music: one silent video (a silent AAC track keeps editors / apps happy)
         subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst] + silent + [out],
                        check=True)
@@ -485,11 +553,12 @@ def run(ep):
     sheet = os.path.join(ep.build, "mp4_sheet.png")
     mp4_sheet(out, sheet, ep.duration)
     print("\n==== VERIFY ====")
-    print(f"file      {out}  ({os.path.getsize(out) / 1e6:.1f} MB){'' if music else '  [silent: user adds music]'}")
+    tag = "" if music else ("  [sound effects only, no music]" if fx else "  [silent: user adds music]")
+    print(f"file      {out}  ({os.path.getsize(out) / 1e6:.1f} MB){tag}")
     if out_nm:
         print(f"no-music  {out_nm}  ({os.path.getsize(out_nm) / 1e6:.1f} MB)")
     for k, v in info.items():
-        if k in ("lufs", "true_peak") and not music:
+        if k in ("lufs", "true_peak") and not (music or fx):
             continue
         print(f"{k:9s} {v}")
     bad = [round(t / ep.bar, 3) for t in ep.cut_times() if abs(t / ep.bar - round(t / ep.bar)) > 1e-6]
@@ -508,6 +577,8 @@ def run(ep):
         print(f"shake     still edges change {shake['excess']:.2f} gray levels more on the beat than between beats "
               f"({'stable, no shaking' if shake['excess'] < 1.0 else 'SHAKING: the frame moves on the beat'}; "
               f"limit 1.0, the rejected beat-zoom measured 7.4); bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts}")
+    if fx:
+        print_sfx(sfx_report(out, ep))
     print(K.lint_report({"small": small, "missing": missing, "edge": edge, "hook": K.LINT["hook"]}))
     if pub:
         print(f"publish   {pub}")

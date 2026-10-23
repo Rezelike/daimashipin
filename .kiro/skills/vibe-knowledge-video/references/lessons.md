@@ -55,6 +55,9 @@ Extra facts:
    timing (elements on beats, cuts on downbeats). Measured: still areas 29x more change on beats with the beat-zoom, 1.4x without.
    2026-10-19: user confirmed the 128 BPM cut lines up with 《清明上河图》DJ版; asked to drop the next-episode teaser
    and end directly (CTA is the last screen, no end card, no fade).
+   2026-10-23: "视频不要无声了，你给我加几个音效，但是不要配乐" -> deliver with sound effects (`engine/sfx.py`), still no
+   music. if_then_plan: 75 effects on the beat grid, -18.4 LUFS, true peak -1.7 dBTP; Douyin had advised the money video
+   to open with "短促有力的音效", so frame 0 gets a `hit`.
 6. Keep: dark-tech style (the user's choice; both learning-method videos got the first push with it), bilingual,
    summary card + 收藏 prompt (the save rate is what triggers the push).
 7. **Douyin shows the progress-bar labels as chapter names**: name chapters by what they give ("3 个写法", "照着填"), never

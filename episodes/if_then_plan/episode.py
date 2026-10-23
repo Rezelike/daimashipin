@@ -1,4 +1,5 @@
-"""「如果…就…」计划 / If-then plans (implementation intentions) - 75 s, silent, 128 BPM, little people in every scene.
+"""「如果…就…」计划 / If-then plans (implementation intentions) - 75 s, sound effects but no music, 128 BPM,
+little people in every scene.
 
 User, 2026-10-23: "我还是想加几个小人，因为有人看着更舒服一点吧" -> engine.figures (ported from money_happiness).
 Opening per lessons.md: frame 0 shows the full two-line hook with the figures already moving; the result lands on
@@ -54,7 +55,8 @@ def prog(B, b0, b1):
 
 
 def walk(B, b0, b1, x0, x1):
-    """x + walk phase between beats b0..b1; one step per beat, so the leg swing is fastest exactly on the beats"""
+    """x + walk phase between beats b0..b1, one step per beat. Start on a half beat (b0 = n + 0.5): the swing then
+    reaches its end - the foot lands - exactly on the beats, where the footstep sounds are."""
     if B <= b0:
         return x0, None
     if B >= b1:
@@ -231,8 +233,8 @@ def step1_vis(c, S, x, y, w, h, a):
     F.floor_line(c, 170, 1010, FL, a)
     F.wall_clock(c, 290, 585, 58, 19 * 60 + 44 + 16 * e_out((B - vb) / 4), a)   # 20:00 on beat 12
     burst(c, 290, 585, B, vb + 4, CYAN, a, 58, 110)
-    stand, sit = prog(B, vb + 5, vb + 5.6), prog(B, vb + 8, vb + 8.6)          # stand 13, sit 16
-    xw, ph = walk(B, vb + 5.6, vb + 8, TX, DX)
+    stand, sit = prog(B, vb + 5, vb + 5.5), prog(B, vb + 8, vb + 8.6)          # stand 13, sit 16
+    xw, ph = walk(B, vb + 5.5, vb + 8, TX, DX)                                   # feet land on 14, 15
     bob = 5 * (1 - stand) + 5 * sit
     if B < vb + 5:                                        # eating: hand to mouth every 2 beats
         arm_r = lerp(F.ARM_WRITE, 2.6, 0.5 - 0.5 * math.cos(math.pi * (B - vb)))
@@ -447,6 +449,59 @@ def cover(c):
     text(c, s_, CW / 2, 1190, 54, "black", WHITE, 1)
 
 
+
+# ----------------------------------------------------------------------------- sound effects (no music)
+# User, 2026-10-23: "视频不要无声了，你给我加几个音效，但是不要配乐". Every cue sits on the beat of its visual event.
+L, R, CL = -0.45, 0.45, -0.6          # pan: left group / right group (and text column) / the clock
+
+
+def _p(pitch=1.0, **o):
+    return dict(pitch=pitch, **o)
+
+
+SFX = [
+    # hook: a punchy hit on frame 0 (Douyin's advice on the last video), the pencil is already writing
+    ("hook", 0, "hit"), ("hook", 0, "scribble", dict(dur=1.8, pan=R)),
+    ("hook", 1, "pop", _p(0.9, pan=L)), ("hook", 2, "pop", _p(1.0, pan=R)),
+    ("hook", 4, "whoosh"),                                                    # time skip: 2 days later
+    ("hook", 5, "pop", _p(1.0)), ("hook", 6, "pop", _p(1.12)), ("hook", 7, "pop", _p(1.26)),   # people light up
+    ("hook", 8, "chime", dict(pan=R)),                                        # 71% lands
+    ("hook", 9, "pop_big"),                                                   # 差的就是这一句
+    # answer
+    ("answer", 0, "whoosh"), ("answer", 1, "pop_big"),
+    ("answer", 4, "pop", _p(1.0, pan=-0.5)), ("answer", 5, "pop", _p(1.12)), ("answer", 6, "pop", _p(1.26, pan=0.5)),
+    ("answer", 8, "sparkle"),
+    # step 1: dinner -> 8 pm -> walk to the desk -> write
+    ("step1", 0, "whoosh"), ("step1", 4, "pop"), ("step1", 8, "pop", _p(0.85)),
+    ("step1", 9, "tick", dict(pan=CL)), ("step1", 10, "tick", dict(pan=CL)), ("step1", 11, "tick", dict(pan=CL)),
+    ("step1", 9, "pop", _p(0.9, pan=R)), ("step1", 11, "swipe", dict(pan=R)),
+    ("step1", 12, "clock", dict(pan=CL)), ("step1", 12, "pop", _p(1.2, pan=R)),
+    ("step1", 13, "thump", _p(1.2, gain=-4)), ("step1", 14, "step", dict(pan=-0.2)), ("step1", 15, "step", _p(1.1)),
+    ("step1", 16, "thump"), ("step1", 17, "page"),
+    ("step1", 18, "pop", _p(1.26, pan=R)), ("step1", 18, "scribble", dict(dur=3.6)),
+    ("step1", 22, "pop", _p(0.9, pan=R)),
+    # step 2: "好好学习" is crossed out, a concrete action replaces it
+    ("step2", 0, "whoosh"), ("step2", 4, "pop"), ("step2", 8, "pop", _p(0.85)),
+    ("step2", 9, "pop", _p(0.8)), ("step2", 10, "huh"),
+    ("step2", 12, "error"), ("step2", 12, "swipe", dict(pan=R)),
+    ("step2", 13, "pop_big", _p(1.2)), ("step2", 14, "page"), ("step2", 15, "scribble", dict(dur=2.3)),
+    ("step2", 20, "pop", dict(pan=R)), ("step2", 20, "rise", dict(dur=0.94, pan=R)),
+    # step 3: the phone buzzes, goes out through the door, back to writing; the evidence stacks grow
+    ("step3", 0, "whoosh"), ("step3", 4, "pop"), ("step3", 8, "pop", _p(0.85)),
+    ("step3", 9, "buzz", dict(pan=-0.3)), ("step3", 10, "buzz", dict(pan=-0.3)), ("step3", 11, "buzz", dict(pan=-0.3)),
+    ("step3", 12, "thump", _p(1.2, gain=-4)), ("step3", 13, "step"), ("step3", 14, "step", _p(1.1)),
+    ("step3", 15, "door"), ("step3", 16, "whoosh", dict(gain=-6)), ("step3", 17, "thump", _p(0.8)),
+    ("step3", 18, "step", _p(1.1)), ("step3", 19, "step"), ("step3", 20, "thump"),
+    ("step3", 21, "pop", dict(pan=0.5)), ("step3", 21, "scribble", dict(dur=3.0)),
+    ("step3", 22, "rise", dict(dur=0.94, pan=0.5)), ("step3", 24, "chime", dict(pan=0.5)),
+    ("step3", 25, "pop", _p(1.12, pan=0.4)),
+    # summary rows, save hint; cta icons
+    ("summary", 0, "whoosh"), ("summary", 2, "pop", _p(1.0)), ("summary", 4, "pop", _p(1.12)),
+    ("summary", 6, "pop", _p(1.26)), ("summary", 8, "sparkle"),
+    ("cta", 0, "whoosh"), ("cta", 2, "pop", _p(1.0, pan=-0.4)), ("cta", 3, "pop", _p(1.12)),
+    ("cta", 4, "pop", _p(1.26, pan=0.4)),
+]
+
 # ----------------------------------------------------------------------------- episode
 EP = Episode(
     slug="if_then_plan",
@@ -455,6 +510,7 @@ EP = Episode(
     music=False,
     tail=0.0,
     fade_out=0.0,
+    sfx=SFX,
     scenes=[
         Scene("hook", 4, SC.hook("同一份作业|差[一句话]", "Same assignment. One sentence apart.", accent=AMBER,
                                  visual=hook_visual), chapter="差一句话"),

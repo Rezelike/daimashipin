@@ -87,6 +87,13 @@ Keep figure motion smooth (no per-beat jitter); start actions (stand, walk, open
 `Episode(cover_size=(1080, 1440))` renders `--cover` at 3:4 for the Douyin profile grid (the cover function draws
 its own background; `K.bg_dark_tech` is 16:9 only).
 
+## Sound effects (`engine.sfx`, no music)
+`Episode(sfx=[(scene_id, local_beat, kind), (scene_id, local_beat, kind, dict(pitch=, pan=, gain=, dur=)), ...])`.
+Kinds: `hit whoosh pop pop_big tick chime clock sparkle buzz thump step page scribble error huh swipe rise door`
+(`whoosh` peaks ON its cue; `scribble` / `rise` take `dur=` seconds). Levels: `sfx.TARGET` (momentary LUFS per kind),
+`gain=` in dB on top; each effect is soft-limited, the mix is kept ≤ -1.5 dBTP (if-then-plan: -18.4 LUFS integrated).
+`--sfx` re-makes only the effects and swaps them into the existing `out/<slug>.mp4` (video stream copied).
+
 ## Music roles (only with `music=True`; `engine.music.ROLE_DOC`)
 intro (hook build, ends on dominant) · theme (main violin theme) · verse (light: arpeggio + pizzicato + bongos) ·
 build (rising stabs) · tension (fast spiccato, minor) · release (bright major) · drive (rhythmic stabs, lists) ·
@@ -101,7 +108,8 @@ $V episodes/<slug>/episode.py --preview      # build/contact_sheet.png (1 image)
 $V episodes/<slug>/episode.py --frame 12.3   # single frame (debug)
 $V episodes/<slug>/episode.py --music        # music only
 $V episodes/<slug>/episode.py --cover        # out/<slug>_cover.png (Episode.cover_size, 3:4 for Douyin)
-$V episodes/<slug>/episode.py                # out/<slug>.mp4 (silent), out/<slug>_publish.txt + VERIFY
+$V episodes/<slug>/episode.py --sfx          # only the sound effects, muxed into the existing mp4 (~10 s)
+$V episodes/<slug>/episode.py                # out/<slug>.mp4 (sound effects if Episode.sfx, else silent) + VERIFY
 ```
 Full render of 75 s takes ~1 min on 8 cores. VERIFY includes `beatgrid` (cuts on bar lines), `rhythm`
 (share of visual events landing on a beat + strength of every cut) and `shake` (still areas on vs

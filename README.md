@@ -2,7 +2,7 @@
 
 | 作品 | 成片 | 说明 |
 |---|---|---|
-| 「如果…就…」计划（1:15，无配乐，按 128 BPM 卡点，每段都有小人，3:4 封面） | [`out/if_then_plan.mp4`](out/if_then_plan.mp4) · [封面](out/if_then_plan_cover.png) · [发布文案](out/if_then_plan_publish.txt) | [`episodes/if_then_plan/`](episodes/if_then_plan/episode.py) · 小人：[`engine/figures.py`](engine/figures.py) |
+| 「如果…就…」计划（1:15，有音效、无配乐，按 128 BPM 卡点，每段都有小人，3:4 封面） | [`out/if_then_plan.mp4`](out/if_then_plan.mp4) · [封面](out/if_then_plan_cover.png) · [发布文案](out/if_then_plan_publish.txt) | [`episodes/if_then_plan/`](episodes/if_then_plan/episode.py) · 小人：[`engine/figures.py`](engine/figures.py) |
 | 开场动画样片（0:30，4 种开场动画：对比反转 / 消散 / 分叉 / 计时） | [`out/openers_demo.mp4`](out/openers_demo.mp4) | [`engine/openers.py`](engine/openers.py) |
 | 主动回忆（1:15，无配乐，按 128 BPM 卡点，画面不抖，直接结束） | [`out/active_recall.mp4`](out/active_recall.mp4) · [封面](out/active_recall_cover.png) · [发布文案](out/active_recall_publish.txt) | [`episodes/active_recall/`](episodes/active_recall/episode.py) |
 | 艾宾浩斯遗忘曲线（1:16，无配乐，按 128 BPM 的节拍剪辑） | [`out/forgetting_curve.mp4`](out/forgetting_curve.mp4) · [封面](out/forgetting_curve_cover.png) · [发布文案](out/forgetting_curve_publish.txt) | [`episodes/forgetting_curve/`](episodes/forgetting_curve/episode.py) |
