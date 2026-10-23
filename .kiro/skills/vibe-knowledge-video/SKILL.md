@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "1.5"
+  version: "1.6"
 ---
 
 # Vibe knowledge video
@@ -13,12 +13,14 @@ User defaults: landscape 16:9, **no voice-over**, **no music in the delivered fi
 four-on-the-floor "动次打次" DJ track themselves, usually 《清明上河图》DJ版 — **128 BPM lines up with
 it**, confirmed by the user 2026-10-19), Chinese + English text, dark-tech style, picture never shakes,
 **no next-episode teaser: the CTA is the last screen and the video ends directly on the last bar**
-(no end card, no fade), posts to 抖音 / 小红书 / B站, titles start with `Vibe知识大赏/`.
+(no end card, no fade), posts to 抖音 / 小红书 / B站, titles start with `Vibe知识大赏/` (≤ 30 characters in total),
+**little people in every scene** (user, 2026-10-23: "有人看着更舒服一点"), **3:4 covers** (1080x1440, the profile grid).
 The user cannot see the sandbox: always report file paths / PR links, and put numbers in chat.
 
 **Read `references/lessons.md` first** (real data from past episodes). Engine API: `references/engine.md`.
-Latest worked example: `episodes/active_recall/episode.py` (experiment bars, dictation sheet, answer check,
-A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episodes/forgetting_curve/`.
+Latest worked example: `episodes/if_then_plan/episode.py` (figures acting out each step: seated at desks, walking,
+door, phone; crowds of sprites that light up for the result; fill-in summary template; 3:4 cover). Experiment bars /
+dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals: `episodes/forgetting_curve/`.
 
 ## Workflow (do not skip the two approval gates)
 
@@ -35,8 +37,8 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
 3. **Environment** (~40 s, idempotent):
    `bash .kiro/skills/vibe-knowledge-video/scripts/setup_env.sh` then
    `/projects/sandbox/.videoenv/vpy -m engine.assets` (from repo root).
-4. **Build** — `cp -r episodes/active_recall episodes/<slug>`, rename `slug`, set `bpm`, replace
-   strings, give the hook an animated opener (`engine.openers`, see Content rules; demo:
+4. **Build** — `cp -r episodes/if_then_plan episodes/<slug>`, rename `slug`, set `bpm`, replace
+   strings, give the hook an animated opener (`engine.openers`, or figures acting it out; see Content rules; demo:
    `out/openers_demo.mp4`), write 1-3 custom `visual=` functions for the key idea (the data shows the example is what
    viewers look for). Keep `music=False` unless the user asks for the engine's own score.
 5. **Preview** — `$V episodes/<slug>/episode.py --preview` → view **only** `build/contact_sheet.png`.
@@ -44,9 +46,9 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
    Max 2 preview rounds.
 6. **Render** — `$V episodes/<slug>/episode.py` (~1 min). Read the VERIFY block: duration, 1920x1080,
    30 fps, size < 95 MB, lint OK, `beatgrid ... OK`, `rhythm ... OK` and `shake ... stable`.
-   View `build/mp4_sheet.png` once, then run `--cover` (it prints a lint; view the cover image only
-   if you designed a new cover layout).
-7. **Deliver** — new branch, commit `episodes/<slug>/episode.py` + `out/<slug>.mp4`, `_cover.png`,
+   View `build/mp4_sheet.png` once, then run `--cover` (3:4, 1080x1440 with `cover_size`; it prints a lint;
+   view the cover image only if you designed a new cover layout; keep its bottom-left empty for the play count).
+7. **Deliver** — new branch (ask the user first), commit `episodes/<slug>/episode.py` + `out/<slug>.mp4`, `_cover.png`,
    `_publish.txt`; open a PR with `gh api repos/Rezelike/daimashipin/pulls ...` (`gh pr create` does
    not work here). Put the comment question in `publish["pin"]` (pinned comment) and as the caption's
    first line; tell the user to copy-paste the title, not retype it (「主动回忆」 went out as 「主动会议」).
@@ -72,7 +74,13 @@ A/B comment prompt, direct ending). Curve / sawtooth / timeline visuals: `episod
   `dissolve` (learned items dissolve while a counter drops: forgetting), `diverge` (two lines from one point
   end far apart: habits, compounding), `timer` (a clock races through an afternoon: focus) — or a custom one
   built the same way: moving on frame 0, events on beats, the reveal lands by beat 8, nothing shakes.
+- **Little people in every scene** (user, 2026-10-23): `engine.figures` — seat them at desks (draw the figure,
+  then `F.desk()` in front), walk them (`walk=` phase, one step per beat), give them props (pen, phone, note,
+  paper), show results as crowds of sprites lighting up (real counts from the paper). Each step acts out one
+  everyday scene; the text says the rule, the figure shows it.
 - Put a concrete example inside every step; end with a screenshot-able summary card + 收藏 prompt.
+- Chapter labels are what Douyin lists as chapters: name them by payoff ("3 个写法", "照着填"), never "片头 / 结尾".
+- Titles: ≤ 30 characters including `Vibe知识大赏/`; no number that needs background knowledge (「7.5 万美元」).
 - CTA: a two-choice question with reply pills (`cta(..., options=[("扣 1 · …", DIM), ("扣 2 · …", VIOLET)])`)
   plus like / save / follow. No "下期" teaser (user, 2026-10-19). But the end is seen by only ~1% of viewers:
   the same question goes into the caption's first line and a pinned comment (`publish["pin"]`).

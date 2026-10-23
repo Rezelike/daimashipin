@@ -66,7 +66,8 @@ class Episode:
     progress_bar: bool = True
     glitch_cuts: bool = False   # RGB slice glitch on cuts (also reads as shaking)
     background: Callable = K.bg_dark_tech
-    cover: Optional[Callable] = None     # cover(c) draws a 1920x1080 cover
+    cover: Optional[Callable] = None     # cover(c) draws the cover on a cover_size canvas
+    cover_size: tuple = (1920, 1080)     # Douyin's profile grid shows 3:4 -> (1080, 1440) keeps the side text
     publish: dict = field(default_factory=dict)   # {"title":..., "desc":..., "tags": [...]}
     score: Optional[Callable] = None     # score(Score, sections) to override auto_score
 
@@ -431,10 +432,13 @@ def run(ep):
             raise SystemExit("episode has no cover() function")
         for v in K.LINT.values():
             v.clear()
-        arr, surf = _surface()
+        cw, ch = ep.cover_size
+        arr = np.zeros((ch, cw, 4), np.uint8)
+        surf = skia.Surface(arr, colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kPremul_AlphaType)
         c = surf.getCanvas()
         ep.cover(c)
-        K.overlay(c)
+        if (cw, ch) == (W, H):
+            K.overlay(c)
         out = os.path.join(OUT, f"{ep.slug}_cover.png")
         surf.makeImageSnapshot().save(out)
         print(out)

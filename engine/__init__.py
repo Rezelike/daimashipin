@@ -3,6 +3,7 @@
     engine.core     drawing primitives: text (CJK fallback + readability lint), cards, icons, backgrounds
     engine.music    sample-based score engine (VSCO-2 CE, CC0) + auto arrangement by section role
     engine.render   Episode definition + CLI: preview sheet / frames / cover / full render / verify
+    engine.figures  little people (seated, walking, props, crowds) + desk / door / clock furniture
     engine.assets   downloads CC0 samples + Lucide icons from GitHub (into REPO/.assets, gitignored)
 """
 import os

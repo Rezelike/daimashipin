@@ -73,6 +73,20 @@ Lint (run by `--preview`, `--lint` and the full render):
 - text crossing the 60 px screen margin, or starting inside a `card()` and running past its right edge
   → shorten / shrink it (`free=True` only for things meant to sit between cards, like arrows)
 
+## Little people (`from engine import figures as F`)
+Ported from the money-happiness video. Origin = feet centre, scale 1 ≈ 104 px tall, chibi proportions.
+| function | use |
+|---|---|
+| `F.make(seed, top=, hair=, hair_style=, skin=, pants=)` / `F.crowd(n, seed)` | a look (pin any field) / n random looks |
+| `F.draw(c, f, x, y, s, alpha, mood=, look=, look_y=, arm_l=, arm_r=, prop=, walk=, bob=, t=)` | one figure. mood -1 sad … 1 laugh; arms `ARM_DOWN / ARM_WRITE / ARM_OUT / ARM_UP` (radians); `prop=dict(kind="pen"/"phone"/"note"/"paper", side=±1, lit=)`; `walk=` phase (use `pi * (B - b0)`: one step per beat); `t=S.gt` for blinking |
+| `F.sprite(c, f, x, y, s, alpha, **pose)` | cached bitmap of a fixed pose, for crowds of 10-40 |
+| `F.chair` (draw first) → `F.draw` → `F.desk(c, x, floor, w, s)` (returns the desk-top y) | a seated figure: the desk hides everything below its top |
+| `F.paper_on`, `F.book_on(opened=)`, `F.phone_on(lit=, buzz=)`, `F.bowl_on` | things lying on a desk top |
+| `F.wall_clock(c, x, y, r, minutes)`, `F.door(c, x, floor, s, opened=)`, `F.floor_line(c, x0, x1, floor)` | room props |
+Keep figure motion smooth (no per-beat jitter); start actions (stand, walk, open) on beats.
+`Episode(cover_size=(1080, 1440))` renders `--cover` at 3:4 for the Douyin profile grid (the cover function draws
+its own background; `K.bg_dark_tech` is 16:9 only).
+
 ## Music roles (only with `music=True`; `engine.music.ROLE_DOC`)
 intro (hook build, ends on dominant) · theme (main violin theme) · verse (light: arpeggio + pizzicato + bongos) ·
 build (rising stabs) · tension (fast spiccato, minor) · release (bright major) · drive (rhythmic stabs, lists) ·
@@ -86,7 +100,7 @@ V=/projects/sandbox/.videoenv/vpy
 $V episodes/<slug>/episode.py --preview      # build/contact_sheet.png (1 image) + lint
 $V episodes/<slug>/episode.py --frame 12.3   # single frame (debug)
 $V episodes/<slug>/episode.py --music        # music only
-$V episodes/<slug>/episode.py --cover        # out/<slug>_cover.png
+$V episodes/<slug>/episode.py --cover        # out/<slug>_cover.png (Episode.cover_size, 3:4 for Douyin)
 $V episodes/<slug>/episode.py                # out/<slug>.mp4 (silent), out/<slug>_publish.txt + VERIFY
 ```
 Full render of 75 s takes ~1 min on 8 cores. VERIFY includes `beatgrid` (cuts on bar lines), `rhythm`
