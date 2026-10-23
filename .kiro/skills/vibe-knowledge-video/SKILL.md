@@ -15,7 +15,11 @@ event; the user may still add a four-on-the-floor DJ track, usually 《清明上
 it**, confirmed by the user 2026-10-19), Chinese + English text, dark-tech style, picture never shakes,
 **no next-episode teaser: the CTA is the last screen and the video ends directly on the last bar**
 (no end card, no fade), posts to 抖音 / 小红书 / B站, titles start with `Vibe知识大赏/` (≤ 30 characters in total),
-**little people in every scene** (user, 2026-10-23: "有人看着更舒服一点"), **3:4 covers** (1080x1440, the profile grid).
+**little people in every scene** (user, 2026-10-23: "有人看着更舒服一点"), **3:4 covers** (1080x1440, the profile grid)
+**that the user generates with GPT** (2026-10-23: "封面还用gpt生成吧"): write a Chinese prompt (3:4, plus a 4:3 variant for
+the 横封面), tell the user to upload the code cover from `--cover` as the layout reference, then check what comes back
+(every Chinese character, numbers not swapped, no stray text, seams, bottom-left empty), fix and crop it to 1080x1440 /
+1440x1080. The code cover stays as the fallback.
 The user cannot see the sandbox: always report file paths / PR links, and put numbers in chat.
 
 **Read `references/lessons.md` first** (real data from past episodes). Engine API: `references/engine.md`.
