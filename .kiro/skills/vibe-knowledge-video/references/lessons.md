@@ -68,6 +68,11 @@ Extra facts:
 9. **User, 2026-10-23: little people in every scene** ("有人看着更舒服一点，不是干巴巴的塞一堆知识给你") -> `engine/figures.py`
    (ported from the money video): each step acts out one everyday scene. Douyin's own advice on the money video pointed the
    same way (everyday-life detail).
+10. **Covers (user, 2026-10-23):** made by the user with GPT from our prompt; **no people on the cover** ("封面不要小人会不会好一点":
+   the profile's best covers - brain, curve, books - had none). A cover is read in half a second, so it must say
+   (a) the topic in plain words ("总拖延？"), (b) what to do ("写下这一句" + the sentence itself), (c) the proof with its
+   label ("按时完成率 32% → 71%"). The first GPT cover (「同一份作业 / 差一句话」 + two sticky notes + bare 32% / 71%) was
+   rejected: "这完全不知道这张封面在说什么" - a riddle headline works in the video (answered 4 s later), never on a cover.
 
 ## Open questions to test
 - **Next episode = 「如果…就…」计划 (`if_then_plan`, 2026-10-23):** changes vs 主动回忆: frame-0 hook with figures already

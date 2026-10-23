@@ -92,6 +92,8 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
 - Put a concrete example inside every step; end with a screenshot-able summary card + 收藏 prompt.
 - Chapter labels are what Douyin lists as chapters: name them by payoff ("3 个写法", "照着填"), never "片头 / 结尾".
 - Titles: ≤ 30 characters including `Vibe知识大赏/`; no number that needs background knowledge (「7.5 万美元」).
+- Cover prompts (GPT, no people): the topic in plain words + what to do + the proof with its label; never a riddle
+  (rejected: 「同一份作业 / 差一句话」 with bare 32% / 71%; accepted: 「总拖延？ / 写下这一句」 + the sentence + 按时完成率).
 - CTA: a two-choice question with reply pills (`cta(..., options=[("扣 1 · …", DIM), ("扣 2 · …", VIOLET)])`)
   plus like / save / follow. No "下期" teaser (user, 2026-10-19). But the end is seen by only ~1% of viewers:
   the same question goes into the caption's first line and a pinned comment (`publish["pin"]`).
