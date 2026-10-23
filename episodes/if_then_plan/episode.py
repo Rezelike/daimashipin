@@ -416,38 +416,49 @@ def cta(c, S):
            t=S.gt)
 
 
-# ----------------------------------------------------------------------------- 3:4 cover (Douyin profile grid)
-def cover(c):
-    CW, CH = 1080, 1440
+# ----------------------------------------------------------------------------- covers: 3:4 (竖封面) + 4:3 (横封面)
+def _cover(c, CW, CH, floor, s, xs, ys, sizes, desk_w):
+    """shared layout: headline, two groups with their result, two figures at desks, a method pill.
+    ys = (headline, big line, labels, numbers, pill); sizes = (headline, big line, numbers, pill text)"""
     c.drawPaint(paint("#020617", shader=skia.GradientShader.MakeRadial(
         (CW / 2, CH * 0.42), 1150, [K.rgb("#13224A"), K.rgb("#070D1F"), K.rgb("#02040A")], [0, 0.55, 1])))
     g = paint("#1D3A6B", 0.22, stroke=1, cap_round=False)
     for gx in range(0, CW + 1, 60):
-        c.drawLine(gx, 0, gx, 1060, g)
-    for gy in range(0, 1061, 60):
+        c.drawLine(gx, 0, gx, floor, g)
+    for gy in range(0, floor + 1, 60):
         c.drawLine(0, gy, CW, gy, g)
-    c.drawRect(skia.Rect.MakeXYWH(0, 1060, CW, CH - 1060), paint("#030712", 0.7))
-    for k in range(-10, 11):
-        c.drawLine(CW / 2 + k * 30, 1060, CW / 2 + k * 200, CH, paint(CYAN, 0.12, stroke=1.3, cap_round=False))
-    c.drawRect(skia.Rect.MakeXYWH(0, 1058, CW, 4), paint(CYAN, 0.45, blur=6))
-    text(c, "同一份作业", CW / 2, 190, 120, "black", WHITE, 1, glow=CYAN, gsig=18, glow_a=0.35)
-    rich(c, "差[一句话]", CW / 2, 385, 210, "black", WHITE, AMBER, 1)
-    for cx, lbl, col, num, ncol, who, mood, pl in ((290, "只定目标", DIM, "32%", DIM, PAL, -0.3, False),
-                                                   (790, "+ 写下何时、在哪", AMBER, "71%", GREEN, ME, 0.85, True)):
-        text(c, lbl, cx, 560, 46, "bold", col, 1)
-        text(c, num, cx, 675, 128, "mono", ncol, 1, glow=GREEN if pl else None, gsig=18)
-        F.chair(c, cx, 1060, 2.7)
-        F.draw(c, who, cx, 1060, 2.7, 1.0, mood=mood, look_y=0.6, arm_l=F.ARM_WRITE,
+    c.drawRect(skia.Rect.MakeXYWH(0, floor, CW, CH - floor), paint("#030712", 0.7))
+    nl = int(CW / 108)                                    # 10 perspective lines each side at 1080 wide
+    for k in range(-nl, nl + 1):
+        c.drawLine(CW / 2 + k * 30, floor, CW / 2 + k * 200, CH, paint(CYAN, 0.12, stroke=1.3, cap_round=False))
+    c.drawRect(skia.Rect.MakeXYWH(0, floor - 2, CW, 4), paint(CYAN, 0.45, blur=6))
+    y_head, y_big, y_lbl, y_num, y_pill = ys
+    s_head, s_big, s_num, s_pill = sizes
+    text(c, "同一份作业", CW / 2, y_head, s_head, "black", WHITE, 1, glow=CYAN, gsig=18, glow_a=0.35)
+    rich(c, "差[一句话]", CW / 2, y_big, s_big, "black", WHITE, AMBER, 1)
+    for cx, lbl, col, num, ncol, who, mood, pl in ((xs[0], "只定目标", DIM, "32%", DIM, PAL, -0.3, False),
+                                                   (xs[1], "+ 写下何时、在哪", AMBER, "71%", GREEN, ME, 0.85, True)):
+        text(c, lbl, cx, y_lbl, 46, "bold", col, 1)
+        text(c, num, cx, y_num, s_num, "mono", ncol, 1, glow=GREEN if pl else None, gsig=18)
+        F.chair(c, cx, floor, s)
+        F.draw(c, who, cx, floor, s, 1.0, mood=mood, look_y=0.6, arm_l=F.ARM_WRITE,
                arm_r=F.ARM_WRITE, prop=dict(kind="pen") if pl else None, blink=False)
-        ty = F.desk(c, cx, 1060, 400, 2.7)
-        F.paper_on(c, cx - (55 if pl else 0), ty, 2.7, written=0.0)
+        ty = F.desk(c, cx, floor, desk_w, s)
+        F.paper_on(c, cx - (55 / 2.7 * s if pl else 0), ty, s, written=0.0)
         if pl:
-            note_on(c, cx + 60, ty, 2.7, written=1.0)
+            note_on(c, cx + 60 / 2.7 * s, ty, s, written=1.0)
     s_ = "1 分钟学会「如果…就…」"
-    pw = measure(s_, "black", 54) + 120
-    pill(c, CW / 2, 1190, pw, 104, AMBER, 1, fill_a=0.22)
-    text(c, s_, CW / 2, 1190, 54, "black", WHITE, 1)
+    pw = measure(s_, "black", s_pill) + 120
+    pill(c, CW / 2, y_pill, pw, round(s_pill * 1.93), AMBER, 1, fill_a=0.22)
+    text(c, s_, CW / 2, y_pill, s_pill, "black", WHITE, 1)
 
+
+def cover(c):            # 1080x1440: the profile grid; the bottom-left stays empty for the play count
+    _cover(c, 1080, 1440, 1060, 2.7, (290, 790), (190, 385, 560, 675, 1190), (120, 210, 128, 54), 400)
+
+
+def cover_43(c):         # 1440x1080: 横封面
+    _cover(c, 1440, 1080, 930, 2.4, (430, 1010), (150, 315, 470, 575, 1005), (110, 190, 118, 50), 380)
 
 
 # ----------------------------------------------------------------------------- sound effects (no music)
@@ -529,8 +540,9 @@ EP = Episode(
     ],
     cover=cover,
     cover_size=(1080, 1440),
+    extra_covers={"4x3": (cover_43, (1440, 1080))},
     publish=dict(
-        title="Vibe知识大赏/拖延的人，少写了一句话",
+        title="Vibe知识大赏/总拖到最后一天？1分钟学会「如果…就…」",
         desc="你的「如果…就…」是什么？写在评论区。"
              "同一份作业，差一句话：实验里，大学生要在圣诞假期写一份报告，其中一半人事先写下了「什么时候、在哪写」。"
              "寄回报告的人里，写了的 71% 按时写完，没写的只有 32%。"

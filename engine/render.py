@@ -68,6 +68,7 @@ class Episode:
     background: Callable = K.bg_dark_tech
     cover: Optional[Callable] = None     # cover(c) draws the cover on a cover_size canvas
     cover_size: tuple = (1920, 1080)     # Douyin's profile grid shows 3:4 -> (1080, 1440) keeps the side text
+    extra_covers: dict = field(default_factory=dict)   # {"4x3": (fn, (1440, 1080))} -> out/<slug>_cover_4x3.png
     publish: dict = field(default_factory=dict)   # {"title":..., "desc":..., "tags": [...]}
     score: Optional[Callable] = None     # score(Score, sections) to override auto_score
     sfx: list = field(default_factory=list)   # [(scene_id, beat, kind[, opts])] sound effects, no music (engine.sfx)
@@ -495,19 +496,20 @@ def run(ep):
     if args.cover:
         if not ep.cover:
             raise SystemExit("episode has no cover() function")
-        for v in K.LINT.values():
-            v.clear()
-        cw, ch = ep.cover_size
-        arr = np.zeros((ch, cw, 4), np.uint8)
-        surf = skia.Surface(arr, colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kPremul_AlphaType)
-        c = surf.getCanvas()
-        ep.cover(c)
-        if (cw, ch) == (W, H):
-            K.overlay(c)
-        out = os.path.join(OUT, f"{ep.slug}_cover.png")
-        surf.makeImageSnapshot().save(out)
-        print(out)
-        print("cover " + K.lint_report())
+        jobs = [("", ep.cover, ep.cover_size)] + [(f"_{k}", fn, size) for k, (fn, size) in ep.extra_covers.items()]
+        for suffix, fn, (cw, ch) in jobs:
+            for v in K.LINT.values():
+                v.clear()
+            arr = np.zeros((ch, cw, 4), np.uint8)
+            surf = skia.Surface(arr, colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kPremul_AlphaType)
+            c = surf.getCanvas()
+            fn(c)
+            if (cw, ch) == (W, H):
+                K.overlay(c)
+            out = os.path.join(OUT, f"{ep.slug}_cover{suffix}.png")
+            surf.makeImageSnapshot().save(out)
+            print(f"{out}  ({cw}x{ch})")
+            print("cover " + K.lint_report())
         return
 
     music = make_music(ep) if ep.music else None

@@ -53,7 +53,8 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
    You cannot hear: say so, and judge the sound only by these numbers. Re-level or swap effects without re-rendering
    the picture: `$V episodes/<slug>/episode.py --sfx` (~10 s).
    View `build/mp4_sheet.png` once, then run `--cover` (3:4, 1080x1440 with `cover_size`; it prints a lint;
-   view the cover image only if you designed a new cover layout; keep its bottom-left empty for the play count).
+   view the cover image only if you designed a new cover layout; keep its bottom-left empty for the play count;
+   `extra_covers` adds the 4:3 横封面 the publish page also asks for).
 7. **Deliver** — new branch (ask the user first), commit `episodes/<slug>/episode.py` + `out/<slug>.mp4`, `_cover.png`,
    `_publish.txt`; open a PR with `gh api repos/Rezelike/daimashipin/pulls ...` (`gh pr create` does
    not work here). Put the comment question in `publish["pin"]` (pinned comment) and as the caption's

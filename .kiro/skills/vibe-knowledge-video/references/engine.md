@@ -85,7 +85,8 @@ Ported from the money-happiness video. Origin = feet centre, scale 1 ≈ 104 px 
 | `F.wall_clock(c, x, y, r, minutes)`, `F.door(c, x, floor, s, opened=)`, `F.floor_line(c, x0, x1, floor)` | room props |
 Keep figure motion smooth (no per-beat jitter); start actions (stand, walk, open) on beats.
 `Episode(cover_size=(1080, 1440))` renders `--cover` at 3:4 for the Douyin profile grid (the cover function draws
-its own background; `K.bg_dark_tech` is 16:9 only).
+its own background; `K.bg_dark_tech` is 16:9 only). `extra_covers={"4x3": (fn, (1440, 1080))}` also writes
+`out/<slug>_cover_4x3.png`: Douyin's publish page asks for a 竖封面 (3:4) and a 横封面 (4:3).
 
 ## Sound effects (`engine.sfx`, no music)
 `Episode(sfx=[(scene_id, local_beat, kind), (scene_id, local_beat, kind, dict(pitch=, pan=, gain=, dur=)), ...])`.
