@@ -1,0 +1,109 @@
+// Render frames of src/scene.html with headless Chromium.
+//   node tools/render.mjs --stills 0,2.2,3.2      -> build/stills/t_<sec>.png
+//   node tools/render.mjs --all [--workers 7]      -> build/frames/f_00000.png ... (30 fps, 75 s)
+// playwright-core and Chromium are found automatically (local node_modules, global npm, Kiro sandbox).
+// Override with PW_CORE=<playwright-core dir> and CHROME_EXE=<chrome or chrome-headless-shell>.
+import { createRequire } from 'module';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const require = createRequire(import.meta.url);
+
+function loadPlaywright() {
+  const candidates = [process.env.PW_CORE, 'playwright-core', 'playwright'];
+  try {
+    const g = execSync('npm root -g', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    candidates.push(path.join(g, 'playwright-core'), path.join(g, 'playwright'),
+      path.join(g, '@playwright/mcp/node_modules/playwright-core'));
+  } catch {}
+  let lastErr;
+  for (const c of candidates.filter(Boolean)) {
+    try { return require(c); } catch (e) { lastErr = e; }
+  }
+  throw new Error(`playwright-core not found (run \`npm i playwright-core\` here, or set PW_CORE): ${lastErr?.message}`);
+}
+
+function findChrome() {
+  if (process.env.CHROME_EXE) return process.env.CHROME_EXE;
+  const roots = [process.env.PLAYWRIGHT_BROWSERS_PATH, '/inner_container/opt/playwright',
+    path.join(os.homedir(), '.cache/ms-playwright')].filter(Boolean);
+  for (const r of roots) {
+    let dirs;
+    try { dirs = fs.readdirSync(r); } catch { continue; }
+    for (const d of dirs.filter((x) => x.startsWith('chromium_headless_shell-')).sort().reverse()) {
+      const exe = path.join(r, d, 'chrome-headless-shell-linux64', 'chrome-headless-shell');
+      if (fs.existsSync(exe)) return exe;
+    }
+  }
+  return undefined; // let Playwright use its own installed browser
+}
+
+const { chromium } = loadPlaywright();
+const EXE = findChrome();
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const SCENE = 'file://' + path.join(ROOT, 'src/scene.html');
+const FPS = 30, DURATION = 75;
+
+const args = process.argv.slice(2);
+const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
+
+async function openPage(browser) {
+  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  page.on('pageerror', (e) => { console.error('PAGE ERROR', e.message); process.exitCode = 1; });
+  page.on('console', (m) => { if (m.type() === 'error') console.error('console:', m.text()); });
+  await page.goto(SCENE);
+  const n = await page.evaluate(() => window.fontsReady);
+  if (n < 4) throw new Error('fonts not loaded: ' + n);
+  return page;
+}
+async function grab(page, t) {
+  const url = await page.evaluate((tt) => window.grab(tt), t);
+  return Buffer.from(url.split(',')[1], 'base64');
+}
+
+const browser = await chromium.launch({ executablePath: EXE, args: ['--no-sandbox', '--disable-gpu', '--font-render-hinting=none'] });
+try {
+  if (args.includes('--stills')) {
+    const times = opt('--stills', '0').split(',').map(Number);
+    const out = path.join(ROOT, 'build/stills');
+    fs.mkdirSync(out, { recursive: true });
+    const page = await openPage(browser);
+    for (const t of times) {
+      const buf = await grab(page, t);
+      const f = path.join(out, `t_${t.toFixed(2).padStart(6, '0')}.png`);
+      fs.writeFileSync(f, buf);
+      console.log('wrote', f);
+    }
+  } else if (args.includes('--all')) {
+    const workers = Number(opt('--workers', '7'));
+    const start = Number(opt('--from', '0')), end = Number(opt('--to', String(DURATION * FPS)));
+    const out = path.join(ROOT, 'build/frames');
+    fs.mkdirSync(out, { recursive: true });
+    const noKid = [];
+    let next = start, done = 0;
+    const t0 = Date.now();
+    const work = async () => {
+      const page = await openPage(browser);
+      while (true) {
+        const i = next++;
+        if (i >= end) break;
+        const t = i / FPS;
+        const url = await page.evaluate((tt) => { const d = window.grab(tt); return [d, window.__frameInfo]; }, t);
+        fs.writeFileSync(path.join(out, `f_${String(i).padStart(5, '0')}.png`), Buffer.from(url[0].split(',')[1], 'base64'));
+        if (t > 7.1 && !url[1].kid) noKid.push(i);
+        done++;
+        if (done % 150 === 0) console.log(`${done}/${end - start} frames, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+      }
+      await page.close();
+    };
+    await Promise.all(Array.from({ length: workers }, work));
+    fs.writeFileSync(path.join(ROOT, 'build/frame_check.json'), JSON.stringify({ framesWithoutKidAfterOpening: noKid }, null, 1));
+    console.log(`done ${done} frames in ${((Date.now() - t0) / 1000).toFixed(1)} s; frames without kid after 7.1 s: ${noKid.length}`);
+  }
+} finally {
+  await browser.close();
+}
