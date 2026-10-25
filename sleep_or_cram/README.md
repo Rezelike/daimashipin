@@ -3,8 +3,10 @@
 1920×1080 / 30 fps / 75.000 s，H.264 + AAC。只有音效、没有配乐，按 128 BPM 卡点；开场之后每一帧都有小人。
 
 - 成片：`out/睡还是背_75s_1080p.mp4`（点开后右上角下载按钮可下载）
-- 封面：`out/封面_第0帧.png`（第 0 帧）
+- 第 0 帧：`out/封面_第0帧.png`
 - 分镜预览：`out/分镜预览.png`（30 张关键帧拼图）
+- 封面：用 ChatGPT 生成，提示词在 `out/封面提示词.txt`；先上传 `out/封面参考_3x4.png`（竖封面 1080×1440）或 `out/封面参考_4x3.png`（横封面 1440×1080）当构图参考，这两张也是备用封面
+- 发布文案：`out/发布文案.txt`（标题、简介、话题）
 
 ## 时间轴（128 BPM，1 拍 = 0.469 s）
 | 时间 | 画面 |
@@ -32,6 +34,7 @@ bash tools/build.sh    # 约 2 分钟；第一次会先在这里建 .venv，装 
 - 还需要 Node 18 以上和 Chromium。Kiro 沙箱里都有，脚本会自动找到；在别的电脑上，先在这个目录 `npm i playwright-core`，再设 `CHROME_EXE` 指向本机的 Chrome。
 - 渲染时逐帧检查小人，结果写在 `build/frame_check.json`（7.1 s 之后缺小人的帧，应为空）。
 - 只看几帧：`node tools/render.mjs --stills 0,2.2,3.2`，输出到 `build/stills/`。
+- 只出封面参考图：`node tools/render.mjs --covers`（约 2 秒，`src/cover.js`；会检查四边留白和左下角是否为空）。
 - 画面：`src/scene.js`（开场、先睡一觉）、`src/sections.js`（①②③、照着做），时间都按拍写。
 - 音效：`tools/audio.py`，cue 表在 `cues()`（拍、音效、dB、声像）。
 

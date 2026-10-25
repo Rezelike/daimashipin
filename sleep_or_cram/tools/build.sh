@@ -33,4 +33,5 @@ mkdir -p out
   -t 75 -movflags +faststart \
   out/睡还是背_75s_1080p.mp4
 cp build/frames/f_00000.png out/封面_第0帧.png
+node tools/render.mjs --covers
 echo "built out/睡还是背_75s_1080p.mp4"
