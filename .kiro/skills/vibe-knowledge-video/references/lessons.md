@@ -107,6 +107,15 @@ Extra facts:
    the bottom labels down to 90 %, so the 3:4 picture was scaled to 94 % at the top and the edges extended (labels now end
    at 85 %). GPT covers are AI-generated content: the user must tick Douyin's AI declaration (《人工智能生成合成内容标识办法》
    Art. 10, in force since 2025-09-01); the PNGs pasted into chat carry no AI metadata, so the platform may not label them itself.
+12. **One cover picture for both shapes (user, 2026-10-26: "封面只能保留一个版本，横版和竖版不能同时用，只能是一张图片给他弄成横版和竖版").**
+   Douyin's publish page keeps a single cover image and crops the 3:4 竖封面 (profile grid) and the 4:3 横封面 from it, so a
+   separate 4:3 design (the accepted GPT 横封面 for 睡还是背) cannot be used. Delivered `封面_横竖通用.png` (1920x1440): the
+   centre 1080x1440 is the accepted 3:4 cover pixel for pixel, the 420 px on each side continue its near-black background
+   (edge colour of each row, smoothed, fading to 35 %; seam step 0.02 vs 0.32 between neighbouring columns inside the cover).
+   The 3:4 crop wins because the profile grid shows it; in the 4:3 view the design fills the middle 56 % of the width.
+   Keep >= 80 px between the design and the sides of the 3:4 crop so a slightly off-centre crop box does not cut the
+   title (睡还是背: 85 / 92 px). Tool: `sleep_or_cram/tools/one_cover.py IN OUT --preview P [--shrink 0.94]`.
+   Still unknown: whether Douyin centres the crop boxes by default or the user drags them - ask after the first upload.
 
 ## Open questions to test
 - If-then plan (2026-10-23) results vs its targets: 2 s bounce 43.0% (target < 40%: missed, but -5 points), 5 s retention 28.1%
