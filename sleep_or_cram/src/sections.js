@@ -361,24 +361,8 @@ function drawTable(bt) {
   });
 }
 
-function drawSaveButton(bt) {
-  const a = popA(bt, 149.5, 0.35);
-  if (a <= 0) return;
-  const x = 560, y = 548, s = popS(bt, 149.5, 0.7);
-  const tapped = bt >= 152;
-  const press = tapped ? 1 - 0.08 * Math.sin(Math.PI * clamp((bt - 152) / 0.5)) : 1;
-  withAlpha(a, () => withScale(x, y, s * press, () => {
-    const w = 316, h = 84;
-    ctx.save(); ctx.shadowColor = COL.yellow; ctx.shadowBlur = tapped ? 34 : 14;
-    rrect(x - w / 2, y - h / 2, w, h, h / 2, tapped ? 'rgba(247,185,62,0.22)' : 'rgba(12,26,58,0.92)', COL.yellow, 3);
-    ctx.restore();
-    iconStar(x - w / 2 + 50, y, 24, tapped ? COL.yellow : null, COL.yellow, 3.5);
-    txt('收藏这张表', x - w / 2 + 88, y + 1, { size: 38, weight: 900, color: COL.cream });
-  }));
-  sparkleBurst(x - 108, y, seg(bt, 152, 154));
-  const ca = popA(bt, 153, 0.5);
-  if (ca > 0) txt('下午学累了，照着做', x, y + 68, { size: 28, weight: 700, color: COL.grayHi, align: 'center', alpha: ca });
-}
+// (the 「收藏这张表」 button and its caption were removed 2026-10-26 at the user's request;
+//  the boy now points at the table at beat 149.6 and gives a thumbs-up at 153)
 
 // ---------- foreground for sections ----------
 function drawSections(bt, t, boy) {
@@ -438,8 +422,5 @@ function drawSections(bt, t, boy) {
     dingBurst(470 + 165 * 0.9 + 40, 842 - 34 * 0.9 - 64, seg(bt, 98, 100.4), { s: '叮铃', size: 34 });
   }
   // S5
-  if (bt >= 126.2) {
-    drawTable(bt);
-    drawSaveButton(bt);
-  }
+  if (bt >= 126.2) drawTable(bt);
 }
