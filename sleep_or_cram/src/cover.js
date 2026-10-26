@@ -1,8 +1,10 @@
-// cover.js — cover layout references for ChatGPT (and fallback covers): 3:4 1080x1440 (profile grid) and 4:3 1440x1080.
-// Rules from the Douyin data: no people; say the topic, what to do, and the proof with its label; keep the bottom-left
-// empty (the play count sits there). The chart uses the video's own wording (opening, 3.98–4.45 s): both bars are
-// compared with the 「只休息」 line, never with each other.
-const COVER_SIZES = { '3x4': [1080, 1440], '4x3': [1440, 1080] };
+// cover.js — the code-drawn fallback cover (the real cover is made by the user with ChatGPT).
+// Douyin's publish page keeps ONE cover picture and crops both the 3:4 竖封面 (profile grid) and the 4:3 横封面 from it
+// (user, 2026-10-26), so this draws one 1920x1440 picture: the background across the full width (= 横封面), the 3:4
+// layout in the centre 1080 px (= the 竖封面 crop). Rules from the Douyin data: no people; say the topic, what to do,
+// and the proof with its label; keep the bottom-left of the 3:4 crop empty (the play count sits there). The chart uses
+// the video's own wording: both bars are compared with the 「只休息」 line, never with each other.
+const COVER_W = 1920, COVER_H = 1440, CROP_W = 1080, CROP_X = (COVER_W - CROP_W) / 2;
 
 // first line = the accepted ChatGPT cover's 「学累了？」 (2026-10-26; the old 「学累了，睡还是背？」 wording was dropped)
 const Q_SPANS = () => [{ s: '学累了？' }];
@@ -99,24 +101,16 @@ function coverPill(x, cy, size, align) {
   txt(s, x0 + pw / 2, cy + 1, { size, weight: 900, color: COL.cream, align: 'center' });
 }
 
-function drawCover(kind, bgOnly = false) {
-  if (kind === '3x4') {
-    const w = 1080;
-    coverBackground(w, 1440, 1115);
-    if (bgOnly) return;
-    rich(Q_SPANS(), w / 2, 172, { size: 92, weight: 900, align: 'center' });
-    txt('先睡一觉', w / 2, 362, { size: 200, weight: 900, color: COL.yellow, align: 'center', glow: 34 });
-    rich(SUB_SPANS(), w / 2, 528, { size: 56, weight: 900, align: 'center' });
-    coverChart(90, 596, 900, 500, { bw: 124, plate: 38, title: 46, fa: 0.3, fb: 0.7 });
-    coverPill(w / 2, 1190, 52, 'center');
-  } else {
-    coverBackground(1440, 1080, 905);
-    if (bgOnly) return;
-    const L = 96;
-    rich(Q_SPANS(), L, 236, { size: 66, weight: 900 });
-    txt('先睡一觉', L - 6, 400, { size: 150, weight: 900, color: COL.yellow, glow: 30 });
-    rich(SUB_SPANS(), L, 552, { size: 44, weight: 900 });
-    coverPill(L, 684, 44, 'left');
-    coverChart(750, 170, 610, 660, { bw: 104, plate: 36, title: 44, fa: 0.26, fb: 0.74 });
-  }
+function drawCover(bgOnly = false) {
+  coverBackground(COVER_W, COVER_H, 1115);
+  if (bgOnly) return;
+  ctx.save();
+  ctx.translate(CROP_X, 0);
+  const w = CROP_W;
+  rich(Q_SPANS(), w / 2, 172, { size: 92, weight: 900, align: 'center' });
+  txt('先睡一觉', w / 2, 362, { size: 200, weight: 900, color: COL.yellow, align: 'center', glow: 34 });
+  rich(SUB_SPANS(), w / 2, 528, { size: 56, weight: 900, align: 'center' });
+  coverChart(90, 596, 900, 500, { bw: 124, plate: 38, title: 46, fa: 0.3, fb: 0.7 });
+  coverPill(w / 2, 1190, 52, 'center');
+  ctx.restore();
 }

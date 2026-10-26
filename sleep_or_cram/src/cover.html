@@ -12,7 +12,7 @@
 </style>
 </head>
 <body>
-<canvas id="c" width="1080" height="1440"></canvas>
+<canvas id="c" width="1920" height="1440"></canvas>
 <script src="lib.js"></script>
 <script src="props.js"></script>
 <script src="cover.js"></script>
@@ -26,25 +26,29 @@
     await document.fonts.ready;
     return [...document.fonts].filter((f) => f.status === 'loaded').length;
   })();
-  const setSize = (kind) => { const [w, h] = COVER_SIZES[kind]; canvas.width = w; canvas.height = h; return [w, h]; };
-  window.cover = (kind) => { setSize(kind); drawCover(kind); return canvas.toDataURL('image/png'); };
-  // compare with the bare background: bounding box of everything drawn + pixels in the bottom-left play-count zone
-  window.coverCheck = (kind) => {
-    const [w, h] = setSize(kind);
-    drawCover(kind, true);
+  const setSize = () => { canvas.width = COVER_W; canvas.height = COVER_H; return [COVER_W, COVER_H]; };
+  window.cover = () => { setSize(); drawCover(); return canvas.toDataURL('image/png'); };
+  // compare with the bare background: bounding box of everything drawn, its margins inside the 竖封面 crop
+  // (centre 1080 px) and the pixels in that crop's play-count zone (bottom-left of a profile-grid tile)
+  window.coverCheck = () => {
+    const [w, h] = setSize();
+    drawCover(true);
     const bg = ctx.getImageData(0, 0, w, h).data;
-    drawCover(kind);
+    drawCover();
     const fg = ctx.getImageData(0, 0, w, h).data;
     let x0 = w, y0 = h, x1 = -1, y1 = -1, zone = 0;
-    const zx = w * 0.45, zy = h * 0.88;
+    const zx0 = CROP_X, zx1 = CROP_X + CROP_W * 0.45, zy = h * 0.88;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
       if (Math.abs(fg[i] - bg[i]) + Math.abs(fg[i + 1] - bg[i + 1]) + Math.abs(fg[i + 2] - bg[i + 2]) > 24) {
         if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
-        if (x < zx && y > zy) zone++;
+        if (x >= zx0 && x < zx1 && y > zy) zone++;
       }
     }
-    return { size: [w, h], content: [x0, y0, x1, y1], margins: [x0, y0, w - 1 - x1, h - 1 - y1], bottomLeftPixels: zone };
+    return {
+      size: [w, h], content: [x0, y0, x1, y1],
+      margins34: [x0 - CROP_X, y0, CROP_X + CROP_W - 1 - x1, h - 1 - y1], bottomLeftPixels: zone,
+    };
   };
 </script>
 </body>

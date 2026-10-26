@@ -1,7 +1,7 @@
 // Render frames of src/scene.html with headless Chromium.
 //   node tools/render.mjs --stills 0,2.2,3.2      -> build/stills/t_<sec>.png
 //   node tools/render.mjs --all [--workers 7]      -> build/frames/f_00000.png ... (30 fps, 75 s)
-//   node tools/render.mjs --covers                 -> out/封面参考_3x4.png, out/封面参考_4x3.png
+//   node tools/render.mjs --covers                 -> out/封面参考_横竖通用.png (fallback cover, 1920x1440)
 // playwright-core and Chromium are found automatically (local node_modules, global npm, Kiro sandbox).
 // Override with PW_CORE=<playwright-core dir> and CHROME_EXE=<chrome or chrome-headless-shell>.
 import { createRequire } from 'module';
@@ -80,22 +80,20 @@ try {
       console.log('wrote', f);
     }
   } else if (args.includes('--covers')) {
-    // cover layout references for ChatGPT / fallback covers -> out/封面参考_3x4.png, out/封面参考_4x3.png
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1440 }, deviceScaleFactor: 1 });
+    // code-drawn fallback cover, ONE picture for both crops (Douyin keeps a single cover image) -> out/封面参考_横竖通用.png
+    const page = await browser.newPage({ viewport: { width: 1920, height: 1440 }, deviceScaleFactor: 1 });
     page.on('pageerror', (e) => { console.error('PAGE ERROR', e.message); process.exitCode = 1; });
     await page.goto('file://' + path.join(ROOT, 'src/cover.html'));
     const n = await page.evaluate(() => window.fontsReady);
     if (n < 4) throw new Error('fonts not loaded: ' + n);
     fs.mkdirSync(path.join(ROOT, 'out'), { recursive: true });
-    for (const kind of ['3x4', '4x3']) {
-      const chk = await page.evaluate((k) => window.coverCheck(k), kind);
-      const url = await page.evaluate((k) => window.cover(k), kind);
-      const f = path.join(ROOT, 'out', `封面参考_${kind}.png`);
-      fs.writeFileSync(f, Buffer.from(url.split(',')[1], 'base64'));
-      const ok = chk.bottomLeftPixels === 0 && Math.min(...chk.margins) >= 40;
-      console.log(`wrote ${f} ${chk.size.join('x')}  margins L/T/R/B ${chk.margins.join('/')}  bottom-left pixels ${chk.bottomLeftPixels}  ${ok ? 'OK' : 'CHECK'}`);
-      if (!ok) process.exitCode = 1;
-    }
+    const chk = await page.evaluate(() => window.coverCheck());
+    const url = await page.evaluate(() => window.cover());
+    const f = path.join(ROOT, 'out', '封面参考_横竖通用.png');
+    fs.writeFileSync(f, Buffer.from(url.split(',')[1], 'base64'));
+    const ok = chk.bottomLeftPixels === 0 && Math.min(...chk.margins34) >= 40;
+    console.log(`wrote ${f} ${chk.size.join('x')}  竖封面 crop margins L/T/R/B ${chk.margins34.join('/')}  bottom-left pixels ${chk.bottomLeftPixels}  ${ok ? 'OK' : 'CHECK'}`);
+    if (!ok) process.exitCode = 1;
   } else if (args.includes('--all')) {
     const workers = Number(opt('--workers', '7'));
     const start = Number(opt('--from', '0')), end = Number(opt('--to', String(DURATION * FPS)));

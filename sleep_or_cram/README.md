@@ -5,7 +5,7 @@
 - 成片：`out/睡还是背_75s_1080p.mp4`（点开后右上角下载按钮可下载）
 - 第 0 帧：`out/封面_第0帧.png`
 - 分镜预览：`out/分镜预览.png`（30 张关键帧拼图）
-- 封面：`out/封面_3x4.png`（竖封面 1080×1440）、`out/封面_4x3.png`（横封面 1440×1080），ChatGPT 生成，风格和主页其他封面一致，提示词在 `out/封面提示词.txt`；发布时勾选 AI 声明。`out/封面参考_*.png` 是代码画的备用封面
+- 封面：`out/封面_横竖通用.png`（1920×1440，只有这一张）。抖音只能上传一张封面，竖封面（3:4）和横封面（4:3）都从它裁：竖封面的框框满高度、放正中，横封面用整张图，见 `out/封面裁剪示意.png`。ChatGPT 生成，风格和主页其他封面一致，提示词在 `out/封面提示词.txt`；发布时勾选 AI 声明。`out/封面参考_横竖通用.png` 是代码画的备用封面
 - 发布文案：`out/发布文案.txt`（标题、简介、话题）
 
 ## 时间轴（128 BPM，1 拍 = 0.469 s）
@@ -34,7 +34,8 @@ bash tools/build.sh    # 约 2 分钟；第一次会先在这里建 .venv，装 
 - 还需要 Node 18 以上和 Chromium。Kiro 沙箱里都有，脚本会自动找到；在别的电脑上，先在这个目录 `npm i playwright-core`，再设 `CHROME_EXE` 指向本机的 Chrome。
 - 渲染时逐帧检查小人，结果写在 `build/frame_check.json`（7.1 s 之后缺小人的帧，应为空）。
 - 只看几帧：`node tools/render.mjs --stills 0,2.2,3.2`，输出到 `build/stills/`。
-- 只出备用封面：`node tools/render.mjs --covers`（约 2 秒，`src/cover.js`；会检查四边留白和左下角是否为空）。
+- 只出备用封面：`node tools/render.mjs --covers`（约 2 秒，`src/cover.js`，一张 1920×1440；会检查竖封面那块的四边留白和左下角播放量位置是否为空）。
+- 把 ChatGPT 的竖版封面扩成横竖通用的一张：`python tools/one_cover.py <竖版封面.png> out/封面_横竖通用.png --preview out/封面裁剪示意.png`，底部的字压到播放量位置时加 `--shrink 0.94`。正中 1080×1440 和输入逐像素一致，两边只延伸暗色背景。
 - 画面：`src/scene.js`（开场、先睡一觉）、`src/sections.js`（①②③、照着做），时间都按拍写。
 - 音效：`tools/audio.py`，cue 表在 `cues()`（拍、音效、dB、声像）；第 0 帧一声重击，混音后按响度（BS.1770）统一到 -18.4 LUFS，和上期一样（`TARGET_LUFS`）。
 
