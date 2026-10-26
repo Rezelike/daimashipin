@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "1.6"
+  version: "1.7"
 ---
 
 # Vibe knowledge video
@@ -16,10 +16,12 @@ it**, confirmed by the user 2026-10-19), Chinese + English text, dark-tech style
 **no next-episode teaser: the CTA is the last screen and the video ends directly on the last bar**
 (no end card, no fade), posts to 抖音 / 小红书 / B站, titles start with `Vibe知识大赏/` (≤ 30 characters in total),
 **little people in every scene** (user, 2026-10-23: "有人看着更舒服一点"), **3:4 covers** (1080x1440, the profile grid)
-**that the user generates with GPT** (2026-10-23: "封面还用gpt生成吧"): write a Chinese prompt (3:4, plus a 4:3 variant for
-the 横封面), tell the user to upload the code cover from `--cover` as the layout reference, then check what comes back
-(every Chinese character, numbers not swapped, no stray text, seams, bottom-left empty), fix and crop it to 1080x1440 /
-1440x1080. The code cover stays as the fallback.
+**that the user generates with GPT** (2026-10-23: "封面还用gpt生成吧") **in the same look as the rest of the profile**
+(2026-10-26: "我想尽量的保持一致性"; lessons 11): write a Chinese prompt (3:4, plus a 4:3 variant for the 横封面) and tell
+the user to upload one of their accepted covers (「总拖延？写下这一句」) as the **style** reference - not the flat code cover,
+which makes GPT copy the flat infographic look. Then check what comes back (every Chinese character, numbers not swapped,
+no stray text, seams, nothing where Douyin draws the play count: x 7-42 %, y 88.5-95 % of the tile), fix and resize it to
+1080x1440 / 1440x1080, and remind the user to tick Douyin's AI declaration. The code cover stays as the fallback.
 The user cannot see the sandbox: always report file paths / PR links, and put numbers in chat.
 
 **Read `references/lessons.md` first** (real data from past episodes). Engine API: `references/engine.md`.
@@ -94,6 +96,9 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
 - Titles: ≤ 30 characters including `Vibe知识大赏/`; no number that needs background knowledge (「7.5 万美元」).
 - Cover prompts (GPT, no people): the topic in plain words + what to do + the proof with its label; never a riddle
   (rejected: 「同一份作业 / 差一句话」 with bare 32% / 71%; accepted: 「总拖延？ / 写下这一句」 + the sentence + 按时完成率).
+  Same look as the profile grid: near-black background, two equally huge title lines (pain? / action: 「学累了？/先睡一觉」),
+  the proof as realistic 3D objects with cinematic light; no flat chart, HUD panel, frame or pill. Keep any baseline the
+  claim depends on (the 「只休息」 dashed line: nap and cram did not differ from each other).
 - CTA: a two-choice question with reply pills (`cta(..., options=[("扣 1 · …", DIM), ("扣 2 · …", VIOLET)])`)
   plus like / save / follow. No "下期" teaser (user, 2026-10-19). But the end is seen by only ~1% of viewers:
   the same question goes into the caption's first line and a pinned comment (`publish["pin"]`).

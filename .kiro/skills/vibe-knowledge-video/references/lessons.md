@@ -38,6 +38,9 @@ Extra facts:
   whole video, and Douyin still marks the low point at 0-2 s. Same afternoon slot as the money video: 2172 → 1.1万 plays.
   Several things changed at once vs 主动回忆 (opening, figures, sound effects, cover, chapter names), so no single cause is proven;
   the 2 s / 5 s metrics only depend on the first seconds (opening + frame-0 sound), the cover does not show in the feed.
+- Profile grid 2026-10-26 09:52 (play counts only): 费曼 1.3万 (was 1.1万), 如果…就… 1.1万, 主动回忆 6547 (6154),
+  遗忘曲线 5931 (5860), 钱能买到快乐吗 2219 (2172), 蝴蝶效应 960 (950), 临时物 540 (527): after the burst the long tail
+  adds 1-18 %, the most for Feynman.
 - All: ~98-99% of traffic from 推荐页; 搜索 ≤ 0.2%; no music-page traffic visible. All titles start with "Vibe知识大赏/".
   Douyin titles allow at most 30 characters (prefix included); the caption up to 1000.
 
@@ -90,6 +93,17 @@ Extra facts:
    (a) the topic in plain words ("总拖延？"), (b) what to do ("写下这一句" + the sentence itself), (c) the proof with its
    label ("按时完成率 32% → 71%"). The first GPT cover (「同一份作业 / 差一句话」 + two sticky notes + bare 32% / 71%) was
    rejected: "这完全不知道这张封面在说什么" - a riddle headline works in the video (answered 4 s later), never on a cover.
+11. **Covers match the profile grid (user, 2026-10-26: "我想尽量的保持一致性"; accepted: 「学累了？/先睡一觉」).** The grid's
+   covers share a near-black background (only 主动回忆 is blue), two title lines of the same height filling the width
+   (「总拖延？」 and 「写下这一句」 measure the same in the grid) and one group of realistic 3D objects with cinematic light in
+   the lower half (paper + sticky note, gold coins, books + brain). The first GPT cover for 睡还是背 followed the flat code
+   layout (HUD panel, flat bars, pill, bright navy grid floor; the 9-character first line half the height of 「先睡一觉」)
+   and did not fit. Accepted: the user's 「总拖延」 cover uploaded as the style reference + the same words; the chart as
+   objects (frosted-gray pillar on an open textbook, glowing gold pillar on a pillow), the glowing 「只休息」 dashed line kept.
+   Douyin draws the play count at x 7-42 %, y 88.5-95 % of a grid tile (measured on the user's profile screenshot); GPT put
+   the bottom labels down to 90 %, so the 3:4 picture was scaled to 94 % at the top and the edges extended (labels now end
+   at 85 %). GPT covers are AI-generated content: the user must tick Douyin's AI declaration (《人工智能生成合成内容标识办法》
+   Art. 10, in force since 2025-09-01); the PNGs pasted into chat carry no AI metadata, so the platform may not label them itself.
 
 ## Open questions to test
 - If-then plan (2026-10-23) results vs its targets: 2 s bounce 43.0% (target < 40%: missed, but -5 points), 5 s retention 28.1%
@@ -98,6 +112,9 @@ Extra facts:
   no text-only screen after the hook (figures act through the answer, steps without the "STEP" splash, two-stage reveal in the
   hook: "30 分钟后" tie -> "一周后" nap still ahead). Keep: learning-method topic, 75 s, 128 BPM, figures, sound effects.
   Target: avg watch > 5 s and the curve closer to 「同类作品」, 2 s bounce ≤ 43%, 5 s retention ≥ 28%, saves ≥ 1%.
+  Built 2026-10-25 in `sleep_or_cram/` on branch `sleep-or-cram` (PR #12) with its own Canvas + numpy renderer, because the
+  Skill was not on `main`: the engine's lint and cover rules were not applied automatically (the frame-0 hit and -18.4 LUFS
+  were added afterwards; 36 texts are below 34 px - the user decides before posting). Not posted yet.
 - Topic backlog: 记忆宫殿 (recommended 2026-10-23; Dresler et al. 2017 *Neuron*: 40 days x 30 min, 26 → 62 of 72 words,
   48 after 4 months - the numbers so far from press coverage; Twomey & Kroneisen 2021 meta-analysis g = 0.65); 先猜答案再学
   (prequestion meta-analysis 2023: g = 0.54 for asked content, 0.04 for the rest); 同桌玩电脑 (Sana et al. 2013: -11% / -17%);
