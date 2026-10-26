@@ -122,6 +122,12 @@ Extra facts:
   of 2: 「一周后」 at 3.98 s (was 3.05), the check at 4.92 s (was 3.98), chapter 2 at 8.0 s (was 7.0); the 先睡一觉 section
   gave up the 2 beats, so everything from 15 s on is unchanged. Reveals 2 beats (0.94 s) apart felt rushed to the user.
   "「收藏这张表」的元素去掉吧" -> no save button in the summary section; the boy points at the table, then a thumbs-up.
+  "开头的文字「学累了睡还是背」感觉怪怪的" -> hook 「学累了 / 睡会儿还是接着学？」 (11 characters, one over the ≤ 10 rule;
+  picked by the user from 睡会儿还是接着学 / 睡还是接着学 (9) / 先睡还是接着学 (10)). The user's own idea 「先休息一会还是继续学」
+  was not used: 「休息」 is this study's losing rest group (the 「只休息」 line), so viewers would map the napping boy to 「休息」
+  and then watch 「只休息」 lose. Chapter 1 renamed 睡还是学, English line "Tired? Nap, or keep studying?", title
+  「Vibe知识大赏/学累了，睡会儿还是接着学？1分钟学会午睡」 (29); the girl's plate stays 「接着背 1 小时」 (what the cram group
+  did, and the words on the cover).
 - Topic backlog: 记忆宫殿 (recommended 2026-10-23; Dresler et al. 2017 *Neuron*: 40 days x 30 min, 26 → 62 of 72 words,
   48 after 4 months - the numbers so far from press coverage; Twomey & Kroneisen 2021 meta-analysis g = 0.65); 先猜答案再学
   (prequestion meta-analysis 2023: g = 0.54 for asked content, 0.04 for the rest); 同桌玩电脑 (Sana et al. 2013: -11% / -17%);

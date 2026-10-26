@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "1.7"
+  version: "1.8"
 ---
 
 # Vibe knowledge video
@@ -93,6 +93,10 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
   everyday scene; the text says the rule, the figure shows it.
 - Put a concrete example inside every step; end with a screenshot-able summary card + 收藏 prompt.
 - Chapter labels are what Douyin lists as chapters: name them by payoff ("3 个写法", "照着填"), never "片头 / 结尾".
+- Hook wording (user, 2026-10-26: 「学累了 / 睡还是背？」 "感觉怪怪的" -> 「学累了 / 睡会儿还是接着学？」): say it the way a
+  student would ask it; no bare one-character verb that can be misread (「背」 needs an object: 背书 / 背单词); reuse the
+  words the video uses later (接着学); never give the option that wins the name of the study's control condition
+  (「休息」 was this study's losing rest group, the 「只休息」 line).
 - Titles: ≤ 30 characters including `Vibe知识大赏/`; no number that needs background knowledge (「7.5 万美元」).
 - Cover prompts (GPT, no people): the topic in plain words + what to do + the proof with its label; never a riddle
   (rejected: 「同一份作业 / 差一句话」 with bare 32% / 71%; accepted: 「总拖延？ / 写下这一句」 + the sentence + 按时完成率).
