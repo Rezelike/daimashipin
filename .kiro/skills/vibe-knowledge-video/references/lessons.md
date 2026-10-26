@@ -88,6 +88,9 @@ Extra facts:
 9. **User, 2026-10-23: little people in every scene** ("有人看着更舒服一点，不是干巴巴的塞一堆知识给你") -> `engine/figures.py`
    (ported from the money video): each step acts out one everyday scene. Douyin's own advice on the money video pointed the
    same way (everyday-life detail).
+   Gestures (user, 2026-10-26: "最后这个感觉像是在比中指一样（笑）"): a raised arm with one digit sticking up from a round
+   fist reads as a middle finger. Point sideways at the thing (arm at most ~30° above horizontal, index finger along the
+   forearm, thumb tucked on top); draw 👍 as a square fist with finger creases and the thumb rising from a top corner, never centred.
 10. **Covers (user, 2026-10-23):** made by the user with GPT from our prompt; **no people on the cover** ("封面不要小人会不会好一点":
    the profile's best covers - brain, curve, books - had none). A cover is read in half a second, so it must say
    (a) the topic in plain words ("总拖延？"), (b) what to do ("写下这一句" + the sentence itself), (c) the proof with its
