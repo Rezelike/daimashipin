@@ -13,7 +13,8 @@ const ARM_POSES = {
   sleep: [[-98, -16], [16, -17], [98, -16], [-16, -17]],
   stretch: [[-100, -150], [-50, -226], [100, -150], [50, -226]],
   tap: [[-92, -24], [-50, -8], [126, -44], [168, -22]],
-  point: [[-92, -24], [-50, -8], [104, -112], [150, -178]],
+  // point: arm reaches right toward the table at ~30° (a raised arm with one finger up read as a middle finger)
+  point: [[-92, -24], [-50, -8], [112, -60], [180, -98]],
   thumb: [[-92, -24], [-50, -8], [104, -52], [100, -116]],
 };
 
@@ -43,10 +44,26 @@ function drawArm(st, sx, sy, e, h, kind, through = 0) {
   ctx.strokeStyle = st.shirt; ctx.lineWidth = 21; ctx.stroke();
   const [hx, hy] = h;
   if (kind === 'thumb') {
-    rrect(hx - 4, hy - 30, 9, 22, 4.5, SKIN, SKIN_SH, 1.5);
-  } else if (kind === 'point') {
+    // 👍: a square fist with curled-finger creases, the thumb rising from its top-left corner (never centred:
+    // a single centred digit on a round fist reads as a middle finger)
+    ctx.save(); ctx.translate(hx, hy);
+    ctx.save(); ctx.translate(-8, -12); ctx.rotate(-0.12); rrect(-6, -26, 12, 28, 6, SKIN, SKIN_SH, 1.5); ctx.restore();
+    rrect(-15, -14, 31, 29, 9, SKIN, SKIN_SH, 1.5);
+    for (const y of [-5, 2, 9]) line(3, y, 13, y, SKIN_SH, 2.2);
+    ctx.restore();
+    ctx.restore();
+    return;
+  }
+  if (kind === 'point') {
+    // 👉: index finger straight along the forearm, thumb tucked on top of the fist, curled fingers below
     ctx.save(); ctx.translate(hx, hy); ctx.rotate(Math.atan2(h[1] - e[1], h[0] - e[0]));
-    rrect(4, -4.5, 24, 9, 4.5, SKIN, SKIN_SH, 1.5); ctx.restore();
+    rrect(4, -5, 28, 10, 5, SKIN, SKIN_SH, 1.5);
+    circle(0, 0, 14, SKIN, SKIN_SH, 1.5);
+    ctx.save(); ctx.rotate(-0.5); rrect(1, -15.5, 15, 8, 4, SKIN, SKIN_SH, 1.5); ctx.restore();
+    for (const y of [5, 10]) line(-2, y, 9, y - 1, SKIN_SH, 2);
+    ctx.restore();
+    ctx.restore();
+    return;
   }
   circle(hx, hy, 13, SKIN, SKIN_SH, 1.5);
   if (kind === 'pencil') {
