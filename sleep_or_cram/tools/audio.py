@@ -215,6 +215,49 @@ def whirr(d=1.4, n=16):
     return norm(out)
 
 
+def hit(d=0.7):
+    """Punchy hit for frame 0 (same recipe as engine/sfx.py on the if-then-plan branch).
+    Own RNG, so every other effect keeps exactly the same noise."""
+    r = np.random.default_rng(7)
+    t = T(d)
+
+    def env(att, tau):
+        return np.clip(t / att, 0, 1) * np.exp(-np.maximum(0.0, t - att) / tau)
+
+    y = np.sin(sweep_phase(48 + 120 * np.exp(-t / 0.035))) * env(0.001, 0.22)
+    y += 0.55 * fft_band(r.standard_normal(len(t)), lo=1200, hi=9000) * env(0.0004, 0.018)
+    y += 0.45 * fft_band(r.standard_normal(len(t)), lo=120, hi=900) * env(0.001, 0.07)
+    return norm(y)
+
+
+# ---------------- loudness (ITU-R BS.1770-4) ----------------
+TARGET_LUFS = -18.4  # same integrated loudness as the previous episode (if_then_plan)
+
+
+def _k_weight(x):
+    """K-weighting at 48 kHz, applied in the frequency domain (loudness only needs the power)."""
+    z = np.exp(-1j * 2 * np.pi * np.fft.rfftfreq(len(x), 1 / SR) / SR)
+
+    def bq(b, a):
+        return (b[0] + b[1] * z + b[2] * z * z) / (a[0] + a[1] * z + a[2] * z * z)
+
+    h = bq((1.53512485958697, -2.69169618940638, 1.19839281085285), (1.0, -1.69065929318241, 0.73248077421585))
+    h = h * bq((1.0, -2.0, 1.0), (1.0, -1.99004745483398, 0.99007225036621))
+    return np.fft.irfft(np.fft.rfft(x) * h, len(x))
+
+
+def lufs(L, R):
+    """Integrated loudness: 400 ms blocks, 75 % overlap, absolute gate -70 LUFS, relative gate -10 LU."""
+    p = _k_weight(L) ** 2 + _k_weight(R) ** 2
+    blk, hop = int(0.4 * SR), int(0.1 * SR)
+    cs = np.concatenate([[0.0], np.cumsum(p)])
+    st = np.arange(0, len(p) - blk + 1, hop)
+    ms = (cs[st + blk] - cs[st]) / blk
+    lk = -0.691 + 10 * np.log10(np.maximum(ms, 1e-15))
+    rel = -0.691 + 10 * np.log10(ms[lk > -70].mean()) - 10
+    return -0.691 + 10 * np.log10(ms[(lk > -70) & (lk > rel)].mean())
+
+
 def spin(d=0.9, n=22):
     out = np.zeros(int(d * SR) + SR // 10)
     times = d * np.linspace(0, 1, n) ** 1.3
@@ -226,17 +269,24 @@ def spin(d=0.9, n=22):
 
 
 # ---------------- cue sheet (beat, sound, gain dB, pan -1..1) ----------------
+HIT_DB = 0.0    # frame-0 hit
+BED_DB = 15.0   # boost for the 0-2 s room sounds (they were 11-27 LU below the rest of the mix)
+
+
 def cues():
     c = []
     add = lambda b, s, g, p=0.0: c.append((b, s, g, p))
-    # opening — clock ticks build to the first reveal
+    # opening — a hit on frame 0 (as in the previous episode; Douyin's advice: open with a short punchy sound),
+    # then clock ticks, page flips and Zz loud enough to hear on a phone, building to the first reveal
+    add(0, hit(), HIT_DB, 0.0)
     for b in range(0, 5):
-        add(b, tick(tock=b % 2 == 1), -21, 0.65)
-    add(0.5, page_flip(), -17, -0.45)
-    add(2.5, page_flip(), -18, -0.45)
-    add(1.5, zz_puff(), -27, 0.45)
+        add(b, tick(tock=b % 2 == 1), -21 + (BED_DB if b else 0), 0.65)  # frame 0 belongs to the hit
+    add(0.5, page_flip(), -17 + BED_DB, -0.45)
+    add(2.5, page_flip(), -18 + BED_DB, -0.45)
+    add(1.5, zz_puff(), -27 + BED_DB, 0.45)
+    add(3.5, zz_puff(), -27 + BED_DB, 0.45)  # the boy snores every 2 beats until the first reveal
     for i in range(22):
-        add(i * 0.12, type_click(), -33, 0.0)
+        add(i * 0.12, type_click(), -33 + BED_DB, 0.0)
     add(4.5, whoosh(0.38), -13, 0.0)
     add(4.5, riser(0.4), -14, 0.0)
     add(4.55, spin(0.5, 10), -26, 0.65)
@@ -366,15 +416,20 @@ def mix(out_path):
     peak = max(np.max(np.abs(L)), np.max(np.abs(R)))
     drive = 1.3
     L, R = np.tanh(drive * L / peak) / np.tanh(drive), np.tanh(drive * R / peak) / np.tanh(drive)
-    target = 10 ** (-1.5 / 20)
-    L, R = L * target, R * target
+    # level by loudness, not by peak: same integrated loudness as the previous episode
+    gain = 10 ** ((TARGET_LUFS - lufs(L, R)) / 20)
+    L, R = L * gain, R * gain
+    pk = max(np.max(np.abs(L)), np.max(np.abs(R)))
+    if pk > 10 ** (-1.5 / 20):
+        raise SystemExit(f'sample peak {20 * np.log10(pk):.2f} dBFS > -1.5 dBFS at {TARGET_LUFS} LUFS: lower HIT_DB')
+    peak = pk
     pcm = (np.stack([L, R], axis=1) * 32767).astype(np.int16)
     with wave.open(str(out_path), 'wb') as w:
         w.setnchannels(2)
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(pcm.tobytes())
-    print(f'wrote {out_path}: {n / SR:.3f} s, {len(cues())} cues, raw peak {peak:.2f}')
+    print(f'wrote {out_path}: {n / SR:.3f} s, {len(cues())} cues, {lufs(L, R):.1f} LUFS, sample peak {20 * np.log10(peak):.1f} dBFS')
 
 
 if __name__ == '__main__':

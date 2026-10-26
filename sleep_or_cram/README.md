@@ -36,7 +36,7 @@ bash tools/build.sh    # 约 2 分钟；第一次会先在这里建 .venv，装 
 - 只看几帧：`node tools/render.mjs --stills 0,2.2,3.2`，输出到 `build/stills/`。
 - 只出封面参考图：`node tools/render.mjs --covers`（约 2 秒，`src/cover.js`；会检查四边留白和左下角是否为空）。
 - 画面：`src/scene.js`（开场、先睡一觉）、`src/sections.js`（①②③、照着做），时间都按拍写。
-- 音效：`tools/audio.py`，cue 表在 `cues()`（拍、音效、dB、声像）。
+- 音效：`tools/audio.py`，cue 表在 `cues()`（拍、音效、dB、声像）；第 0 帧一声重击，混音后按响度（BS.1770）统一到 -18.4 LUFS，和上期一样（`TARGET_LUFS`）。
 
 ## 字体
 `assets/fonts/`：Noto Sans CJK SC（Medium / Bold / Black）和 JetBrains Mono，均为 SIL Open Font License 1.1，许可证原文见同目录的 `OFL-*.txt`。
