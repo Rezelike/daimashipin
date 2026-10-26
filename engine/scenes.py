@@ -1,6 +1,10 @@
 """Scene factories for the short structure (60-75 s). Data: the opening is the bottleneck, see hook().
 
-    hook (4 bars)  -> answer (4)  -> step x N (8 each, example inside the step)  -> summary (4)  -> cta (4)
+    hook (4 bars)  -> answer (4)  -> step x 3 (8 each, example inside the step)  -> summary (8, the last screen)
+
+No call to action at the end (user, 2026-10-26: "以后都不要在结尾加上收藏点赞关注啥的"): no like / save / follow
+icons, no save or screenshot hint, no comment question - the video ends on the summary's last bar. The hint
+defaults are off; cta() and the LEGACY_* hints are kept only so the episodes posted before keep their look.
 
 Timing is on the beat grid (S.B = local beat): every element appears exactly ON a beat, new content
 every 1-2 bars, so the cut works with a four-on-the-floor ("动次打次") track at Episode.bpm.
@@ -21,6 +25,10 @@ from .core import (AMBER, CYAN, DIM, DIMMER, GREEN, PINK, RED, VIOLET, WHITE, W,
                    e_inout, icon, lerp, measure, pill, pop, rich, text)
 
 STEP_COLORS = [CYAN, VIOLET, PINK, AMBER, GREEN]
+
+# Old defaults, only for the episodes posted before 2026-10-26 (new episodes: no save / like / follow prompts)
+LEGACY_SAVE_HINT = ("建议先收藏", "Save this")          # answer(save_hint=...)
+LEGACY_SUMMARY_HINT = ("截图保存", "Screenshot")        # summary(hint=...)
 
 
 def _typed(c, s, B, b0, x, y, size, color, a=1.0, cps=14):
@@ -83,9 +91,10 @@ def hook(question, en, pains=(), accent=PINK, visual=None):
 
 
 # ----------------------------------------------------------------------------- answer (payoff within 10 s)
-def answer(lead, headline, en, steps, save_hint=("建议先收藏", "Save this"), accent=CYAN, colors=None):
+def answer(lead, headline, en, steps, save_hint=None, accent=CYAN, colors=None):
     """lead: '答案：'  headline: '用[费曼学习法]'  steps: [(cn, en)] 2-4 items shown as an overview row
-    colors: per-step colours (match the step scenes)"""
+    colors: per-step colours (match the step scenes)
+    save_hint: None (default, user 2026-10-26: no save prompts); old episodes pass LEGACY_SAVE_HINT"""
     def fn(c, S):
         B = S.B
         text(c, lead, W / 2, 190, 60, "bold", DIM, ap(B, 0, 0.4))
@@ -182,8 +191,10 @@ def step(num, cn, en, points, example=None, visual=None, color=None, splash_beat
 
 
 # ----------------------------------------------------------------------------- summary (screenshot card)
-def summary(title, en, items, accent=CYAN, hint=("截图保存", "Screenshot"), colors=None):
-    """items: [(cn, en)] 2-4 rows; colors: per-row colours (match the step scenes)"""
+def summary(title, en, items, accent=CYAN, hint=None, colors=None):
+    """items: [(cn, en)] 2-4 rows; colors: per-row colours (match the step scenes)
+    The summary is the last screen (8 bars): no hint pill by default (user 2026-10-26); old episodes pass
+    LEGACY_SUMMARY_HINT"""
     def fn(c, S):
         B = S.B
         k = ap(B, 0)
@@ -214,7 +225,9 @@ def summary(title, en, items, accent=CYAN, hint=("截图保存", "Screenshot"), 
 
 # ----------------------------------------------------------------------------- cta / end card
 def cta(question, q_en, end_title=None, end_en=None, next_teaser=None, options=None, end_card=False):
-    """question: comment prompt ([keyword] highlight).
+    """LEGACY - do not use in new episodes (user, 2026-10-26: "以后都不要在结尾加上收藏点赞关注啥的"); kept so the
+    episodes posted before still render. The lint reports these words in the last 8 bars (END CTA).
+    question: comment prompt ([keyword] highlight).
     options:  [(label, colour)] reply pills under the question, e.g. [("扣 1 · 重读", DIM), ("扣 2 · 考自己", VIOLET)]
     end_card: True -> the last 2 bars show end_title (+ optional next_teaser (cn, en));
               False -> prompt + icons stay until the video ends (user preference: end directly)"""

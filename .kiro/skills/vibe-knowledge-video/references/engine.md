@@ -20,8 +20,7 @@ EP = Episode(slug="my_topic", title="...", bpm=128, music=False, scenes=[
     Scene("step1",   8, SC.step(1, "标题", "Title", [(point_cn, en)], visual=my_chart, color=PINK),              chapter="3 步"),
     Scene("step2",   8, SC.step(2, "标题", "Title", [(point_cn, en)], example=("例子", "Example", [(cn, en), ...])), chapter="3 步"),
     Scene("step3",   8, SC.step(3, ...),                                                                         chapter="3 步"),
-    Scene("summary", 4, SC.summary("一图总结", "EN", [(cn, en), ...]),                                           chapter="总结"),
-    Scene("cta",     4, SC.cta("你是[A]，还是[B]？", "Tell me below", options=[("扣 1 · A", DIM), ("扣 2 · B", VIOLET)]), chapter="总结"),
+    Scene("summary", 8, my_summary,                                                                              chapter="照着做"),  # last screen, no CTA
 ], cover=my_cover_fn, publish=dict(title=..., desc=..., tags=[...]))
 if __name__ == "__main__":
     run(EP)
@@ -40,17 +39,23 @@ if __name__ == "__main__":
 - `hook(question, en, pains=(), accent=PINK, visual=None)`: the question is fully visible on frame 0 (no fade-in),
   one line (<= 124 px) or two lines split with '|' (<= 150 px); `visual(c, S)` draws under it from frame 0 (make it
   already move); pain cards are optional; questions > 10 characters are linted (HOOK TOO LONG).
-- `publish=dict(title=..., desc=..., tags=[...], pin="置顶评论")`: `_publish.txt` also gets the pinned comment.
+- `publish=dict(title=..., desc=..., tags=[...], pin="置顶评论")`: `_publish.txt` also gets the pinned comment
+  (optional; a comment question lives only there and in the caption, never on screen).
+- The ending (user, 2026-10-26: "以后都不要在结尾加上收藏点赞关注啥的"): the 8-bar summary is the last screen - write it as
+  your own scene (figures + the screenshot-able table, like `episodes/if_then_plan`'s `summary` without its 「截图保存」
+  pill) or use `SC.summary(...)`, whose hint is off by default. No like / save / follow / comment prompt anywhere at
+  the end: the lint reports such words in the last 8 bars (END CTA).
 - Openers (`from engine import openers as OP`, pass as `hook(..., visual=OP.xxx(...))`; demo: `episodes/openers_demo`):
   `race(a, b, a_vals=(83, 40), b_vals=(71, 61), phases=("5 分钟后", "一周后"), flip=4, land=8, note=, source=)` ·
   `dissolve(words, keep=4, counter_label="还记得")` · `diverge(a_tag, b_tag, a_vals=(1, 37.8), b_vals=(1, 0.03),
   end_label=)` · `timer(t0="14:00", t1="18:00", distractions=[(icon, label)], result=("真正在学", "30 分钟"),
   focus_share=0.125)`. All draw in y 480-1000 under a two-line headline, move from frame 0, land by beat 8.
-- Factory beat plans: hook question on frame 0, English typed from beat 1, optional pain cards 4/6/8 · answer lead 0, headline 1, cards 4,5,6,(7),
-  save hint after · step splash 0-4, header + point 4, card 8, example lines 10, 14 · summary rows
-  2,4,6,8, hint after · cta question 0, reply pills 1,2, icons 3,4,5 (2,3,4 without pills).
-- `cta(question, q_en, end_title=None, end_en=None, next_teaser=None, options=None, end_card=False)`:
-  default = prompt + icons stay to the very end. `end_card=True` (+ `next_teaser`) only if the user asks.
+- Factory beat plans: hook question on frame 0, English typed from beat 1, optional pain cards 4/6/8 · answer lead 0, headline 1, cards 4,5,6,(7)
+  · step splash 0-4, header + point 4, card 8, example lines 10, 14 · summary rows 2,4,6,8.
+  `answer(save_hint=None)` and `summary(hint=None)` are the defaults; `SC.LEGACY_SAVE_HINT` / `SC.LEGACY_SUMMARY_HINT`
+  only keep the posted episodes (主动回忆, 遗忘曲线, 费曼短版, 如果…就…) looking as posted.
+- `cta(...)`: LEGACY, old episodes only (comment question, 扣 1 / 扣 2 pills, like / save / follow icons). Never in a
+  new episode.
 - `answer(..., colors=[...])` and `summary(..., colors=[...])` take per-step colours to match the steps.
 - `[keyword]` in Chinese strings = accent colour + glow (`rich`, `pair`, scene factories).
 
@@ -72,6 +77,8 @@ Lint (run by `--preview`, `--lint` and the full render):
 - missing glyphs (✗, emoji) → draw them as Lucide icons (`x`, `check`)
 - text crossing the 60 px screen margin, or starting inside a `card()` and running past its right edge
   → shorten / shrink it (`free=True` only for things meant to sit between cards, like arrows)
+- END CTA: 点赞 / 收藏 / 关注 / 三连 / 转发 / 评论 / 扣 1 / 截图保存 visible in the last 8 bars (`K.END_CTA`, `K.END_BARS`)
+  → remove the prompt (user, 2026-10-26); ignore only if the word is content, not a prompt
 
 ## Little people (`from engine import figures as F`)
 Ported from the money-happiness video. Origin = feet centre, scale 1 ≈ 104 px tall, chibi proportions.

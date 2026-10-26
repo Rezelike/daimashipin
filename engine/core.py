@@ -6,6 +6,7 @@ phone feed, so: headline >= 96, main line >= 64, English / secondary >= 36.
 """
 import math
 import os
+import re
 import sys
 from contextlib import contextmanager
 from functools import lru_cache
@@ -90,8 +91,13 @@ FACE_FILES = {
     "mono": "JetBrainsMono-Bold.ttf", "monor": "JetBrainsMono-Regular.ttf",
 }
 FALLBACK = {"mono": "bold", "monor": "reg"}
-LINT = {"small": set(), "missing": set(), "edge": set(), "hook": set()}
+LINT = {"small": set(), "missing": set(), "edge": set(), "hook": set(), "cta": set()}
 SAFE = 60   # px margin; text crossing it is reported
+# User, 2026-10-26: "以后都不要在结尾加上收藏点赞关注啥的" -> text asking for likes / saves / follows / comments
+# is reported while the last END_BARS bars are drawn (render.render_frame sets END_ZONE)
+END_CTA = re.compile(r"点赞|收藏|关注|三连|转发|评论|扣\s*\d|截图保存")
+END_BARS = 8
+END_ZONE = False
 FRAME_CARDS = []   # card rects drawn in the current frame (device coords), for the overflow lint
 _TF = {}
 
@@ -135,6 +141,8 @@ def measure(s, face="bold", size=48, ls=0.0):
 def _lint(s, face, size, a, small):
     if a > 0.5 and size < MIN_TEXT and not small and s.strip():
         LINT["small"].add((int(size), s[:40]))
+    if END_ZONE and a > 0.5 and END_CTA.search(s):
+        LINT["cta"].add(s[:40])
     for fc, sub in runs(s, face):
         g = list(font(fc, 20).textToGlyphs(sub))
         if 0 in g:
@@ -483,11 +491,17 @@ def lint_report(lint=None):
             lines.append(f"   x {l}..{r}  {s!r}")
     for n, q in sorted(lint.get("hook", ())):
         lines.append(f"HOOK TOO LONG: {n} characters {q!r} - the first 2 s decide; keep it <= 10 (two lines with '|' are fine)")
+    if lint.get("cta"):
+        lines.append(f"END CTA (user 2026-10-26: no like / save / follow / comment prompts at the end; checked in the last "
+                     f"{END_BARS} bars - remove them, or ignore if the word is content, not a prompt):")
+        for s in sorted(lint["cta"])[:30]:
+            lines.append(f"   {s!r}")
     if lint["small"]:
         lines.append(f"SMALL TEXT (< {MIN_TEXT}px, unreadable in the phone feed; enlarge or pass small=True):")
         for size, s in sorted(lint["small"])[:30]:
             lines.append(f"   {size:3d}px  {s!r}")
-    return "\n".join(lines) if lines else "lint: OK (short hook, no small text, no missing glyphs, all text inside the safe area)"
+    return "\n".join(lines) if lines else ("lint: OK (short hook, no small text, no missing glyphs, all text inside the "
+                                           "safe area, no like / save / follow prompt at the end)")
 
 
 def warn(msg):

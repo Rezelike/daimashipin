@@ -214,7 +214,8 @@ def hook_visual(c, S):
 # ----------------------------------------------------------------------------- answer
 _answer = SC.answer("心理学叫「执行意图」", "如果[时机]，我就[动作]", "IMPLEMENTATION INTENTION · IF-THEN PLAN",
                     [("写清时间地点", "When & where"), ("写具体动作", "One concrete action"),
-                     ("干扰也写一句", "Beat distractions")], colors=[CYAN, VIOLET, PINK])
+                     ("干扰也写一句", "Beat distractions")], colors=[CYAN, VIOLET, PINK],
+                    save_hint=SC.LEGACY_SAVE_HINT)          # posted look (new episodes: no save prompt)
 
 
 def answer(c, S):

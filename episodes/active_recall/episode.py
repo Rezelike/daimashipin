@@ -188,7 +188,8 @@ EP = Episode(
         ]), chapter="痛点"),
         Scene("answer", 4, SC.answer("问题是：你只在「看」，没在「想」", "[主动回忆]", "ACTIVE RECALL · TEST YOURSELF",
                                      [("合上书", "Close the book"), ("写出来", "Recall"), ("对答案", "Check")],
-                                     colors=[CYAN, VIOLET, GREEN]), chapter="答案"),
+                                     colors=[CYAN, VIOLET, GREEN], save_hint=SC.LEGACY_SAVE_HINT),   # posted look
+              chapter="答案"),
         Scene("step1", 8, SC.step(1, "合上书，别重读", "Close the book. Don't reread.",
                                   [("重读只是[眼熟]，回忆才[记得住]", "Rereading feels familiar. Recalling makes it stick.")],
                                   visual=experiment, color=CYAN), chapter="3 步"),
@@ -203,7 +204,7 @@ EP = Episode(
             ("[写出来]：默写、问答卡、讲出来", "Write it, use flashcards, or explain it"),
             ("[对答案]，错的马上改", "Check, and fix mistakes right away"),
             ("对的也再考：第 [1、3、7] 天", "Re-test on day 1, 3 and 7"),
-        ], colors=[CYAN, VIOLET, GREEN, AMBER]), chapter="总结"),
+        ], colors=[CYAN, VIOLET, GREEN, AMBER], hint=SC.LEGACY_SUMMARY_HINT), chapter="总结"),
         Scene("cta", 4, SC.cta("你平时是[重读]，还是[考自己]？", "Reread, or test yourself? Tell me below.",
                                options=[("扣 1 · 重读", DIM), ("扣 2 · 考自己", VIOLET)], end_card=False),
               chapter="总结"),

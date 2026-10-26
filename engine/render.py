@@ -183,7 +183,9 @@ def render_frame(ep, c, surf, t, fi):
         c.translate(-W / 2, -H / 2)
     else:
         c.translate(0, (1 - a_in) * 18)
+    K.END_ZONE = t >= (ep.total_bars - K.END_BARS) * ep.bar - 1e-6     # the END CTA lint looks at the last bars only
     sc.fn(c, S)
+    K.END_ZONE = False
     c.restore()
     if ep.progress_bar:
         draw_progress(c, ep, t)
@@ -242,7 +244,7 @@ def _chunk(job):
         pr.stdin.write(arr.tobytes())
     pr.stdin.close()
     pr.wait()
-    return idx, f1 - f0, K.LINT["small"], K.LINT["missing"], K.LINT["edge"]
+    return idx, f1 - f0, K.LINT["small"], K.LINT["missing"], K.LINT["edge"], K.LINT["cta"]
 
 
 def contact_sheet(ep, times, path, cols=6, scale=0.25):
@@ -518,13 +520,14 @@ def run(ep):
     n = args.workers * 3
     bounds = [round(i * total / n) for i in range(n + 1)]
     jobs = [(i, bounds[i], bounds[i + 1], os.path.join(ep.build, f"seg_{i:03d}.mp4")) for i in range(n)]
-    small, missing, edge, done = set(), set(), set(), 0
+    small, missing, edge, cta, done = set(), set(), set(), set(), 0
     with Pool(args.workers) as pool:
-        for idx, cnt, sm, ms, ed in pool.imap_unordered(_chunk, jobs):
+        for idx, cnt, sm, ms, ed, ct in pool.imap_unordered(_chunk, jobs):
             done += cnt
             small |= sm
             missing |= ms
             edge |= ed
+            cta |= ct
     print(f"video: {done}/{total} frames rendered")
     lst = os.path.join(ep.build, "segments.txt")
     with open(lst, "w") as f:
@@ -581,7 +584,7 @@ def run(ep):
               f"limit 1.0, the rejected beat-zoom measured 7.4); bounce={ep.bounce}, cut={ep.cut}, glitch_cuts={ep.glitch_cuts}")
     if fx:
         print_sfx(sfx_report(out, ep))
-    print(K.lint_report({"small": small, "missing": missing, "edge": edge, "hook": K.LINT["hook"]}))
+    print(K.lint_report({"small": small, "missing": missing, "edge": edge, "hook": K.LINT["hook"], "cta": cta}))
     if pub:
         print(f"publish   {pub}")
     print(f"MP4 SHEET (12 frames decoded from the final file; view this ONE image): {sheet}")
