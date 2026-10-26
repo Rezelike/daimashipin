@@ -115,6 +115,10 @@ Extra facts:
   Built 2026-10-25 in `sleep_or_cram/` on branch `sleep-or-cram` (PR #12) with its own Canvas + numpy renderer, because the
   Skill was not on `main`: the engine's lint and cover rules were not applied automatically (the frame-0 hit and -18.4 LUFS
   were added afterwards; 36 texts are below 34 px - the user decides before posting). Not posted yet.
+  User edits before posting (2026-10-26): "前面「睡还是背」章节感觉有点快了" -> the 30-minute tie is now held 4 beats instead
+  of 2: 「一周后」 at 3.98 s (was 3.05), the check at 4.92 s (was 3.98), chapter 2 at 8.0 s (was 7.0); the 先睡一觉 section
+  gave up the 2 beats, so everything from 15 s on is unchanged. Reveals 2 beats (0.94 s) apart felt rushed to the user.
+  "「收藏这张表」的元素去掉吧" -> no save button in the summary section; the boy points at the table, then a thumbs-up.
 - Topic backlog: 记忆宫殿 (recommended 2026-10-23; Dresler et al. 2017 *Neuron*: 40 days x 30 min, 26 → 62 of 72 words,
   48 after 4 months - the numbers so far from press coverage; Twomey & Kroneisen 2021 meta-analysis g = 0.65); 先猜答案再学
   (prequestion meta-analysis 2023: g = 0.54 for asked content, 0.04 for the rest); 同桌玩电脑 (Sana et al. 2013: -11% / -17%);
