@@ -277,7 +277,7 @@ function drawBackground(t) {
 }
 
 // ---------- chapter bar ----------
-const CHAPTERS = [['睡还是背', 0, 17], ['先睡一觉', 17, 32], ['怎么睡', 32, 128], ['照着做', 128, 160]];
+const CHAPTERS = [['睡还是学', 0, 17], ['先睡一觉', 17, 32], ['怎么睡', 32, 128], ['照着做', 128, 160]];
 function drawChapterBar(bt) {
   const x0 = 120, x1 = 1800, gap = 14, total = 160;
   const avail = x1 - x0 - gap * (CHAPTERS.length - 1);

@@ -55,10 +55,12 @@ function drawTitleBlock(bt, t) {
     ctx.beginPath(); ctx.rect(0, y2 - 100, W, 200); ctx.clip();
     if (e < 1) {
       const answer = seg(bt, 10.5, 11.3);
+      // hook wording 2026-10-26 (user picked option A): 「睡还是背」 felt odd (a bare 「背」 can be misread, a bare 「睡」
+      // sounds like bedtime). 「休息」 was not used: in the study the rest group is the 「只休息」 line that loses.
       const spans = [
-        { s: '睡', color: COL.yellow, glow: 26 + answer * 20 },
+        { s: '睡会儿', color: COL.yellow, glow: 26 + answer * 20 },
         { s: '还是', color: COL.cream },
-        { s: '背', color: lerpColor(COL.cyan, '#6f7b99', answer), glow: 22 * (1 - answer) },
+        { s: '接着学', color: lerpColor(COL.cyan, '#6f7b99', answer), glow: 22 * (1 - answer) },
         { s: '？', color: COL.cream },
       ];
       rich(spans, 960, y2 - e * 180, { size: 142, weight: 900, align: 'center', alpha: 1 - e });
@@ -68,7 +70,7 @@ function drawTitleBlock(bt, t) {
     }
     ctx.restore();
     // english typewriter (left-aligned at centred origin to avoid jitter)
-    const en1 = 'Tired? Nap, or keep cramming?';
+    const en1 = 'Tired? Nap, or keep studying?';
     const en2 = 'Tired? Take a nap first.';
     const useSecond = bt >= 17;
     const s = useSecond ? en2 : en1;

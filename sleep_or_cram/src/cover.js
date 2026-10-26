@@ -4,9 +4,8 @@
 // compared with the 「只休息」 line, never with each other.
 const COVER_SIZES = { '3x4': [1080, 1440], '4x3': [1440, 1080] };
 
-const Q_SPANS = () => [
-  { s: '学累了，' }, { s: '睡', color: COL.yellow, glow: 22 }, { s: '还是' }, { s: '背', color: COL.cyan, glow: 18 }, { s: '？' },
-];
+// first line = the accepted ChatGPT cover's 「学累了？」 (2026-10-26; the old 「学累了，睡还是背？」 wording was dropped)
+const Q_SPANS = () => [{ s: '学累了？' }];
 const SUB_SPANS = () => [{ s: '睡 ' }, { s: '30–60 分钟', color: COL.yellow }, { s: '，醒来接着学' }];
 
 function coverBackground(w, h, horizon) {
