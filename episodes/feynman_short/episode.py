@@ -66,7 +66,7 @@ EP = Episode(
         ]), role="intro", chapter="痛点"),
         Scene("answer", 4, SC.answer("答案：诺贝尔奖得主费曼的方法", "[费曼学习法]", "THE FEYNMAN TECHNIQUE · 4 STEPS", [
             ("选概念", "Pick"), ("讲给孩子", "Teach"), ("找卡壳", "Find gaps"), ("简化", "Simplify"),
-        ]), role="theme", chapter="答案"),
+        ], save_hint=SC.LEGACY_SAVE_HINT), role="theme", chapter="答案"),             # posted look
         Scene("step1", 6, SC.step(1, "选一个概念", "Pick a concept",
                                   [("白纸顶部写下[要学的概念]", "Write the concept at the top of a page")],
                                   example=("例子", "Example", [("学「复利」，先写下你[已经知道的]", "Write down what you already know")])),
@@ -89,7 +89,7 @@ EP = Episode(
             ("讲给 12 岁孩子听", "Teach it to a kid"),
             ("卡壳了就[回去重学]", "Stuck? Go back to the source"),
             ("简化，[打个比方]", "Simplify with an analogy"),
-        ]), role="recap", chapter="总结"),
+        ], hint=SC.LEGACY_SUMMARY_HINT), role="recap", chapter="总结"),
         Scene("cta", 4, SC.cta("你想用它学[什么]？", "Tell me in the comments", "费曼学习法", "THE FEYNMAN TECHNIQUE",
                                end_card=True),
               role="outro", chapter="总结"),

@@ -295,7 +295,8 @@ EP = Episode(
         ]), chapter="痛点"),
         Scene("answer", 4, SC.answer("不是你记性差，是遗忘有规律", "[艾宾浩斯遗忘曲线]", "THE EBBINGHAUS FORGETTING CURVE",
                                      [("忘得多快", "How fast"), ("复习的作用", "Why review"), ("复习时间表", "When to review")],
-                                     colors=[PINK, CYAN, AMBER]), chapter="答案"),
+                                     colors=[PINK, CYAN, AMBER], save_hint=SC.LEGACY_SAVE_HINT),     # posted look
+              chapter="答案"),
         Scene("step1", 8, SC.step(1, "遗忘有多快", "How fast we forget",
                                   [("1 天后，只剩约 [1/3]", "After 1 day, only about 1/3 is left")],
                                   visual=forgetting_curve, color=PINK), chapter="3 步"),
@@ -310,7 +311,7 @@ EP = Episode(
             ("第 1、3、7 天，[各回忆一次]", "Day 1, 3, 7: recall again"),
             ("第 15、30 天，[再巩固一次]", "Day 15, 30: lock it in"),
             ("先理解再记，[忘得更慢]", "Understand first, forget slower"),
-        ]), chapter="总结"),
+        ], hint=SC.LEGACY_SUMMARY_HINT), chapter="总结"),
         Scene("cta", 4, SC.cta("你最想记住的是[什么]？", "What do you most want to remember?", "艾宾浩斯遗忘曲线",
                                "THE FORGETTING CURVE", next_teaser=("主动回忆：合上书考自己", "Next: active recall, test yourself"),
                                end_card=True),

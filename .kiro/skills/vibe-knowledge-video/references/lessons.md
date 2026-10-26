@@ -69,17 +69,21 @@ Extra facts:
    was never really tested. Put the comment question in the caption's first line + a pinned comment. Follows are tiny (+2 per 6k plays).
    If-then plan: caption-first-line question + (planned) pinned comment -> 2 comments on 1.1万 plays (0.02%): no effect.
    Comments are not this account's lever; don't spend screen time on comment prompts.
+   **User, 2026-10-26: "以后都不要在结尾加上收藏点赞关注啥的"** (after removing 睡还是背's 「收藏这张表」 button): from now on
+   no like / save / follow icons, save button, 「建议先收藏」 / 「截图保存」 pill or comment question in any video; the
+   screenshot-able summary is the last screen. Engine: the factory hints are off by default, `SC.cta` is legacy, the lint
+   reports such words in the last 8 bars (END CTA); the four engine episodes posted before keep their look (`SC.LEGACY_*`).
 5. **Music did not measurably matter for reach** (no music-page traffic). User preference since 2026-10-17:
    deliver **silent** videos, the user adds a four-on-the-floor DJ track ("动次打次") and wants the picture cut to its beat.
    Feedback on the first beat-cut version: "画面不要一抖一抖的" -> no frame bounce / zoom cuts / glitch; rhythm only through
    timing (elements on beats, cuts on downbeats). Measured: still areas 29x more change on beats with the beat-zoom, 1.4x without.
    2026-10-19: user confirmed the 128 BPM cut lines up with 《清明上河图》DJ版; asked to drop the next-episode teaser
-   and end directly (CTA is the last screen, no end card, no fade).
+   and end directly (no end card, no fade; since 2026-10-26 no CTA either - see 4).
    2026-10-23: "视频不要无声了，你给我加几个音效，但是不要配乐" -> deliver with sound effects (`engine/sfx.py`), still no
    music. if_then_plan: 75 effects on the beat grid, -18.4 LUFS, true peak -1.7 dBTP; Douyin had advised the money video
    to open with "短促有力的音效", so frame 0 gets a `hit`.
 6. Keep: dark-tech style (the user's choice; both learning-method videos got the first push with it), bilingual,
-   summary card + 收藏 prompt (the save rate is what triggers the push).
+   a screenshot-able summary (the save rate is what triggers the push) - without an on-screen 收藏 prompt (see 4).
 7. **Douyin shows the progress-bar labels as chapter names**: name chapters by what they give ("3 个写法", "照着填"), never
    "片头 / 结尾" (money: 结尾 9.1% of chapter clicks although it held the answer).
 8. **Titles and covers:** no number that needs background knowledge (「7.5 万美元」 confused the user's audience);
