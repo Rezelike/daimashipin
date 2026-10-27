@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "2.1"
+  version: "2.2"
 ---
 
 # Vibe knowledge video
@@ -16,17 +16,21 @@ it**, confirmed by the user 2026-10-19), Chinese + English text, dark-tech style
 **no call to action at the end: no 点赞 / 收藏 / 关注 / comment prompt** (user, 2026-10-26: "以后都不要在结尾加上收藏点赞关注啥的"):
 the summary is the last screen and the video ends directly on its last bar (no end card, no fade, no next-episode
 teaser), posts to 抖音 / 小红书 / B站, titles start with `Vibe知识大赏/` (≤ 30 characters in total),
-**little people in every scene** (user, 2026-10-23: "有人看着更舒服一点"), **3:4 covers** (1080x1440, the profile grid)
-**that the user generates with GPT** (2026-10-23: "封面还用gpt生成吧") **in the same look as the rest of the profile**
-(2026-10-26: "我想尽量的保持一致性"; lessons 11): write a Chinese prompt (3:4 only) and tell
-the user to upload one of their accepted covers (「总拖延？写下这一句」) as the **style** reference - not the flat code cover,
-which makes GPT copy the flat infographic look. Then check what comes back (every Chinese character, numbers not swapped,
-no stray text, seams, nothing where Douyin draws the play count: x 7-42 %, y 88.5-95 % of the tile), fix and resize it to
-1080x1440, then deliver **one** picture: Douyin's publish page keeps a single cover image and crops both the 3:4 竖封面
-and the 4:3 横封面 from it (user, 2026-10-26: "横版和竖版不能同时用"; lessons 12), so extend the cover to one 1920x1440
-picture with `sleep_or_cram/tools/one_cover.py` (centre 1080x1440 = the cover pixel for pixel, the sides only continue
-the background; never a separate 4:3 design) and tell the user to centre the 竖封面 box. Remind the user to tick Douyin's
-AI declaration. The code cover stays as the fallback, in the same one-picture form.
+**little people in every scene** (user, 2026-10-23: "有人看着更舒服一点"), **covers that the user generates with GPT**
+(2026-10-23: "封面还用gpt生成吧") **in the same look as the rest of the profile** (2026-10-26: "我想尽量的保持一致性";
+lessons 11), **as ONE picture that ChatGPT itself makes usable for both crops** (user, 2026-10-27: "直接让ChatGPT弄成一个
+横版竖版都能用的版本", "改成直接用 ChatGPT 出封面"; lessons 12). Douyin's publish page keeps a single cover image and crops
+both the 3:4 竖封面 (profile grid) and the 4:3 横封面 from it, so write a Chinese prompt for **one landscape 4:3 picture**:
+the whole design (two title lines, the proof objects, every label) inside the **centre strip, at most half the picture
+wide** (= the 3:4 竖封面 crop), with a margin on both sides of the strip and its bottom-left empty (Douyin draws the play
+count at x 7-42 %, y 88.5-95 % of the tile); the sides only continue the dark background, no text (= the 横封面 is the
+whole picture). Tell the user to upload their latest accepted cover (「学累了？先睡一觉」) as the **style** reference - not
+the flat code cover, which makes GPT copy the flat infographic look. Example prompt: `bedtime_words/out/封面提示词.txt` (PR #17, branch `bedtime-words` until merged).
+When the picture comes back, **only check it** (every Chinese character, numbers not swapped, no stray text, nothing
+outside the centre strip, the play-count corner empty) - do not extend, combine or redraw it (`sleep_or_cram/tools/
+one_cover.py` is retired); if something is wrong, give the user a corrected prompt. Remind the user to tick Douyin's AI
+declaration. The code cover stays as the fallback, drawn directly as one 1920x1440 picture with the design in the
+centre 1080 px (`bedtime_words/src/cover.js`, PR #17).
 The user cannot see the sandbox: always report file paths / PR links, and put numbers in chat.
 
 **Read `references/lessons.md` first** (real data from past episodes). Engine API: `references/engine.md`.
@@ -70,10 +74,9 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
    `lufs` (about -18), `true_peak` (≤ -1 dBTP) and the `sfx` line (transients within a few ms of their beats).
    You cannot hear: say so, and judge the sound only by these numbers. Re-level or swap effects without re-rendering
    the picture: `$V episodes/<slug>/episode.py --sfx` (~10 s).
-   View `build/mp4_sheet.png` once, then run `--cover` (3:4, 1080x1440 with `cover_size`; it prints a lint;
-   view the cover image only if you designed a new cover layout; keep its bottom-left empty for the play count;
-   the publish page keeps ONE cover image for both the 竖封面 and the 横封面, so skip `extra_covers` and extend the 3:4
-   cover with `sleep_or_cram/tools/one_cover.py`).
+   View `build/mp4_sheet.png` once, then run `--cover` for the code fallback (it prints a lint; view the cover image
+   only if you designed a new cover layout; keep its bottom-left empty for the play count; skip `extra_covers`). The
+   real cover is the ChatGPT picture (see the defaults above): write its prompt and check it, never extend it.
 7. **Deliver** — new branch (ask the user first), commit `episodes/<slug>/episode.py` + `out/<slug>.mp4`, `_cover.png`,
    `_publish.txt`; open a PR with `gh api repos/Rezelike/daimashipin/pulls ...` (`gh pr create` does
    not work here). A comment question is optional and goes only into the caption / `publish["pin"]`, never on
