@@ -31,7 +31,7 @@ The user cannot see the sandbox: always report file paths / PR links, and put nu
 
 **Read `references/lessons.md` first** (real data from past episodes). Engine API: `references/engine.md`.
 **Best data so far: 睡还是背** (`sleep_or_cram/`, its own renderer; `sleep_or_cram/README.md` has the beat-by-beat timeline):
-3.2万 plays, 2 s bounce 37.65%, 5 s 38.3%, avg watch 8 s. Follow its structure (lessons 13): two-stage reveal in the hook,
+7.2万 plays at 27 h and still rising, 2 s bounce 38.35%, 5 s 37.9%, avg watch 8 s. Follow its structure (lessons 13): two-stage reveal in the hook,
 the figure acts through the answer, no STEP pages, the table builds while the figure acts, no save button.
 Latest engine example: `episodes/if_then_plan/episode.py` (figures acting out each step: seated at desks, walking,
 door, phone; crowds of sprites that light up for the result; fill-in summary template; 3:4 cover; its `cta` scene
@@ -90,13 +90,13 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
 ## Content rules (from the data)
 - Topic must be **save-worthy and about the viewer** (Feynman: 2.39% saves → 11k plays; butterfly
   effect: 0.11% saves → 950 plays). Pure spectacle science keeps viewers but nobody saves it. But saves are not the
-  only lever: 睡还是背 had 0.68% saves and got 3.2万 plays on its retention (2 s / 5 s / avg watch).
+  only lever: 睡还是背 had 0.63% saves and got 7.2万 plays on its retention (2 s / 5 s / avg watch).
 - **The first 2 seconds decide everything** (主动回忆: 48% gone at 2 s, 83% at 5 s, avg watch 5 s; every video before
   睡还是背 stopped after one burst; 睡还是背 got a second, bigger wave the next day). Frame 0 must already show the hook
   (the engine does this): ≤ 10 characters (睡还是背's 11 + ？ in two lines still did best: natural wording first),
   two big lines allowed (`hook("为什么你|[学了就忘]？", ...)`), ideally the surprising result itself or an action in
   motion (`hook(..., visual=fn)`). Best so far: butterfly effect opening on a billiards shot (2 s bounce 36%),
-  睡还是背's two-line question with the figures already acting + a two-stage reveal (37.65%; 5 s 38.3%),
+  睡还是背's two-line question with the figures already acting + a two-stage reveal (38.35%; 5 s 37.9%),
   Feynman's two-line question (39%). Worst: a concept title card, a 15-character one-line question (48%).
   Show the overview by ~0:04. No biography, no long intro, no section that only "sets up".
 - **Never a text-only opening** (user, 2026-10-20: "开头多做几个动画，不要光是文字"). Every hook gets an animated
