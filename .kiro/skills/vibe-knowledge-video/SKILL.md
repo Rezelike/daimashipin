@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Vibe knowledge video
@@ -30,7 +30,10 @@ AI declaration. The code cover stays as the fallback, in the same one-picture fo
 The user cannot see the sandbox: always report file paths / PR links, and put numbers in chat.
 
 **Read `references/lessons.md` first** (real data from past episodes). Engine API: `references/engine.md`.
-Latest worked example: `episodes/if_then_plan/episode.py` (figures acting out each step: seated at desks, walking,
+**Best data so far: 睡还是背** (`sleep_or_cram/`, its own renderer; `sleep_or_cram/README.md` has the beat-by-beat timeline):
+3.2万 plays, 2 s bounce 37.65%, 5 s 38.3%, avg watch 8 s. Follow its structure (lessons 13): two-stage reveal in the hook,
+the figure acts through the answer, no STEP pages, the table builds while the figure acts, no save button.
+Latest engine example: `episodes/if_then_plan/episode.py` (figures acting out each step: seated at desks, walking,
 door, phone; crowds of sprites that light up for the result; fill-in summary template; 3:4 cover; its `cta` scene
 and 「截图保存」 pill are the old ending - drop them, see Build). Experiment bars /
 dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals: `episodes/forgetting_curve/`.
@@ -86,11 +89,14 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
 
 ## Content rules (from the data)
 - Topic must be **save-worthy and about the viewer** (Feynman: 2.39% saves → 11k plays; butterfly
-  effect: 0.11% saves → 950 plays). Pure spectacle science keeps viewers but nobody saves it.
-- **The first 2 seconds decide everything** (主动回忆: 48% gone at 2 s, 83% at 5 s, avg watch 5 s; every video so
-  far stopped after one burst). Frame 0 must already show the hook (the engine does this): ≤ 10 characters,
+  effect: 0.11% saves → 950 plays). Pure spectacle science keeps viewers but nobody saves it. But saves are not the
+  only lever: 睡还是背 had 0.68% saves and got 3.2万 plays on its retention (2 s / 5 s / avg watch).
+- **The first 2 seconds decide everything** (主动回忆: 48% gone at 2 s, 83% at 5 s, avg watch 5 s; every video before
+  睡还是背 stopped after one burst; 睡还是背 got a second, bigger wave the next day). Frame 0 must already show the hook
+  (the engine does this): ≤ 10 characters (睡还是背's 11 + ？ in two lines still did best: natural wording first),
   two big lines allowed (`hook("为什么你|[学了就忘]？", ...)`), ideally the surprising result itself or an action in
   motion (`hook(..., visual=fn)`). Best so far: butterfly effect opening on a billiards shot (2 s bounce 36%),
+  睡还是背's two-line question with the figures already acting + a two-stage reveal (37.65%; 5 s 38.3%),
   Feynman's two-line question (39%). Worst: a concept title card, a 15-character one-line question (48%).
   Show the overview by ~0:04. No biography, no long intro, no section that only "sets up".
 - **Never a text-only opening** (user, 2026-10-20: "开头多做几个动画，不要光是文字"). Every hook gets an animated
