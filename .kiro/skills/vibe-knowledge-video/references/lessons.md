@@ -71,6 +71,15 @@ Extra facts:
   6547 -> 6580, 遗忘曲线 5931 -> 5941, 钱能买到快乐吗 2219 -> 2227 (+8 to +33). The account: 57 fans, 2521 likes; the bio
   「给世界一些惊喜」 does not say what the account gives. Suggested to the user 10-27: a 合集 of the learning-method videos, pin the
   hit, a bio that says what the videos are, the original MP4 also to 小红书 / B站, the next 同类 video within 1-2 days at ~18:00.
+  **Comments (26 on the evening of 10-27; likes 1379, saves 480 by then):** the most liked is a joke (「我在梦里面也能学」 ♥41, 5
+  replies), then nap-length advice from viewers: 「追求醒后马上好用…20分钟…背东西选60分钟，接受醒后半小时昏沉；90分钟只适合偶尔」
+  (♥33, with sources), 「午睡30分钟就足够了，多了反而会进入深度睡眠起来会累」 (♥8, the first comment), 「眯10分钟最多不超过20分钟」
+  (♥3); plus 「睡起来什么都忘了」 (♥7), 「睡到天黑有没有什么解决办法」, 「暴学一段时间就开始厌学，脑子不转了咋整」. Three viewers
+  tagged @豆包 (「总结」 x2, 「@抖音求真 @豆包 是真的吗」): viewers ask the platform AI to summarise or fact-check, so every claim must
+  hold up and the source must be easy to find. The author had liked 4 comments and replied to none. -> The question this audience
+  asks most is nap length and waking up groggy (sleep inertia): the video said "30-60 min to remember" without mentioning the
+  grogginess, the viewers' rule of thumb is "≤ 30 min". Drafted for the user 10-27: replies to the top comments + a pinned
+  author comment with the source.
   Title as shown in the data: 「学累了，继续学还是睡一小会？ #学习 #学…」, not the prepared 「Vibe知识大赏/学累了，睡会儿还是接着学？
   1分钟学会午睡」: no prefix, other wording, hashtags (to confirm). The first video with no on-screen save prompt at all (no
   「建议先收藏」 at ~0:11, no end button; the prepared caption still ended with 建议收藏). Made with its own renderer: per the repo
@@ -205,8 +214,9 @@ Extra facts:
   「Vibe知识大赏/学累了，睡会儿还是接着学？1分钟学会午睡」 (29); the girl's plate stays 「接着背 1 小时」 (what the cram group
   did, and the words on the cover).
 - **Next: a batch in the 睡还是背 format** (conclusion 13), built by copying `sleep_or_cram/` (same kids, props, sound recipe,
-  fonts read from `sleep_or_cram/assets/fonts/`). Proposed first, 2026-10-27: the sequel 「背单词：睡前还是早上？」 (backlog below),
-  then 记忆宫殿 / 先看书还是先做题 (prequestions) / 习惯 66 天, one per day at ~18:00 (睡还是背's slot, so the slot is not a confound).
+  fonts read from `sleep_or_cram/assets/fonts/`). Order agreed 2026-10-27: the sequel 「背单词：睡前还是早上？」 first (user: "可以";
+  slug `bedtime_words`), then 「睡醒更困？午睡多久不头昏」 (the comments' top question, backlog below), then 记忆宫殿 / 先看书还是先做题
+  (prequestions) / 习惯 66 天, one per day at ~18:00 (睡还是背's slot, so the slot is not a confound).
   Targets: 2 s bounce ≤ 40%, 5 s ≥ 35%, avg watch ≥ 7 s, plays above the account average (~4,000); watch the save rate (no
   on-screen save prompt). One hit does not predict the next: judge each by its rates, not its plays.
   Still to confirm with the user: whether the posted title / chapter names were typed by hand.
@@ -221,6 +231,16 @@ Extra facts:
   a 2021 replication with realistic material (*Sleep* 44(3):zsaa210, Singapore, 52 students, facts about ants and crabs, 9 pm vs
   9 am, 12 h apart): the overnight boost held (d = 0.72), relearning was not faster (d = 0.10), and after 1 week the sleep group
   was only numerically ahead (d = 0.35, n.s.). Safe message: learn the hard words in the evening, sleep, review once in the morning.
+  Hook in a viewer's own words: 睡还是背's comment 「睡起来什么都忘了」 (♥7) -> e.g. 「睡一觉|就忘光了？」.
+  **睡醒更困？午睡多久不头昏** (the most-asked question under 睡还是背, 2026-10-27): Brooks & Lack 2006, *Sleep* 29(6):831-840 - after a
+  short night, afternoon naps of 5 / 10 / 20 / 30 min: 5 min hardly helped; 10 min helped at once on every measure, partly for up to
+  155 min; 20 min helped only from ~35 min after waking (up to 125 min); 30 min first made alertness and performance worse (sleep
+  inertia), then helped up to 155 min -> 10 min was best overall. Leong et al. 2023, *Sleep* 46(4):zsad025 (habitual short
+  sleepers): 10-60 min naps all lifted mood and alertness, only 30 min improved learning new material, the grogginess after 30-60
+  min naps was gone within 30 min. Hilditch et al. 2016, *Sleep*: a 30-min night nap (~15 min of deep sleep) caused sleep inertia, a
+  10-min one did not. Lovato & Lack 2010 review (PubMed 21075238): 5-15 min naps help almost at once for 1-3 h; > 30 min brings a
+  short grogginess, then benefits for hours. -> "need to be sharp right away: 10-20 min; 30-60 min only if you can spare ~30 min to
+  wake up"; it completes 睡还是背 (which said 10 min to wake up, 30-60 min to remember) without contradicting it.
   记忆宫殿 (recommended 2026-10-23; Dresler et al. 2017 *Neuron*: 40 days x 30 min, 26 → 62 of 72 words,
   48 after 4 months - the numbers so far from press coverage; Twomey & Kroneisen 2021 meta-analysis g = 0.65); 先猜答案再学
   (prequestion meta-analysis 2023: g = 0.54 for asked content, 0.04 for the rest); 同桌玩电脑 (Sana et al. 2013: -11% / -17%);
