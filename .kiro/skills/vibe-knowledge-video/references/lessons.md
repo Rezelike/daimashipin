@@ -182,6 +182,11 @@ Extra facts:
    Keep >= 80 px between the design and the sides of the 3:4 crop so a slightly off-centre crop box does not cut the
    title (睡还是背: 85 / 92 px). Tool: `sleep_or_cram/tools/one_cover.py IN OUT --preview P [--shrink 0.94]`.
    Still unknown: whether Douyin centres the crop boxes by default or the user drags them - ask after the first upload.
+   **Changed 2026-10-27 (user: "不要你再用什么玩意儿扩成一张1920×1440的，直接让ChatGPT弄成一个横版竖版都能用的版本";
+   "改成直接用 ChatGPT 出封面"):** no more extending a 3:4 GPT cover with `one_cover.py`. The prompt asks ChatGPT for one landscape
+   4:3 picture with the whole design in the centre strip (at most half the width = the 竖封面 crop, margins on both sides,
+   bottom-left empty) and only dark background on the sides (= the 横封面); the agent only checks the result. First used for
+   背单词 (`bedtime_words/out/封面提示词.txt`, style reference 「学累了？先睡一觉」).
 13. **The format to batch: 睡还是背 (best data so far; `sleep_or_cram/README.md` has the beat-by-beat timeline).** 75 s at 128 BPM.
    Frame 0 = a two-line question in the student's words with the figures already acting (one studies on, one naps) + a hit;
    reveal 1 at ~2 s (the tie), reveal 2 at ~4 s (4 beats after the first: 2 beats felt rushed to the user), the check at ~5 s.
@@ -217,6 +222,12 @@ Extra facts:
   fonts read from `sleep_or_cram/assets/fonts/`). Order agreed 2026-10-27: the sequel 「背单词：睡前还是早上？」 first (user: "可以";
   slug `bedtime_words`), then 「睡醒更困？午睡多久不头昏」 (the comments' top question, backlog below), then 记忆宫殿 / 先看书还是先做题
   (prequestions) / 习惯 66 天, one per day at ~18:00 (睡还是背's slot, so the slot is not a confound).
+  **背单词 built 2026-10-27** (`bedtime_words/`, PR #17): 「背单词 / 早上还是睡前？」, reveal 1 「都背到全对」 (16 vs 16) at 2.11 s,
+  reveal 2 「12 小时后再考」 (7.5 vs 10, Mazza 2016) at 3.98 s; answer 「睡前背，早上复习」; conclusion 「早上默到全对」, not 「复习一遍」:
+  Mazza's control group (learned before bed, slept, one pass in the morning) was no better than the wake group a week later.
+  Fact-check found Gais 2006's students learned **German** words (not English). The boy "goes to bed" where he sits (blanket
+  over the desk). New tools there: `tools/sheet.mjs` (numbered, timed preview tiles: point the user at 图 N + seconds) and
+  `render.mjs --lint` (text off-screen / on top of each other).
   Targets: 2 s bounce ≤ 40%, 5 s ≥ 35%, avg watch ≥ 7 s, plays above the account average (~4,000); watch the save rate (no
   on-screen save prompt). One hit does not predict the next: judge each by its rates, not its plays.
   Still to confirm with the user: whether the posted title / chapter names were typed by hand.
