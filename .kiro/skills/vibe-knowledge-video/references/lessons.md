@@ -195,6 +195,10 @@ Extra facts:
    builds while the hero acts; it ends on pointing + a thumbs-up, no save button, no CTA. The hero is on screen in every frame.
    Likes bump exactly on its payoffs (the ~5 s check, the 8-12 s answer, the finished table): keep a payoff at each of those points.
    Change nothing structural inside the next batch, so its data tests this format and not a new mix.
+   **Structural = the timing and the order of the payoffs, not the look** (2026-10-27): the first sequel (背单词) first copied
+   睡还是背's screens one to one (two bars, wall clock -> ring -> alarm -> calendar, HUD panel, list table) and the user said
+   「和上期做的视频好像啊」, then 「不要和前面做的那些视频一样」 -> each episode designs its own props and layouts; same kids,
+   background, palette, sound recipe, beat grid and reveal times.
 
 ## Open questions to test
 - If-then plan (2026-10-23) results vs its targets: 2 s bounce 43.0% (target < 40%: missed, but -5 points), 5 s retention 28.1%
@@ -218,13 +222,17 @@ Extra facts:
   and then watch 「只休息」 lose. Chapter 1 renamed 睡还是学, English line "Tired? Nap, or keep studying?", title
   「Vibe知识大赏/学累了，睡会儿还是接着学？1分钟学会午睡」 (29); the girl's plate stays 「接着背 1 小时」 (what the cram group
   did, and the words on the cover).
-- **Next: a batch in the 睡还是背 format** (conclusion 13), built by copying `sleep_or_cram/` (same kids, props, sound recipe,
+- **Next: a batch in the 睡还是背 format** (conclusion 13), built by copying `sleep_or_cram/` (same kids, background, palette, sound recipe - not its props or screens, see 13;
   fonts read from `sleep_or_cram/assets/fonts/`). Order agreed 2026-10-27: the sequel 「背单词：睡前还是早上？」 first (user: "可以";
   slug `bedtime_words`), then 「睡醒更困？午睡多久不头昏」 (the comments' top question, backlog below), then 记忆宫殿 / 先看书还是先做题
   (prequestions) / 习惯 66 天, one per day at ~18:00 (睡还是背's slot, so the slot is not a confound).
   **背单词 built 2026-10-27** (`bedtime_words/`, PR #17): 「背单词 / 早上还是睡前？」, reveal 1 「都背到全对」 (16 vs 16) at 2.11 s,
   reveal 2 「12 小时后再考」 (7.5 vs 10, Mazza 2016) at 3.98 s; answer 「睡前背，早上复习」; conclusion 「早上默到全对」, not 「复习一遍」:
   Mazza's control group (learned before bed, slept, one pass in the morning) was no better than the wake group a week later.
+  Redesigned the same day after 「和上期做的视频好像啊」: opening = each kid's 16 word cards (lit while learning, flipped back to
+  「？」 at reveal 2: 7.5 vs 10), the boy reads in bed by a lamp, the girl over breakfast; after 8 s a bedroom whose window shows
+  the time of day, flash-card headers, a big flash card (nyanya), 背完 -> 睡着 bars, the morning test round by round, a 3-stop
+  timeline instead of the table. Beat grid and reveal times unchanged.
   Fact-check found Gais 2006's students learned **German** words (not English). The boy "goes to bed" where he sits (blanket
   over the desk). New tools there: `tools/sheet.mjs` (numbered, timed preview tiles: point the user at 图 N + seconds) and
   `render.mjs --lint` (text off-screen / on top of each other).
