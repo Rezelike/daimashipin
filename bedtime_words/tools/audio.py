@@ -277,8 +277,8 @@ def cues():
     """One effect per visual event, on its beat (src/scene.js, src/sections.js)."""
     c = []
     add = lambda b, s, g, p=0.0: c.append((b, s, g, p))
-    # opening — a hit on frame 0, then both kids reciting (page flips: hers left, his right, alternating beats),
-    # loud enough to hear on a phone, building to the first reveal
+    # opening — a hit on frame 0, then both kids reciting (page flips: hers left, his right, alternating beats) while
+    # their word cards light up row by row, loud enough to hear on a phone, building to the first reveal
     add(0, hit(), HIT_DB, 0.0)
     for b in (0.5, 2.5):
         add(b, page_flip(), -17 + BED_DB, -0.45)
@@ -286,8 +286,9 @@ def cues():
         add(b, page_flip(), -18 + BED_DB, 0.45)
     for i in range(22):
         add(i * 0.12, type_click(), -33 + BED_DB, 0.0)
-    for b in range(1, 5):
-        add(b, tick(tock=b % 2 == 1), -24 + BED_DB, 0.0)
+    # each row of 4 word cards lighting up: hers on the beat (left), his on the half beat (right), pitch rising
+    for k, b in enumerate((0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5)):
+        add(b, pop(300 + 40 * k, 900 + 90 * k, 0.09), -17, 0.5 if k % 2 == 0 else -0.5)
     # reveal 1 (beat 4.5): 都背到全对 — both bars fill to 16
     add(4.5, whoosh(0.38), -13, 0.0)
     add(4.5, riser(0.4), -14, 0.0)
@@ -298,6 +299,7 @@ def cues():
     add(5.3, thump(240, 110, 0.12), -17, 0.45)
     add(5.5, whoosh(0.5, up=False, bright=0.6), -19, 0.45)
     add(5.6, scribble(), -24, -0.45)
+    add(6.0, tick(2200), -12, 0.75)  # his lamp clicks off
     add(6.6, zz_puff(), -27 + BED_DB, 0.45)
     add(7.0, scribble(), -25, -0.45)
     # reveal 2 (beat 8.5): 12 小时后再考 — the windows swap, both bars fall (hers further)

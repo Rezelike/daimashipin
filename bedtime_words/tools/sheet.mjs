@@ -32,12 +32,12 @@ function findChrome() {
 
 // [seconds, section, what happens]
 export const FRAMES = [
-  [0.0, '开场', '第 0 帧：两人都在背'],
-  [1.6, '开场', '早上背 / 睡前背'],
-  [2.6, '开场', '揭晓 1：都背到全对'],
-  [3.4, '开场', '男孩背完就上床'],
-  [4.5, '开场', '揭晓 2：12 小时后再考'],
-  [5.7, '开场', '打勾：记得多 / 忘了一半'],
+  [0.0, '开场', '第 0 帧：各 16 张空白单词卡'],
+  [1.6, '开场', '边背边一排排翻亮'],
+  [2.3, '开场', '揭晓 1：16 张全亮＝都背到全对'],
+  [3.4, '开场', '男孩关灯躺下'],
+  [4.6, '开场', '揭晓 2：卡翻回「？」7.5 vs 10'],
+  [5.9, '开场', '打勾：记得多 / 忘了一半'],
   [8.9, '睡前背', '早上醒来，被子滑下'],
   [10.4, '睡前背', '伸懒腰，弹出 ① ②'],
   [12.7, '睡前背', '卡片：3 轮 vs 6 轮'],
@@ -80,8 +80,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     const ffmpeg = process.env.FFMPEG || (() => {
       try { return execSync(`${path.join(ROOT, '.venv/bin/python')} -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"`, { encoding: 'utf8' }).trim(); } catch { return 'ffmpeg'; }
     })();
+    // --times a,b,c [--out file]: a quick sheet of just these moments (default output build/quick.png)
+    const ti = process.argv.indexOf('--times');
+    const LIST = ti > 0 ? process.argv[ti + 1].split(',').map((x) => [Number(x), '', '']) : FRAMES;
+    const oi = process.argv.indexOf('--out');
+    const OUT = oi > 0 ? path.resolve(process.argv[oi + 1]) : ti > 0 ? path.join(ROOT, 'build', 'quick.png') : path.join(ROOT, 'out', '分镜预览.png');
     const shots = [];
-    for (const [t] of FRAMES) {
+    for (const [t] of LIST) {
       if (mp4) {
         const jpg = execSync(`"${ffmpeg}" -v error -ss ${t.toFixed(3)} -i "${mp4}" -frames:v 1 -vf scale=640:360 -q:v 3 -f image2pipe -vcodec mjpeg -`);
         shots.push('data:image/jpeg;base64,' + jpg.toString('base64'));
@@ -95,9 +100,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
       }, t));
     }
     const cols = 5, tw = 640, th = 360, cap = 58, gap = 16;
-    const rows = Math.ceil(FRAMES.length / cols);
+    const rows = Math.ceil(LIST.length / cols);
     const W = cols * tw + (cols + 1) * gap, H = 92 + rows * (th + cap + gap) + gap;
-    const tiles = FRAMES.map(([t, sec, what], i) => `
+    const tiles = LIST.map(([t, sec, what], i) => `
       <div class="tile" style="left:${gap + (i % cols) * (tw + gap)}px;top:${92 + Math.floor(i / cols) * (th + cap + gap)}px">
         <img src="${shots[i]}"><div class="cap"><b>图 ${i + 1}</b> · ${t.toFixed(1)} s · ${sec}<span>${what}</span></div></div>`).join('');
     const html = `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -118,10 +123,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     const p2 = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
     await p2.goto('file://' + sheetPath);
     await p2.evaluate(() => document.fonts.ready);
-    fs.mkdirSync(path.join(ROOT, 'out'), { recursive: true });
-    const out = path.join(ROOT, 'out', '分镜预览.png');
-    await p2.screenshot({ path: out, fullPage: true });
-    console.log(`wrote ${out} ${W}x${H}, ${FRAMES.length} tiles`);
+    fs.mkdirSync(path.dirname(OUT), { recursive: true });
+    await p2.screenshot({ path: OUT, fullPage: true });
+    console.log(`wrote ${OUT} ${W}x${H}, ${LIST.length} tiles`);
   } finally {
     await browser.close();
   }

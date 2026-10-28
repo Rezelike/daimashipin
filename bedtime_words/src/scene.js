@@ -8,10 +8,12 @@ const BOY = {
   x: KB([[0, 1360], [16, 1360], [17.5, 960], [30.5, 960], [32.5, 470], [126.5, 470], [128.5, 400]]),
   y: KB([[0, 860], [16, 860], [17.5, 872], [30.5, 872], [32.5, 842], [126.5, 842], [128.5, 852]]),
   s: KB([[0, 1], [16, 1], [17.5, 1.12], [30.5, 1.12], [32.5, 0.9], [126.5, 0.9], [128.5, 0.92]]),
-  // in bed: right after 「都背到全对」 (the user's idea: 睡前背完就上床) until he wakes in the morning at 8.4 s;
+  // lying down: right after 「都背到全对」 (the user's idea: 睡前背完就上床) until he wakes in the morning at 8.4 s;
   // step ① after 16 个全对 until the alarm in step ③; the table's row 2
   bed: KB([[0, 0], [5.4, 0], [6.4, 1, 'out'], [18, 1], [18.9, 0, 'out'], [50.6, 0], [52, 1], [100.4, 1], [101.2, 0, 'out'],
     [133.9, 0], [135, 1], [138, 1], [138.8, 0, 'out']]),
+  // sitting up in bed with the lamp on from frame 0; once he lies down (bed = 1 at beat 6.4) sit is no longer visible
+  sit: KB([[0, 1], [6.4, 1], [6.5, 0]]),
   stretch: KB([[20.3, 0], [21.3, 1, 'out'], [23.2, 1], [24, 0]]),
   read: KB([[0, 1], [4.6, 1], [5.3, 0], [24, 0], [25, 1, 'out'], [49.4, 1], [50.4, 0], [129.4, 0], [130.3, 1, 'out'], [133.2, 1], [134, 0]]),
   write: KB([[102, 0], [102.9, 1], [125.2, 1], [125.9, 0], [138.7, 0], [139.5, 1], [149, 1], [149.6, 0]]),
@@ -36,20 +38,42 @@ function talkAt(bt) {
 // ---------- opening (0–17 beats) ----------
 // Mazza et al. 2016: both groups learned 16 Swahili–French words until each was right once (the tie, beat 4.5),
 // 12 h later (wake group 9 am -> 9 pm, sleep group 9 pm -> sleep -> 9 am) they recalled 7.45 vs 10.3 (beat 8.5).
+// Shown as each kid's 16 word cards (2026-10-27: the bars looked like the last episode): the cards light up row by row
+// while they learn, all 16 are lit at reveal 1, and at reveal 2 the forgotten ones flip back to "?".
 const OPEN = {
   pill: KB([[0, 0], [4.5, 0], [5.0, 1, 'out'], [8.5, 1], [9.0, 2, 'out']]),
-  girl: KB([[0, 0], [4.5, 0], [5.4, 1, 'back'], [8.5, 1], [9.7, 7.45 / 16, 'out']]),
-  boy: KB([[0, 0], [4.5, 0], [5.4, 1, 'back'], [8.5, 1], [9.7, 10.3 / 16, 'out']]),
   dayL: KB([[0, 1], [8.5, 1], [10.0, 0, 'inOut']]),   // her window: morning -> 9 pm
   dayR: KB([[0, 0], [8.5, 0], [10.0, 1, 'inOut']]),   // his window: night -> 9 am
+  lamp: KB([[0, 1], [6.0, 1], [6.12, 0, 'lin']]),    // his reading lamp: off once he lies down
   outA: KB([[0, 1], [15.5, 1], [16.6, 0, 'out']]),
   girlX: KB([[0, 560], [15.5, 560], [17, 300, 'in']]),
 };
-// count beside a meter: rounds while it moves, then the paper's (rounded) mean
-function countLabel(level, bt, final) {
-  if (bt >= 9.7) return final;
-  return String(Math.round(16 * Math.min(1, level)));
+const CARDS_Y = 538;
+// learning: one row of 4 cards per beat, hers on the beat, his on the half beat -> all 16 lit before reveal 1
+const LEARN = { girl: [0, 1, 2, 3], boy: [0.5, 1.5, 2.5, 3.5] };
+const CARD_FLIP = 0.3, CARD_STAGGER = 0.08;
+// reveal 2: the forgotten cards flip back in a scattered order. Her 7.45 is shown as 7.5 (the 9th card flips halfway).
+const FORGET = {
+  girl: { cards: [5, 0, 10, 15, 3, 12, 6, 9], half: 11, t0: 8.7, step: 0.11 },
+  boy: { cards: [7, 13, 1, 10, 4, 14], half: null, t0: 8.76, step: 0.15 },
+};
+function cardState(who, i, bt) {
+  const tl = LEARN[who][Math.floor(i / 4)] + (i % 4) * CARD_STAGGER;
+  if (bt < tl + CARD_FLIP) return flipFace(bt, tl, CARD_FLIP, 'blank', 'lit');
+  const F = FORGET[who], k = F.cards.indexOf(i);
+  if (k >= 0) return flipFace(bt, F.t0 + k * F.step, CARD_FLIP, 'lit', 'lost');
+  if (F.half === i) return flipFace(bt, F.t0 + F.cards.length * F.step, CARD_FLIP, 'lit', 'half');
+  return { face: 'lit', sx: 1 };
 }
+// count next to a grid: a card counts as forgotten once it is past the middle of its flip
+function cardsLeft(who, bt) {
+  const F = FORGET[who];
+  let n = 16;
+  F.cards.forEach((c, k) => { if (bt >= F.t0 + k * F.step + CARD_FLIP / 2) n -= 1; });
+  if (F.half !== null && bt >= F.t0 + F.cards.length * F.step + CARD_FLIP / 2) n -= 0.5;
+  return n;
+}
+const countText = (n) => (n % 1 ? n.toFixed(1) : String(n));
 
 function drawTitleBlock(bt, t) {
   const outA = 1 - EASE.out(seg(bt, 30.5, 31.4));
@@ -91,7 +115,8 @@ function drawTitleBlock(bt, t) {
 function drawOpening(bt, t) {
   const A = OPEN.outA(bt);
   if (A <= 0 && bt > 17) return;
-  // her window shows the morning, his the night; on 「12 小时后再考」 they swap
+  // his bedside lamp (on while he reads in bed), then the two windows: her morning, his night; they swap at reveal 2
+  drawBedLamp(1660, 846, OPEN.lamp(bt), { alpha: A });
   drawWindow(210, 585, 210, 250, OPEN.dayL(bt), { alpha: A, t });
   drawWindow(1710, 585, 210, 250, OPEN.dayR(bt), { alpha: A, t });
 
@@ -104,35 +129,36 @@ function drawOpening(bt, t) {
     { s: '12 小时后再考', icon: 'clock' },
   ], pIdx, { alpha: A, flash: clamp(flash) });
 
-  // meters (out of 16 words)
-  const bottom = 640, hMax = 190, mw = 84;
+  // the 16 word cards of each kid
+  const gx = OPEN.girlX(bt), bx = 1360;
   const grayK = seg(bt, 8.6, 9.3);
-  const q = bt < 4.5 ? 0.6 + 0.4 * Math.sin(bt * Math.PI) : 1 - seg(bt, 4.5, 4.9);
-  const gl = OPEN.girl(bt), bl = OPEN.boy(bt);
-  const numA = popA(bt, 5.0, 0.4);
-  const gx = OPEN.girlX(bt);
-  drawMeter(gx, bottom, mw, hMax, Math.min(1, gl), {
-    color: lerpColor(COL.cyan, '#66728f', grayK), colorHi: lerpColor(COL.cyanHi, '#8994ad', grayK), alpha: A, q: bt < 4.9 ? q : 0,
-    glow: 1 - grayK, num: { s: countLabel(gl, bt, '7.5'), alpha: numA, side: -1, color: lerpColor(COL.cyanHi, COL.grayHi, grayK) },
-  });
-  drawMeter(1360, bottom, mw, hMax, Math.min(1, bl), {
-    color: COL.yellow, colorHi: COL.yellowHi, alpha: A, q: bt < 4.9 ? q : 0, glow: 1 + seg(bt, 10.5, 11) * 0.6,
-    num: { s: countLabel(bl, bt, '10'), alpha: numA, side: -1, color: COL.yellowHi },
-  });
-
-  // reactions
-  const boyTop = bottom - Math.min(1, bl) * hMax, girlTop = bottom - Math.min(1, gl) * hMax;
+  const done = win(bt, 4.5, 5.7, 0.1, 0.9);   // all lit: glow pulse on reveal 1
   withAlpha(A, () => {
+    for (let i = 0; i < 16; i++) {
+      const [x, y] = cardCentre(gx, CARDS_Y, i), c = cardState('girl', i, bt);
+      drawWordCard(x, y, c.face, { sx: c.sx, color: COL.cyan, colorHi: COL.cyanHi, glow: 1 - 0.7 * grayK + done });
+      const [x2, y2] = cardCentre(bx, CARDS_Y, i), c2 = cardState('boy', i, bt);
+      drawWordCard(x2, y2, c2.face, { sx: c2.sx, color: COL.yellow, colorHi: COL.yellowHi, glow: 1 + done + seg(bt, 10.5, 11) * 0.6 });
+    }
+    // counts on the inner side of each grid, from reveal 1
+    const gNumX = gx + CARD_GRID_W / 2 + 22, bNumX = bx - CARD_GRID_W / 2 - 22;
+    const numA = popA(bt, 4.6, 0.4);
+    if (numA > 0) {
+      txt(countText(cardsLeft('girl', bt)), gNumX, 560, { size: 56, weight: 800, fam: 'mono', color: lerpColor(COL.cyanHi, COL.grayHi, grayK), alpha: numA, glow: 10 * (1 - grayK) });
+      txt(countText(cardsLeft('boy', bt)), bNumX, 560, { size: 56, weight: 800, fam: 'mono', color: COL.yellowHi, align: 'right', alpha: numA, glow: 12 });
+    }
+    // reactions
+    const ckx = bNumX - measure('10', 56, 800, 'mono') - 40;
     const cs = popS(bt, 10.5, 0.6);
-    if (cs > 0) withScale(1360, boyTop, cs, () => {
+    if (cs > 0) withScale(ckx, 560, cs, () => {
       ctx.save(); ctx.shadowColor = COL.yellow; ctx.shadowBlur = 24;
-      circle(1360, boyTop, 27, COL.yellow); ctx.restore();
-      checkBadge(1360, boyTop, 27, { color: '#0d1838', p: seg(bt, 10.5, 11.2), lw: 4 });
+      circle(ckx, 560, 26, COL.yellow); ctx.restore();
+      checkBadge(ckx, 560, 26, { color: '#0d1838', p: seg(bt, 10.5, 11.2), lw: 4 });
     });
     const la = popA(bt, 10.6, 0.4);
-    if (la > 0) txt('记得多', 1418 + (1 - la) * -20, boyTop, { size: 40, weight: 900, color: COL.yellow, alpha: la, glow: 16 });
+    if (la > 0) txt('记得多', bNumX + (1 - la) * 20, 622, { size: 40, weight: 900, color: COL.yellow, align: 'right', alpha: la, glow: 16 });
     const lb = popA(bt, 11.5, 0.4);
-    if (lb > 0) txt('忘了一半', gx + 58 + (1 - lb) * -20, girlTop, { size: 34, weight: 700, color: COL.grayHi, alpha: lb });
+    if (lb > 0) txt('忘了一半', gNumX - (1 - lb) * 20, 622, { size: 34, weight: 700, color: COL.grayHi, alpha: lb });
   });
   sourceNote('Mazza 等 2016 · 《Psychological Science》 · 法国 40 名年轻人 · 16 个里平均还记得几个', 110, 988, { alpha: A * popA(bt, 13, 0.8) });
 }
@@ -145,15 +171,16 @@ function drawGirl(bt, t) {
   const flip = reciting && bt > 0.5 ? clamp(cyc / 0.9) : 0;
   const worry = seg(bt, 8.8, 9.6);
   const x = OPEN.girlX(bt);
-  // after 都背到全对 she closes the book and gets on with her day (other homework) until the 9 pm test
+  // she learns over breakfast; after 都背到全对 she closes the book and gets on with her day until the 9 pm test
   const read = KB([[0, 1], [4.6, 1], [5.3, 0]])(bt);
   const write = KB([[5.4, 0], [6.2, 1], [8.4, 1], [9.0, 0]])(bt);
+  const notebook = write > 0.05 || (bt > 5.3 && bt < 9.2);
   drawKid({
     type: 'girl', x, y: 860, s: 1, t, alpha: A,
     read, write, pencil: true, flip: flip >= 1 ? 0 : flip,
     talk: reciting ? Math.max(0, Math.sin(bt * Math.PI * 2.2)) * 0.45 : 0,
     worry, blink: blinkAtGirl(bt), bookColor: '#3d9bd6',
-    deskProps: write > 0.05 || (bt > 5.3 && bt < 9.2) ? () => drawNotebookLocal(20, -3) : null,
+    deskProps: () => { drawBreakfastLocal(); if (notebook) drawNotebookLocal(20, -3); },
   });
   namePlate(x, 922, '早上背', lerpColor(COL.cyan, COL.grayHi, seg(bt, 8.6, 9.3)), { alpha: A });
 }
@@ -213,7 +240,7 @@ function boyParams(bt, t) {
   const bed = BOY.bed(bt);
   return {
     type: 'boy', x: BOY.x(bt), y: BOY.y(bt), s: BOY.s(bt), t,
-    bed, stretch: BOY.stretch(bt), read: BOY.read(bt), write: BOY.write(bt),
+    bed, sit: BOY.sit(bt), stretch: BOY.stretch(bt), read: BOY.read(bt), write: BOY.write(bt),
     point: BOY.point(bt), thumb: BOY.thumb(bt),
     happy: BOY.happy(bt), blink: bed < 0.1 ? blinkAt(bt) : 0, talk: talkAt(bt),
     bubble: bed > 0.8 ? 7 + 6 * (0.5 + 0.5 * Math.sin(t * TAU / (BEAT * 4))) : 0,

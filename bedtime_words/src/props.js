@@ -341,3 +341,88 @@ function dingBurst(x, y, p, o = {}) {
     withScale(x, y, sc, () => txt(s, x, y, { size, weight: 900, color, align: 'center', glow: 18 }));
   });
 }
+
+// ---------- word cards (bedtime_words opening): each kid's 16 words as a 4x4 grid ----------
+const CARD = { w: 62, h: 44, gx: 9, gy: 9, r: 8 };
+const CARD_GRID_W = 4 * CARD.w + 3 * CARD.gx, CARD_GRID_H = 4 * CARD.h + 3 * CARD.gy;
+function cardCentre(cx, cy, i) {
+  const c = i % 4, r = Math.floor(i / 4);
+  return [cx - CARD_GRID_W / 2 + CARD.w / 2 + c * (CARD.w + CARD.gx), cy - CARD_GRID_H / 2 + CARD.h / 2 + r * (CARD.h + CARD.gy)];
+}
+// face: 'blank' (not learned yet) | 'lit' (remembered) | 'lost' (forgotten: "?") | 'half' (left half lit)
+function drawWordCard(x, y, face, o = {}) {
+  const { sx = 1, color = COL.yellow, colorHi = COL.yellowHi, glow = 1 } = o;
+  if (sx < 0.02) return;
+  const { w, h, r } = CARD;
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(sx, 1);
+  const lines = (c) => {
+    line(-18, -7, 18, -7, c, 5); line(-18, 7, 6, 7, c, 5);
+  };
+  const litFace = () => {
+    const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+    g.addColorStop(0, colorHi); g.addColorStop(1, color);
+    ctx.save(); ctx.shadowColor = color; ctx.shadowBlur = 14 * glow;
+    rrect(-w / 2, -h / 2, w, h, r, g); ctx.restore();
+    lines('rgba(11,23,54,0.55)');
+  };
+  const lostFace = () => {
+    rrect(-w / 2, -h / 2, w, h, r, 'rgba(255,255,255,0.04)', 'rgba(141,153,181,0.6)', 2);
+    txt('?', 0, 1, { size: 32, weight: 900, color: COL.gray, align: 'center' });
+  };
+  if (face === 'lit') litFace();
+  else if (face === 'lost') lostFace();
+  else if (face === 'half') {
+    lostFace();
+    ctx.save(); ctx.beginPath(); ctx.rect(-w / 2 - 20, -h / 2 - 20, w / 2 + 20, h + 40); ctx.clip(); litFace(); ctx.restore();
+  } else {
+    rrect(-w / 2, -h / 2, w, h, r, 'rgba(255,255,255,0.05)', 'rgba(200,215,240,0.3)', 2);
+    lines('rgba(200,215,240,0.16)');
+  }
+  ctx.restore();
+}
+// a card turning from face a to face b over [t0, t0 + d] beats (flip around its vertical axis)
+function flipFace(bt, t0, d, a, b) {
+  const p = seg(bt, t0, t0 + d);
+  return { face: p < 0.5 ? a : b, sx: Math.abs(Math.cos(Math.PI * p)) };
+}
+
+// ---------- bedside table + reading lamp (bedtime_words opening); top = table top (screen y), on = 0..1 ----------
+function drawBedLamp(x, top, on, o = {}) {
+  const { alpha = 1 } = o;
+  withAlpha(alpha, () => {
+    if (on > 0.01) {
+      const g = ctx.createRadialGradient(x, top - 76, 10, x, top - 76, 430);
+      g.addColorStop(0, `rgba(255,203,125,${0.32 * on})`);
+      g.addColorStop(0.35, `rgba(255,190,110,${0.12 * on})`);
+      g.addColorStop(1, 'rgba(255,190,110,0)');
+      ctx.fillStyle = g; ctx.fillRect(x - 450, top - 520, 900, 720);
+    }
+    rrect(x - 48, top, 96, 104, 8, '#6c472f');
+    rrect(x - 54, top - 8, 108, 14, 5, '#a9774f');
+    line(x - 30, top + 52, x + 30, top + 52, 'rgba(40,24,14,0.6)', 3);
+    circle(x, top + 34, 4, '#d9b48a');
+    ellipse(x, top - 12, 24, 6, '#3a4766');
+    line(x, top - 14, x, top - 56, '#8d99b5', 5);
+    if (on > 0.01) {
+      ctx.save(); ctx.shadowColor = '#ffd58a'; ctx.shadowBlur = 34 * on;
+      ellipse(x, top - 54, 30, 7, rgba('#fff3d0', 0.9 * on)); ctx.restore();
+    }
+    ctx.beginPath(); ctx.moveTo(x - 42, top - 54); ctx.lineTo(x + 42, top - 54); ctx.lineTo(x + 25, top - 104); ctx.lineTo(x - 25, top - 104); ctx.closePath();
+    ctx.fillStyle = lerpColor('#556080', '#ffd58a', on); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 2; ctx.stroke();
+  });
+}
+
+// ---------- breakfast on the girl's desk (kid-local coords, desk top at y = 0): toast on a plate, a glass of milk ----------
+function drawBreakfastLocal() {
+  ellipse(-152, -4, 48, 8, '#dfe6f2');
+  ellipse(-152, -6, 40, 5, '#ffffff');
+  rrect(-174, -48, 44, 42, [15, 15, 6, 6], '#c98a4b');
+  rrect(-169, -43, 34, 33, [11, 11, 4, 4], '#f3d29a');
+  ctx.beginPath(); ctx.moveTo(138, -54); ctx.lineTo(164, -54); ctx.lineTo(160, -4); ctx.lineTo(142, -4); ctx.closePath();
+  ctx.fillStyle = 'rgba(220,235,255,0.3)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(230,240,255,0.85)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(139.6, -38); ctx.lineTo(162.4, -38); ctx.lineTo(159.6, -5); ctx.lineTo(142.4, -5); ctx.closePath();
+  ctx.fillStyle = '#fbfaf4'; ctx.fill();
+}

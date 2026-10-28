@@ -247,9 +247,12 @@ function drawPillow(k, hx, hy) {
     line(hx - 92, hy + 70, hx + 92, hy + 70, 'rgba(160,175,205,0.45)', 2);
   });
 }
-function drawBlanket(k, t, breath) {
+// k = how much of the bed is there (fades the frame in), sit = sitting up (blanket at the waist, over the desk),
+// bed = lying down (blanket up to the chin). With sit = 0 this is exactly the old lie-down blanket.
+function drawBlanket(k, sit, bed, t, breath) {
   if (k <= 0.001) return;
-  const top = lerp(150, -62, EASE.out(k)) + breath * 0.9;
+  const base = lerp(150, -6, EASE.out(sit));
+  const top = lerp(base, -62, EASE.out(bed)) + breath * 0.9;
   ctx.save();
   ctx.beginPath(); ctx.rect(-300, -400, 600, 540); ctx.clip();
   // bed frame (bottom rail + legs) under the blanket
@@ -288,6 +291,8 @@ function drawKid(o) {
   const st = KID_STYLE[o.type];
   const sleep = o.sleep || 0, stretch = o.stretch || 0, read = o.read || 0, write = o.write || 0;
   const bed = o.bed || 0;
+  // sit: in bed but sitting up (reading before sleep). furn = how much bed furniture is shown.
+  const sit = o.sit || 0, furn = Math.max(sit, bed);
   const t = o.t || 0;
   const breath = Math.sin(t * TAU / (BEAT * 4)) * (1.2 + Math.max(sleep, bed) * 1.6);
   ctx.save();
@@ -308,11 +313,11 @@ function drawKid(o) {
   const sh = lerp(-72, -54, sleep) + lerp(0, -6, stretch) + breath * 0.4;
 
   // chair back (or the headboard when in bed)
-  if (bed < 0.999) withAlpha(1 - bed, () => {
+  if (furn < 0.999) withAlpha(1 - furn, () => {
     rrect(-86, -160, 172, 178, 20, '#44506a');
     rrect(-80, -158, 160, 8, 4, '#55627f');
   });
-  if (bed > 0.001) { drawHeadboard(bed); drawPillow(bed, hx, hy); }
+  if (furn > 0.001) { drawHeadboard(furn); drawPillow(furn, hx, hy); }
 
   // back hair (girl)
   if (o.type === 'girl') {
@@ -360,10 +365,10 @@ function drawKid(o) {
     bubble: o.bubble || 0,
   };
 
-  const inBed = bed > 0.001;
+  const inBed = furn > 0.001;
   const armsBehindHead = sleep > 0.5 || inBed;
   if (armsBehindHead) drawArms();
-  if (inBed) drawBlanket(bed, t, breath);
+  if (inBed) drawBlanket(furn, sit, bed, t, breath);
   ctx.save(); ctx.translate(hx, hy); ctx.rotate(hr); drawHead(o, st, f); ctx.restore();
   if (read > 0.02 && bed < 0.5) {
     const by = lerp(-10, -38, EASE.out(read));
@@ -371,7 +376,9 @@ function drawKid(o) {
     drawHeldBook(0, by, 134, 72, o.bookColor || '#7b5fd6', o.flip || 0, lerp(0.35, 1, clamp(read * 1.4)));
     ctx.restore();
   }
-  if (!armsBehindHead) drawArms();
+  // sitting up in bed: the hands hold the book in front of the blanket, fading out while he lies down
+  const frontA = !armsBehindHead ? 1 : (sit > 0.001 ? clamp(1 - bed * 2) : 0);
+  if (frontA > 0.001) withAlpha(frontA, drawArms);
   ctx.restore();
 
   // Zz (screen space, above head)
