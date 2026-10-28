@@ -1,115 +1,74 @@
-// sections.js — 怎么背 ①②③ (32–128 beats) and 照着做 (128–160 beats)
-const PANEL = { x: 140, y: 455, w: 1640, h: 520 };
-const RC = { icon: 1062, text: 1112, ys: [548, 678, 808] };
+// sections.js — 睡前背 room (17–32), 怎么背 ①②③ (32–128) and 照着做 (128–160). Redesigned 2026-10-27 (user: 「后面也改，
+// 不要和前面做的那些视频一样」): a bedroom whose window shows the time of day, the boy in bed with word cards, flash-card
+// headers. Not used any more: HUD panel, outlined step numbers, wall clock / timer ring / alarm clock / calendar, list table.
+const PAPER = '#f4efe6', PAPER_INK = '#14213f', AMBER = '#b87208', ROSE = '#cf3a69';
+const ink = (s) => ({ s, color: PAPER_INK });
+const hl = (s, color = AMBER) => ({ s, color });
 
-// ---------- extra props ----------
-// step ② dial: hours between finishing the words and falling asleep. Full turn = 16 h; marks at "a few hours" (the
-// evening learners, Gais 2006 exp. 1), 10 h (learned 8 pm, stayed up until 6 am, exp. 2) and 14 h (learned in the
-// morning, slept at night, exp. 1). No number on the first mark: the paper only says "within a few hours".
-const GAP_MARKS = [[3, COL.yellow, 70, '几小时'], [10, COL.pink, 78, '熬通宵'], [14, COL.grayHi, 86, '14 小时']];
-function drawGapRing(x, y, r, hours, o = {}) {
-  const { alpha = 1, concl = 0, bt = 0 } = o;
+// ---------- header: a cream flash card with a coloured number tab ----------
+function titleCard(num, title, line2, sub, o = {}) {
+  const { alpha = 1, dx = 0, typeP = 1, bt = 0 } = o;
   withAlpha(alpha, () => {
-    circle(x, y, r + 26, 'rgba(10,22,50,0.7)');
-    ctx.save(); ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 18; ctx.stroke();
-    const a = (h) => -Math.PI / 2 + (h / 16) * TAU;
-    const segs = [[0, 3, COL.yellow, concl], [3, 10, COL.pink, 0], [10, 14, '#8d99b5', 0]];
-    for (const [h0, h1, c, g] of segs) {
-      if (hours <= h0) continue;
-      ctx.beginPath(); ctx.arc(x, y, r, a(h0), a(Math.min(hours, h1)));
-      ctx.strokeStyle = c; ctx.lineWidth = 18 + g * 6;
-      ctx.shadowColor = c; ctx.shadowBlur = 10 + g * 26; ctx.stroke();
+    const x = 140 + dx, y = 64, h = 184, tab = num ? 96 : 0, w = num ? 790 : 560, tx = x + tab + 32;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+    rrect(x, y, w, h, 18, PAPER); ctx.restore();
+    if (num) {
+      rrect(x, y, tab, h, [18, 0, 0, 18], COL.yellow);
+      txt(num, x + tab / 2, y + h / 2 + 2, { size: 76, weight: 800, fam: 'mono', color: PAPER_INK, align: 'center' });
     }
-    ctx.restore();
-    for (let i = 0; i < 8; i++) {
-      const an = (i / 8) * TAU;
-      line(x + Math.cos(an) * (r - 22), y + Math.sin(an) * (r - 22), x + Math.cos(an) * (r - 30), y + Math.sin(an) * (r - 30), 'rgba(243,238,227,0.35)', 2);
-    }
-    for (const [h, c, at, label] of GAP_MARKS) {
-      const an = a(h), lit = bt >= at;
-      const mx = x + Math.cos(an) * r, my = y + Math.sin(an) * r;
-      const sc = lit ? 1 + 0.5 * (1 - EASE.out(seg(bt, at, at + 0.8))) : 1;
-      ctx.save();
-      if (lit) { ctx.shadowColor = c; ctx.shadowBlur = 22; }
-      circle(mx, my, 13 * sc, lit ? c : '#1a2a52', lit ? '#ffffff' : 'rgba(243,238,227,0.5)', 3);
-      ctx.restore();
-      const lx = x + Math.cos(an) * (r + 54), ly = y + Math.sin(an) * (r + 46);
-      txt(label, lx, ly, { size: 26, weight: 900, color: lit ? c : COL.gray, align: 'center' });
-    }
-    // centre: what the dial measures
-    iconMoonX(x, y - 30, 64, COL.cream);
-    txt('背完到睡着', x, y + 30, { size: 26, weight: 700, color: COL.grayHi, align: 'center' });
+    txt(title, tx, y + 50, { size: 54, weight: 900, color: PAPER_INK });
+    rich(line2, tx, y + 112, { size: 46, weight: 900 });
+    typeText(sub, typeP, tx + 2, y + 158, { size: 22, weight: 500, fam: 'mono', color: '#6b7690' }, bt);
   });
 }
-
-function drawCalendar(x, y, day, flipP, o = {}) {
-  const { alpha = 1, stamp = 0 } = o;
-  withAlpha(alpha, () => {
-    const w = 150, h = 158;
-    rrect(x - w / 2, y - h / 2, w, h, 12, '#f4efe6');
-    rrect(x - w / 2, y - h / 2, w, 44, [12, 12, 0, 0], '#e2556a');
-    for (const dx of [-38, 38]) rrect(x + dx - 5, y - h / 2 - 12, 10, 26, 5, '#c9ced8');
-    const d = Math.min(7, day);
-    txt(`第 ${d} 天`, x, y - h / 2 + 22, { size: 24, weight: 900, color: '#ffffff', align: 'center' });
-    txt(String(d), x, y + 30, { size: 74, weight: 800, fam: 'mono', color: '#2a3350', align: 'center', alpha: 1 - clamp(stamp * 2) * 0.6 });
-    if (flipP > 0 && flipP < 1) {
-      ctx.save(); ctx.translate(x, y - h / 2 + 44);
-      const k = Math.cos(Math.PI * flipP);
-      ctx.scale(1, k);
-      rrect(-w / 2, 0, w, h - 44, 8, k > 0 ? '#ebe5d9' : '#d9d2c4');
-      ctx.restore();
-    }
-    if (stamp > 0) {
-      const s = 1 + (1 - EASE.out(clamp(stamp * 1.4))) * 0.8;
-      withAlpha(clamp(stamp * 2), () => withScale(x + 4, y + 26, s, () => {
-        ctx.save(); ctx.translate(x + 4, y + 26); ctx.rotate(-0.18);
-        rrect(-70, -28, 140, 56, 10, 'rgba(247,185,62,0.15)', COL.yellow, 4);
-        txt('一周后', 0, 1, { size: 34, weight: 900, color: COL.yellow, align: 'center' });
-        ctx.restore();
-      }));
-    }
-  });
-}
-
-// alarm clock (screen space), shakes while ringing
-function drawAlarm(x, y, r, ring, bt) {
-  const shake = ring > 0 ? Math.sin(bt * BEAT * TAU * 18) * 0.16 * ring : 0;
-  ctx.save(); ctx.translate(x, y); ctx.rotate(shake);
-  line(-r * 0.6, r * 0.8, -r * 0.85, r * 1.1, '#c9ced8', 6); line(r * 0.6, r * 0.8, r * 0.85, r * 1.1, '#c9ced8', 6);
-  for (const s of [-1, 1]) {
-    ctx.beginPath(); ctx.arc(s * r * 0.62, -r * 0.82, r * 0.36, Math.PI, 0); ctx.closePath(); ctx.fillStyle = '#e2556a'; ctx.fill();
-  }
-  circle(0, 0, r, '#e2556a'); circle(0, 0, r * 0.78, '#f7f3ea');
-  line(0, 0, 0, -r * 0.55, '#2a3350', 4); line(0, 0, r * 0.38, r * 0.12, '#2a3350', 4);
-  circle(0, 0, 3.5, '#2a3350');
-  ctx.restore();
-  if (ring > 0) {
-    ctx.save(); ctx.strokeStyle = rgba(COL.yellow, 0.9 * ring); ctx.lineWidth = 4; ctx.lineCap = 'round';
-    const ph = (bt * 3) % 1;
-    for (const s of [-1, 1]) for (let k = 0; k < 2; k++) {
-      const rr = r * (1.35 + k * 0.38 + ph * 0.2);
-      ctx.beginPath(); ctx.arc(x, y, rr, s < 0 ? Math.PI * 1.05 : -Math.PI * 0.35, s < 0 ? Math.PI * 1.35 : -Math.PI * 0.05); ctx.stroke();
-    }
-    ctx.restore();
+const HEADERS = [
+  { from: 32, to: 64, num: '1', title: '睡前背什么', sub: 'Before bed: the hard words, until all right',
+    line2: () => [ink('睡前背'), hl('难背的生词'), ink('，背到全对')] },
+  { from: 64, to: 96, num: '2', title: '背完多久睡', sub: 'Sleep within a few hours, no all-nighter',
+    line2: (bt) => {
+      if (bt >= 88) return [ink('背完'), hl('几小时内'), ink('就睡，别'), hl('熬通宵', ROSE)];
+      const q = { s: ' ？ ', color: '#8d97b0', alpha: 0.55 + 0.45 * Math.sin(bt * Math.PI) };
+      return [ink('背完'), q, ink('就睡，别'), q];
+    } },
+  { from: 96, to: 126.8, num: '3', title: '醒来干嘛', sub: 'Morning: test yourself until all right',
+    line2: () => [ink('醒来先'), hl('默一遍'), ink('，错的背到全对')] },
+  { from: 126.9, to: 161, num: null, title: '照着做', sub: 'Screenshot it, then follow it',
+    line2: () => [ink('背单词时间表')] },
+];
+function drawHeaders(bt) {
+  for (const h of HEADERS) {
+    const inP = EASE.out(seg(bt, h.from - 0.2, h.from + 0.7)), outP = EASE.in(seg(bt, h.to - 0.6, h.to));
+    const a = inP * (1 - outP);
+    if (a <= 0) continue;
+    titleCard(h.num, h.title, h.line2(bt), h.sub, { alpha: a, dx: (1 - inP) * -40 - outP * 40, typeP: seg(bt, h.from + 0.4, h.from + 2.8), bt });
   }
 }
-// bedside table for the alarm (step ③), right of the bed
-const STAND = { x: 760, top: 846 };
-const RING = { x: 860, y: 690 };  // step ② dial centre (clear of the bed on its left, the chips on its right)
-function drawNightstand(a) {
-  withAlpha(a, () => {
-    rrect(STAND.x - 48, STAND.top, 96, 104, 8, '#6c472f');
-    rrect(STAND.x - 54, STAND.top - 8, 108, 14, 5, '#a9774f');
-    line(STAND.x - 30, STAND.top + 52, STAND.x + 30, STAND.top + 52, 'rgba(40,24,14,0.6)', 3);
-    circle(STAND.x, STAND.top + 34, 4, '#d9b48a');
-  });
+
+// ---------- the room: his window shows the time of day, his reading lamp ----------
+// 17–31: morning window on the right (the sun rises as he wakes). 32–128: window above his bed: night for ① and ②,
+// sunrise for ③ (97–99), then seven days and nights in seven beats (108–115) = 一周后.
+const DAY_STEPS = KB([[32, 0], [97, 0], [99, 1, 'inOut']]);
+function stageDay(bt) {
+  if (bt >= 108 && bt < 115) return 0.5 + 0.5 * Math.cos(TAU * (bt - 108));
+  return DAY_STEPS(bt);
+}
+const LAMP = { x: 760, top: 840 };
+function drawRoom(bt, t) {
+  const a1 = popA(bt, 16.6, 0.8) * (1 - seg(bt, 30.4, 31.2));
+  if (a1 > 0) drawWindow(1640, 600, 210, 250, seg(bt, 17, 18.6), { alpha: a1, t });
+  const a2 = popA(bt, 31.5, 0.8) * (1 - seg(bt, 126, 127));
+  if (a2 <= 0) return;
+  drawBedLamp(LAMP.x, LAMP.top, 1 - seg(bt, 52, 52.12), { alpha: a2 });
+  drawWindow(470, 440, 200, 230, stageDay(bt), { alpha: a2, t });
+  let label = null, c = COL.cream;
+  if (bt < 52) label = '晚上 9 点';
+  else if (bt >= 97 && bt < 108) label = '早上';
+  else if (bt >= 108 && bt < 115) label = `第 ${Math.min(7, 1 + Math.floor(bt - 108))} 天`;
+  else if (bt >= 115) { label = '一周后'; c = COL.yellow; }
+  if (label) txt(label, 470, 606, { size: 30, weight: 900, color: c, align: 'center', alpha: a2 });
 }
 
-function drawClosedBookLocal(x, y, color) {
-  rrect(x - 62, y - 15, 124, 17, 4, color);
-  rrect(x - 56, y - 11, 112, 7, 2, '#f4efe6');
-}
+// the girl's notebook in the opening (kid-local coords)
 function drawNotebookLocal(x, y) {
   ctx.save(); ctx.translate(x, y);
   ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(70, 0); ctx.lineTo(58, -14); ctx.lineTo(-58, -14); ctx.closePath();
@@ -118,65 +77,6 @@ function drawNotebookLocal(x, y) {
   ctx.beginPath(); ctx.moveTo(-50, -9); ctx.lineTo(30, -9); ctx.moveTo(-46, -4); ctx.lineTo(10, -4); ctx.stroke();
   ctx.restore();
 }
-
-// progress chip (step ①: 默对 n/16, step ③: rounds)
-function progChip(x, y, w, label, right, p, done, o = {}) {
-  const { alpha = 1 } = o;
-  withAlpha(alpha, () => {
-    rrect(x, y, w, 74, 14, 'rgba(12,26,58,0.88)', done ? COL.yellow : 'rgba(63,203,232,0.55)', 2.5);
-    txt(label, x + 20, y + 24, { size: 26, weight: 900, color: COL.cream });
-    txt(right, x + w - 20, y + 24, { size: 22, weight: 700, fam: 'mono', color: done ? COL.yellow : COL.cyan, align: 'right' });
-    rrect(x + 20, y + 46, w - 40, 12, 6, 'rgba(255,255,255,0.1)');
-    if (p > 0) {
-      ctx.save(); ctx.shadowColor = done ? COL.yellow : COL.cyan; ctx.shadowBlur = 10;
-      rrect(x + 20, y + 46, Math.max(12, (w - 40) * p), 12, 6, done ? COL.yellow : COL.cyan); ctx.restore();
-    }
-  });
-}
-
-// right-column line: icon circle + rich text (+ optional small note)
-function rcLine(i, icon, spans, at, bt, o = {}) {
-  const { note = null, noteAt = null, out = 1e9, color = COL.cyan } = o;
-  if (bt < at) return;
-  const a = popA(bt, at, 0.35) * (1 - seg(bt, out, out + 0.6));
-  if (a <= 0) return;
-  const y = RC.ys[i], dx = (1 - EASE.out(seg(bt, at, at + 0.6))) * 40;
-  withAlpha(a, () => {
-    const s = popS(bt, at, 0.6);
-    withScale(RC.icon, y, s, () => {
-      circle(RC.icon, y, 31, 'rgba(12,26,58,0.9)', color, 3);
-      ICONS[icon](RC.icon, y, 34, color, 3, 0);
-    });
-    rich(spans, RC.text + dx, y - 1, { size: 46, weight: 900 });
-    if (note) txt(note, RC.text + dx, y + 44, { size: 24, weight: 500, color: 'rgba(200,212,236,0.72)', alpha: popA(bt, noteAt ?? at + 0.6, 0.5) });
-  });
-}
-
-// step ② lines: a chip that lights when the dial reaches its mark
-function gapLine(i, label, color, spans, note, litAt, bt, out) {
-  const appear = popA(bt, 65 + i * 0.4, 0.5) * (1 - seg(bt, out, out + 0.6));
-  if (appear <= 0) return;
-  const lit = bt >= litAt, y = RC.ys[i];
-  withAlpha(appear, () => {
-    const cw = measure(label, 30, 900) + 36;
-    const sc = lit ? 1 + 0.25 * (1 - EASE.out(seg(bt, litAt, litAt + 0.7))) : 1;
-    withScale(RC.icon - 30 + cw / 2, y, sc, () => {
-      ctx.save(); if (lit) { ctx.shadowColor = color; ctx.shadowBlur = 18; }
-      rrect(RC.icon - 30, y - 26, cw, 52, 26, lit ? color : 'rgba(255,255,255,0.05)', lit ? null : 'rgba(200,212,236,0.35)', 2);
-      ctx.restore();
-      txt(label, RC.icon - 30 + cw / 2, y + 1, { size: 30, weight: 900, color: lit ? '#0b1736' : COL.gray, align: 'center' });
-    });
-    const tx = RC.icon - 30 + cw + 24;
-    if (lit) {
-      const p = popA(bt, litAt, 0.4), dx = (1 - EASE.out(seg(bt, litAt, litAt + 0.6))) * 30;
-      rich(spans, tx + dx, y - 1, { size: 44, weight: 900, alpha: p });
-      if (note) txt(note, tx + dx, y + 42, { size: 24, weight: 500, color: 'rgba(200,212,236,0.72)', alpha: popA(bt, litAt + 0.8, 0.5) });
-    } else {
-      txt('· · ·', tx, y, { size: 40, weight: 900, color: COL.grayDim });
-    }
-  });
-}
-
 function sparkleBurst(x, y, p, color = COL.yellow) {
   if (p <= 0 || p >= 1) return;
   withAlpha(1 - p, () => {
@@ -186,273 +86,248 @@ function sparkleBurst(x, y, p, color = COL.yellow) {
     }
   });
 }
-// small moon / sun badge on the wall clock: evening in step ①
-function clockBadge(x, y, kind, a) {
-  withAlpha(a, () => {
-    circle(x, y, 26, 'rgba(10,22,50,0.95)', 'rgba(243,238,227,0.4)', 2);
-    if (kind === 'moon') iconMoonX(x - 2, y, 46, COL.yellowHi);
-    else iconSun(x, y, 40, COL.yellowHi);
-  });
+// a cross mark (for the ✗ verdicts)
+function crossMark(x, y, r, color) {
+  circle(x, y, r, color);
+  line(x - r * 0.38, y - r * 0.38, x + r * 0.38, y + r * 0.38, '#0d1838', 4.5);
+  line(x + r * 0.38, y - r * 0.38, x - r * 0.38, y + r * 0.38, '#0d1838', 4.5);
+}
+function okMark(x, y, r, p = 1) {
+  ctx.save(); ctx.shadowColor = COL.yellow; ctx.shadowBlur = 18; circle(x, y, r, COL.yellow); ctx.restore();
+  checkBadge(x, y, r, { color: '#0d1838', p, lw: 4 });
 }
 
-// ---------- headers ----------
-const HEADERS = [
-  { from: 32, to: 64, num: '01', title: [{ s: '睡前背什么：难背的生词' }], sub: 'WHAT: the hard new words, until all are right' },
-  { from: 64, to: 96, num: '02', title: [{ s: '背完多久睡：几小时内' }], sub: 'WHEN: fall asleep within a few hours' },
-  { from: 96, to: 126.8, num: '03', title: [{ s: '醒来干嘛：默到全对' }], sub: 'THEN: test yourself until all are right' },
-  { from: 126.9, to: 161, num: null, title: [{ s: '照着做' }], sub: 'DO THIS: screenshot it, then follow it' },
+// ---------- ① 睡前背什么: one word acted out on a big flash card (nyanya = 番茄, the paper's own example) ----------
+// 36 nyanya · 39.5 a wrong guess (西瓜？, illustration) · 41 back into his hand (错的再来) · 42 nyanya again · 44 番茄 ✓ ·
+// 45.5 into the 「全对」 pile; the pile counts to 16 by beat 48 and moves to the centre.
+const BIG = { x: 1300, y: 470, w: 600, h: 330 }, PILE = { x: 1715, y: 470 };
+function drawBigCard(cx, cy, sx, face, scale) {
+  if (sx < 0.02 || scale < 0.01) return;
+  const { w, h } = BIG;
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(sx * scale, scale);
+  const top = face === 'ok' ? COL.yellow : face === 'wrong' ? COL.pink : COL.cyan;
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
+  rrect(-w / 2, -h / 2, w, h, 26, face === 'ok' ? '#fff0c4' : face === 'wrong' ? '#ffe1e8' : PAPER); ctx.restore();
+  rrect(-w / 2, -h / 2, w, 24, [26, 26, 0, 0], top);
+  if (face === 'front') {
+    txt('nyanya', 0, -10, { size: 104, weight: 800, fam: 'mono', color: PAPER_INK, align: 'center' });
+    txt('斯瓦希里语 · 是什么意思？', 0, 100, { size: 34, weight: 700, color: '#5d6886', align: 'center' });
+  } else if (face === 'wrong') {
+    txt('西瓜？', 0, 0, { size: 112, weight: 900, color: ROSE, align: 'center' });
+    crossMark(w / 2 - 58, -h / 2 + 70, 30, COL.pink);
+  } else {
+    txt('番茄', 0, 0, { size: 124, weight: 900, color: PAPER_INK, align: 'center' });
+    okMark(w / 2 - 58, -h / 2 + 70, 30);
+  }
+  ctx.restore();
+}
+function drawStep1(bt) {
+  if (bt < 35 || bt > 64) return;
+  const out = 1 - seg(bt, 62.6, 63.4);
+  let st = null;
+  if (bt >= 36 && bt < 42) {
+    const go = EASE.in(seg(bt, 41, 42));
+    st = { f: flipFace(bt, 39.5, 0.4, 'front', 'wrong'), x: lerp(BIG.x, 520, go), y: lerp(BIG.y, 770, go), sc: popS(bt, 36, 0.6) * lerp(1, 0.18, go), a: 1 - seg(bt, 41.7, 42) };
+  } else if (bt >= 42 && bt < 46.5) {
+    const go = EASE.in(seg(bt, 45.5, 46.5));
+    st = { f: flipFace(bt, 44, 0.4, 'front', 'ok'), x: lerp(BIG.x, PILE.x, go), y: lerp(BIG.y, PILE.y, go), sc: popS(bt, 42, 0.6) * lerp(1, 0.2, go), a: 1 - seg(bt, 46.2, 46.5) };
+  }
+  if (st) withAlpha(out * st.a, () => drawBigCard(st.x, st.y, st.f.sx, st.f.face, st.sc));
+  if (bt >= 44 && bt < 45.4) sparkleBurst(BIG.x, BIG.y, seg(bt, 44, 45.4), COL.yellow);
+  // the 「全对」 pile: one card per beat; when all 16 are right it moves to the centre
+  const n = Math.floor(16 * seg(bt, 35.5, 48)), mv = EASE.inOut(seg(bt, 48, 49)), done = n >= 16;
+  const px = lerp(PILE.x, BIG.x, mv), py = PILE.y, ps = 1 + 0.8 * mv;
+  withAlpha(popA(bt, 35, 0.5) * out, () => withScale(px, py, ps, () => {
+    for (let k = 0; k < Math.min(Math.max(n, 1), 6); k++) {
+      ctx.save(); if (done) { ctx.shadowColor = COL.yellow; ctx.shadowBlur = 20; }
+      rrect(px - 55, py - 35 - k * 7, 110, 70, 10, n ? COL.yellow : 'rgba(255,255,255,0.06)', n ? COL.yellowHi : 'rgba(200,212,236,0.4)', 2);
+      ctx.restore();
+    }
+    txt('全对', px, py - 98, { size: 30, weight: 900, color: COL.cream, align: 'center' });
+    txt(`${n}/16`, px, py + 72, { size: 40, weight: 800, fam: 'mono', color: done ? COL.yellow : COL.cream, align: 'center', glow: done ? 12 : 0 });
+  }));
+  if (done) dingBurst(BIG.x - 180, BIG.y - 140, seg(bt, 48, 50.5), { size: 50 });
+  // captions under the card, then two notes once he is asleep
+  const cap = bt < 39.5 ? [{ s: '遮住答案，先' }, hl('默出来', COL.yellow)] : bt < 42 ? [hl('默错了', COL.pink), { s: ' → 放回去，等会儿再来' }]
+    : bt < 44 ? [{ s: '再默一次……' }] : bt < 48 ? [hl('对了', COL.yellow), { s: ' → 放进「全对」那叠' }] : [hl('16 个都对了', COL.yellow), { s: '，就去睡' }];
+  if (bt >= 36 && bt < 52) rich(cap, BIG.x, 712, { size: 40, weight: 900, align: 'center', alpha: out * popA(bt, 36, 0.4) });
+  const na = popA(bt, 53, 0.6) * out;
+  if (na > 0) {
+    txt('实验里：16 个从没见过的斯瓦希里语单词', 1000, 790, { size: 30, weight: 700, color: COL.grayHi, alpha: na });
+    txt('晚上 9 点背到全对，然后回家睡觉', 1000, 838, { size: 30, weight: 700, color: COL.grayHi, alpha: popA(bt, 54, 0.6) * out });
+    sourceNote('Mazza 等 2016 · 《Psychological Science》 · nyanya（番茄）是论文里的例子', 1000, 948, { alpha: na });
+  }
+}
+
+// ---------- ② 背完多久睡: how long from 背完 (book) to 睡着 (moon), one bar per case (Gais et al. 2006) ----------
+// lengths in hours, 38 px each: "a few hours" (drawn as 3 h; the paper gives no number), the all-nighter (8 pm -> ~6 am),
+// learning at 8 am and sleeping at night (>= 14 h). Each bar grows over the 1.5 beats before its mark.
+const GAP = { x0: 1180, pxh: 38, chipX: 960 };
+const GAP_ROWS = [
+  { y: 320, h: 3, label: '几小时内', c: COL.yellow, at: 70, ok: true,
+    verdict: [{ s: '睡着：' }, { s: '忘得少', color: COL.yellow }], note: '晚上 8 点背，当晚就睡' },
+  { y: 470, h: 10, label: '熬通宵', c: COL.pink, at: 78, ok: false,
+    verdict: [{ s: '再补觉：' }, { s: '补不回来', color: COL.pink }], note: '背完熬一夜、白天补觉，两天后还是记得少' },
+  { y: 620, h: 14, label: '14 小时', c: COL.grayHi, at: 86, ok: false,
+    verdict: [{ s: '早上背、晚上才睡：' }, { s: '忘得多', color: COL.grayHi }], note: '关键不是几点背，是背完多久睡' },
 ];
-function drawHeaders(bt) {
-  HEADERS.forEach((h, i) => {
-    const inP = EASE.out(seg(bt, h.from - 0.2, h.from + 0.7));
-    const outP = EASE.in(seg(bt, h.to - 0.6, h.to));
-    const a = inP * (1 - outP);
+function drawStep2(bt) {
+  if (bt < 64 || bt > 97) return;
+  const out = 1 - seg(bt, 95.2, 95.8);
+  GAP_ROWS.forEach((r, i) => {
+    const a = popA(bt, 65 + i * 0.4, 0.5) * out;
     if (a <= 0) return;
-    const dy = (1 - inP) * 26 - outP * 26;
-    sectionHeader(h.num, h.title, h.sub, { alpha: a, dy, p: i === 0 ? seg(bt, 32, 33.2) : 1, bt, typeP: seg(bt, h.from + 0.2, h.from + 2.6) });
+    withAlpha(a, () => {
+      const lit = bt >= r.at, cw = measure(r.label, 30, 900) + 36;
+      rrect(GAP.chipX, r.y - 26, cw, 52, 26, lit ? r.c : 'rgba(255,255,255,0.06)', lit ? null : 'rgba(200,212,236,0.35)', 2);
+      txt(r.label, GAP.chipX + cw / 2, r.y + 1, { size: 30, weight: 900, color: lit ? '#0b1736' : COL.gray, align: 'center' });
+      const len = r.h * GAP.pxh, p = EASE.out(seg(bt, r.at - 1.5, r.at));
+      rrect(GAP.x0, r.y - 9, len, 18, 9, 'rgba(255,255,255,0.08)');
+      if (p > 0) {
+        ctx.save(); ctx.shadowColor = r.c; ctx.shadowBlur = 12;
+        rrect(GAP.x0, r.y - 9, Math.max(18, len * p), 18, 9, r.c); ctx.restore();
+      }
+      circle(GAP.x0, r.y, 24, '#0d1838', COL.cyan, 3); iconBook(GAP.x0, r.y, 28, COL.cyan);
+      if (p > 0.05) {
+        const ex = GAP.x0 + len * p;
+        circle(ex, r.y, 24, '#0d1838', r.c, 3); iconMoonX(ex, r.y, 42, r.c);
+      }
+      if (lit) {
+        const v = popA(bt, r.at, 0.4), mx = GAP.x0 + len + 50;
+        withAlpha(v, () => (r.ok ? okMark(mx, r.y, 20, seg(bt, r.at, r.at + 0.6)) : crossMark(mx, r.y, 20, r.c)));
+        rich(r.verdict, GAP.x0, r.y + 52, { size: 36, weight: 900, alpha: v });
+        txt(r.note, GAP.x0, r.y + 92, { size: 24, weight: 500, color: 'rgba(200,212,236,0.75)', alpha: popA(bt, r.at + 0.8, 0.5) });
+      }
+    });
+    if (r.ok) sparkleBurst(GAP.x0 + r.h * GAP.pxh, r.y, seg(bt, r.at, r.at + 1.6), r.c);
+  });
+  const na = popA(bt, 71, 0.6) * out;
+  if (na > 0) sourceNote('Gais 等 2006 · 《Learning & Memory》 · 美国高中生背德语单词（英—德词表）', GAP.chipX, 948, { alpha: na });
+}
+
+// ---------- ③ 醒来干嘛: the morning test, round by round, on his 16 cards ----------
+// Round 1 (103) lights the 10 he kept overnight (the same 10 as in the opening; the sleep group's mean was 10.3), round 2
+// (105) four more, round 3 (107) the last two: 全对 in 3 rounds (mean 3.05). The week (111) turns them face down; one week
+// later (115.6) 15 are still right (mean 15.2). The gray grid: 11 (the wake group 11.25 and the one-pass control 11.25).
+const KEPT = [0, 2, 3, 5, 6, 8, 9, 11, 12, 15], ROUND2 = [1, 4, 10, 14], ROUND3 = [7, 13], GRAY_LOST = [2, 6, 9, 12, 14];
+const G3 = { x: 1180, y: 520 }, G3B = { x: 1600, y: 520 };
+function step3Card(i, bt) {
+  if (bt < 111) {
+    const t1 = 103 + (i % 8) * 0.06;
+    if (bt < t1 + 0.3) return flipFace(bt, t1, 0.3, 'blank', KEPT.includes(i) ? 'lit' : 'lost');
+    if (KEPT.includes(i)) return { face: 'lit', sx: 1 };
+    const k2 = ROUND2.indexOf(i);
+    return flipFace(bt, k2 >= 0 ? 105 + k2 * 0.1 : 107 + ROUND3.indexOf(i) * 0.15, 0.3, 'lost', 'lit');
+  }
+  if (bt < 115.6) return flipFace(bt, 111 + (i % 8) * 0.05, 0.3, 'lit', 'blank');
+  return flipFace(bt, 115.6 + (i % 8) * 0.07, 0.3, 'blank', i === 13 ? 'lost' : 'lit');
+}
+function drawStep3(bt) {
+  if (bt < 102 || bt > 128) return;
+  const out = 1 - seg(bt, 126, 126.8);
+  withAlpha(popA(bt, 102.4, 0.5) * out, () => {
+    for (let i = 0; i < 16; i++) {
+      const [x, y] = cardCentre(G3.x, G3.y, i), c = step3Card(i, bt);
+      drawWordCard(x, y, c.face, { sx: c.sx, glow: 1 + 0.6 * win(bt, 107.6, 109, 0.1, 1) });
+    }
+    if (bt < 111) {
+      const right = bt < 105 ? '第 1 轮：10/16' : bt < 107.6 ? '第 2 轮' : '第 3 轮：全对';
+      txt(right, G3.x, 670, { size: 38, weight: 900, color: bt >= 107.6 ? COL.yellow : COL.cream, align: 'center', glow: bt >= 107.6 ? 12 : 0 });
+      txt('实验里平均 3 轮就全对；早上背的也能全对，但要 6 轮', 1390, 742, { size: 28, weight: 700, color: COL.grayHi, align: 'center', alpha: popA(bt, 104, 0.6) * (1 - seg(bt, 110.4, 111)) });
+    }
+  });
+  if (bt >= 107.6 && bt < 110) dingBurst(G3.x + 170, G3.y - 120, seg(bt, 107.6, 110), { size: 46 });
+  // one week later: his 15 and the gray 11
+  const wa = popA(bt, 115.8, 0.4) * out;
+  if (wa > 0) withAlpha(wa, () => {
+    txt('15 个', G3.x, 384, { size: 50, weight: 800, fam: 'mono', color: COL.yellow, align: 'center', glow: 12 });
+    txt('睡前背 + 早上默到全对', G3.x, 670, { size: 30, weight: 900, color: COL.yellow, align: 'center' });
+    const cs = popS(bt, 117.5, 0.6);
+    if (cs > 0) withScale(G3.x + 96, 384, cs, () => okMark(G3.x + 96, 384, 24, seg(bt, 117.5, 118.2)));
+    const la = popA(bt, 117.7, 0.4);
+    if (la > 0) txt('还领先', G3.x + 132, 384, { size: 36, weight: 900, color: COL.yellow, alpha: la, glow: 12 });
+  });
+  const ga = popA(bt, 119, 0.5) * out;
+  if (ga > 0) withAlpha(ga, () => {
+    for (let i = 0; i < 16; i++) {
+      const [x, y] = cardCentre(G3B.x, G3B.y, i);
+      const c = flipFace(bt, 119.2 + (i % 8) * 0.06, 0.3, 'blank', GRAY_LOST.includes(i) ? 'lost' : 'lit');
+      drawWordCard(x, y, c.face, { sx: c.sx, color: '#66728f', colorHi: '#8994ad', glow: 0 });
+    }
+    txt('11 个', G3B.x, 384, { size: 50, weight: 800, fam: 'mono', color: COL.grayHi, align: 'center' });
+    txt('早上只过一遍的 · 早上背的', G3B.x, 670, { size: 30, weight: 900, color: COL.grayHi, align: 'center' });
+  });
+  const na = popA(bt, 120, 0.6) * out;
+  if (na > 0) {
+    txt('半年后：8.7 个 vs 早上背的 3.4 个', 1390, 742, { size: 30, weight: 900, color: COL.cream, align: 'center', alpha: na });
+    sourceNote('Mazza 等 2016 · 都是平均数', 960, 948, { alpha: na });
+  }
+}
+
+// ---------- 照着做: the night as three stops on one line (evening -> night -> morning), filled while he acts each ----------
+const STOPS = [
+  { x: 905, at: 130, when: '晚上', icon: 'moon', main: '睡前背难背的生词', sub: '遮住答案默，背到全对' },
+  { x: 1255, at: 134, when: '夜里', icon: 'zz', main: '背完几小时内睡着', sub: '别熬通宵，补觉补不回来' },
+  { x: 1605, at: 138, when: '早上', icon: 'sun', main: '早上默到全对', sub: '先默一遍，错的再背' },
+];
+function drawTable(bt) {
+  const inP = EASE.out(seg(bt, 126.3, 128));
+  if (inP <= 0) return;
+  withAlpha(inP, () => {
+    const p = EASE.inOut(seg(bt, 130, 138.6));
+    if (p > 0) {
+      ctx.save(); ctx.setLineDash([16, 12]); ctx.strokeStyle = 'rgba(243,238,227,0.45)'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(905, 400); ctx.lineTo(905 + 700 * p, 400); ctx.stroke(); ctx.restore();
+    }
+    STOPS.forEach((s) => {
+      const a = popA(bt, s.at, 0.35);
+      if (a <= 0) return;
+      withAlpha(a, () => {
+        txt(s.when, s.x, 318, { size: 34, weight: 900, color: COL.cream, align: 'center' });
+        withScale(s.x, 400, popS(bt, s.at, 0.6), () => {
+          ctx.save(); ctx.shadowColor = COL.yellow; ctx.shadowBlur = 22;
+          circle(s.x, 400, 50, '#0d1838', COL.yellow, 4); ctx.restore();
+          ICONS[s.icon](s.x, 400, s.icon === 'zz' ? 60 : 56, COL.yellow, 3, 0);
+        });
+        txt(s.main, s.x, 494, { size: 40, weight: 900, color: COL.cream, align: 'center' });
+        txt(s.sub, s.x, 542, { size: 26, weight: 700, color: 'rgba(200,212,236,0.85)', align: 'center' });
+      });
+    });
+    const wa = popA(bt, 142, 0.35);
+    if (wa > 0) withAlpha(wa, () => withScale(1265, 643, 0.9 + 0.1 * popS(bt, 142, 0.6), () => {
+      rrect(760, 600, 1010, 86, 16, 'rgba(255,111,158,0.12)', 'rgba(255,111,158,0.75)', 2.5);
+      txt('早上只过一遍不够', 800, 643, { size: 44, weight: 900, color: COL.cream });
+      txt('一周后优势就没了', 1740, 645, { size: 28, weight: 700, color: COL.pink, align: 'right' });
+    }));
+    const fa = popA(bt, 144, 0.6);
+    if (fa > 0) {
+      txt('仅供参考 · 换成背知识点（不是单词），一周后差距不显著', 760, 752, { size: 26, weight: 700, color: COL.gray, alpha: fa });
+      txt('Mazza 2016 · Gais 2006 · Cousins 2021', 760, 794, { size: 22, weight: 500, fam: 'mono', color: COL.grayDim, alpha: fa });
+    }
+    const fl = win(bt, 146, 147.4, 0.04, 1.2);
+    if (fl > 0) rrect(730, 270, 1070, 560, 22, `rgba(255,255,255,${0.08 * fl})`, `rgba(255,250,235,${0.9 * fl})`, 5);
   });
 }
 
-// ---------- layer behind the boy ----------
+// ---------- wiring ----------
 function drawPanelLayer(bt, t) {
-  if (bt < 31 || bt > 161) return;
-  const panelA = 1 - seg(bt, 126, 127.2);
-  hudPanel(PANEL.x, PANEL.y, PANEL.w, PANEL.h, seg(bt, 31.6, 32.8), panelA);
-  if (panelA > 0) withAlpha(panelA, () => line(PANEL.x + 30, 938, PANEL.x + 900, 938, 'rgba(63,203,232,0.18)', 2));
-
-  // step ① wall clock (9 pm, 5 minutes per beat) -> step ② dial
-  const morph = EASE.inOut(seg(bt, 62.5, 64.5));
-  if (bt < 64.5) {
-    let hours = 21;
-    if (bt >= 36) {
-      const k = bt - 36, n = Math.floor(k);
-      const snap = EASE.back(clamp((k - n) / 0.24));
-      hours = bt >= 48 ? 22 : 21 + (5 * n + 5 * snap) / 60;
-    }
-    const cx = lerp(250, RING.x, morph), cy = lerp(592, RING.y, morph), cr = lerp(64, 120, morph);
-    const ca = popA(bt, 31.8, 0.8) * (1 - seg(bt, 63, 64));
-    drawWallClock(cx, cy, cr, hours, { alpha: ca, glow: win(bt, 48, 51, 0.1, 1.5), scale: 0.6 + 0.4 * EASE.back(seg(bt, 31.8, 32.8)) });
-    clockBadge(cx + cr * 0.86, cy - cr * 0.86, 'moon', ca * (1 - morph));
-  }
-  if (bt >= 63 && bt < 97.5) {
-    const hours = KB([[64, 0], [67, 0], [70, 3, 'out'], [75, 3], [78, 10, 'out'], [83, 10], [86, 14, 'out']])(bt);
-    const m2 = EASE.inOut(seg(bt, 95, 97));
-    let rx = lerp(250, RING.x, morph), ry = lerp(592, RING.y, morph), rs = lerp(64, 120, morph) / 120;
-    if (m2 > 0) { rx = lerp(RING.x, STAND.x, m2); ry = lerp(RING.y, STAND.top - 40, m2); rs = lerp(1, 0.22, m2); }
-    const a = seg(bt, 63.2, 64.4) * (1 - seg(bt, 96.2, 97));
-    ctx.save(); ctx.translate(rx, ry); ctx.scale(rs, rs); ctx.translate(-rx, -ry);
-    drawGapRing(rx, ry, 120, hours, { alpha: a, concl: seg(bt, 88, 89), bt });
-    ctx.restore();
-    for (const [h, c, at] of GAP_MARKS) {
-      const an = -Math.PI / 2 + (h / 16) * TAU;
-      sparkleBurst(RING.x + Math.cos(an) * 120, RING.y + Math.sin(an) * 120, seg(bt, at, at + 1.6), c);
-    }
-  }
-
-  // step ① progress: 默对 n/16 -> 16 个全对 (beat 48)
-  if (bt > 34 && bt < 64) {
-    const a = popA(bt, 35, 0.5) * (1 - seg(bt, 62, 63));
-    const p = seg(bt, 35.5, 48), n = Math.round(16 * p), done = p >= 1;
-    progChip(600, 520, 300, '16 个生词', done ? '全对' : `默对 ${n}/16`, p, done, { alpha: a });
-    dingBurst(948, 500, seg(bt, 48, 50.5), { size: 46 });
-  }
-
-  // step ③ bedside table + alarm (arrives from the dial), rings at beat 98, stops when he wakes
-  if (bt > 94 && bt < 127) {
-    const sa = popA(bt, 94.5, 1) * (1 - seg(bt, 125.8, 126.6));
-    drawNightstand(sa);
-    if (bt >= 96.6) withAlpha(sa, () => drawAlarm(STAND.x, STAND.top - 40, 27, bt >= 98 && bt < 100.8 ? 1 : 0, bt));
-    dingBurst(STAND.x + 42, STAND.top - 112, seg(bt, 98, 100.4), { s: '叮铃', size: 34 });
-  }
-  // step ③ rounds: 第 1 轮 10/16 -> 第 3 轮 全对 (the sleep group's means: 10.3 on the first round, 3.05 rounds)
-  if (bt > 102.5 && bt < 113) {
-    const a = popA(bt, 103, 0.5) * (1 - seg(bt, 111, 112));
-    const p = KB([[103, 10 / 16], [105, 10 / 16], [105.6, 13.5 / 16, 'out'], [107, 13.5 / 16], [107.6, 1, 'out']])(bt);
-    const done = bt >= 107.6;
-    const right = bt < 105 ? '第 1 轮 10/16' : bt < 107 ? '第 2 轮' : '第 3 轮 全对';
-    progChip(600, 520, 320, '早上默写', right, p, done, { alpha: a });
-    dingBurst(948, 500, seg(bt, 107.6, 110), { size: 46 });
-  }
-
-  // step ③ calendar + meter: 一周后 15.2 / 16, the 「只过一遍」 control group 11.25 / 16 (= the wake group)
-  if (bt > 105 && bt < 128) {
-    const a = popA(bt, 106, 0.5) * (1 - seg(bt, 126, 127));
-    const k = bt - 108;
-    const flipP = bt >= 108 && bt < 115 ? clamp((k - Math.floor(k)) / 0.6) : 0;
-    const shownDay = bt < 108 ? 1 : flipP < 0.5 ? Math.min(7, 1 + Math.floor(k)) : Math.min(7, 2 + Math.floor(k));
-    drawCalendar(250, 600, bt >= 115 ? 8 : shownDay, flipP, { alpha: a, stamp: seg(bt, 115, 116) });
-    const lvl = KB([[116, 0], [117, 15.2 / 16, 'back']])(bt);
-    const ma = popA(bt, 115.8, 0.4) * (1 - seg(bt, 126, 127));
-    const bottom = 650, hMax = 150, restY = bottom - (11.25 / 16) * hMax;
-    drawMeter(470, bottom, 64, hMax, Math.min(1, lvl), {
-      color: COL.yellow, colorHi: COL.yellowHi, alpha: ma,
-      num: { s: '15', alpha: popA(bt, 117, 0.4), side: -1, size: 34, color: COL.yellowHi },
-    });
-    withAlpha(ma, () => {
-      const p = seg(bt, 116.2, 117);
-      if (p > 0) {
-        ctx.save(); ctx.setLineDash([10, 8]); ctx.strokeStyle = 'rgba(181,191,214,0.85)'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(400, restY); ctx.lineTo(400 + 140 * EASE.out(p), restY); ctx.stroke(); ctx.restore();
-        txt('只过一遍', 552, restY, { size: 26, weight: 700, color: COL.grayHi, alpha: p });
-      }
-      const top = bottom - Math.min(1, lvl) * hMax;
-      const cs = popS(bt, 117.5, 0.6);
-      if (cs > 0) withScale(470, top, cs, () => {
-        ctx.save(); ctx.shadowColor = COL.yellow; ctx.shadowBlur = 20; circle(470, top, 23, COL.yellow); ctx.restore();
-        checkBadge(470, top, 23, { color: '#0d1838', p: seg(bt, 117.5, 118.2), lw: 4 });
-      });
-      const la = popA(bt, 117.7, 0.4);
-      if (la > 0) txt('还领先', 516, top - 2, { size: 34, weight: 900, color: COL.yellow, alpha: la, glow: 14 });
-    });
-  }
+  if (bt >= 16.6) drawRoom(bt, t);
 }
-
-// ---------- boy decoration: desk props, extra motion ----------
 function decorateBoy(bp, bt, t) {
-  // page flips while reading: every 2 beats in the hook (between hers), every 4 beats later
+  // the book's pages in the hook, then the word card in his hands turns over every 2 beats
   if (bp.read > 0.9) {
-    if (bt < 8) { const cyc = ((bt - 1.5) % 2 + 2) % 2; bp.flip = cyc < 0.9 ? cyc / 0.9 : 0; }
-    else { const cyc = ((bt - 24.5) % 4 + 4) % 4; bp.flip = cyc < 0.9 ? cyc / 0.9 : 0; }
+    const cyc = bt < 8 ? ((bt - 1.5) % 2 + 2) % 2 : ((bt - 24.5) % 2 + 2) % 2;
+    bp.flip = cyc < 0.9 ? cyc / 0.9 : 0;
   }
   // head shake "no" for 「早上只过一遍不够」
   if (bt > 142 && bt < 144.5) bp.headTilt = Math.sin((bt - 142) * Math.PI * 2.2) * 0.12 * (1 - seg(bt, 143.6, 144.5));
   bp.worry = win(bt, 142, 144.6, 0.3, 0.6) * 0.6;
-  const bookOnDesk = (bt > 50 && bt < 129.5) || bt > 134;
-  const notebook = (bt > 101.5 && bt < 126.6) || bt > 138.4;
-  bp.deskProps = () => {
-    if (bookOnDesk && bp.read < 0.5) drawClosedBookLocal(-120, -3, bp.bookColor);
-    if (notebook) withAlpha(bt > 126 && bt < 138.4 ? 0 : 1, () => drawNotebookLocal(20, -3));
-  };
 }
-
-// ---------- S5 table ----------
-const TABLE = { x: 760, y: 250, w: 1010, h: 732 };
-function drawTable(bt) {
-  const inP = EASE.out(seg(bt, 126.3, 128));
-  if (inP <= 0) return;
-  const dx = (1 - inP) * 220;
-  withAlpha(inP, () => {
-    ctx.save(); ctx.translate(dx, 0);
-    const { x, y, w, h } = TABLE;
-    ctx.save(); ctx.shadowColor = 'rgba(63,203,232,0.35)'; ctx.shadowBlur = 30;
-    rrect(x, y, w, h, 18, 'rgba(11,24,54,0.96)', 'rgba(63,203,232,0.6)', 2.5);
-    ctx.restore();
-    hudPanel(x - 6, y - 6, w + 12, h + 12, 1, 1);
-    txt('背单词时间表', x + 48, y + 62, { size: 54, weight: 900, color: COL.cream });
-    txt('WORD PLAN', x + w - 44, y + 66, { size: 24, weight: 600, fam: 'mono', color: COL.cyan, align: 'right' });
-    line(x + 40, y + 112, x + w - 40, y + 112, 'rgba(63,203,232,0.35)', 2);
-
-    const rows = [
-      { at: 130, icon: 'moon', main: [{ s: '睡前背' }, { s: '难背的生词', color: COL.yellow }], sub: [{ s: '遮住答案默，错的再来，背到全对' }] },
-      { at: 134, icon: 'zz', main: [{ s: '背完 ' }, { s: '几小时内', color: COL.yellow }, { s: ' 睡着' }], sub: [{ s: '别熬通宵：' }, { s: '补觉补不回来', color: COL.pink }] },
-      { at: 138, icon: 'alarm', main: [{ s: '早上' }, { s: '默到全对', color: COL.yellow }], sub: [{ s: '先默一遍，错的再背（实验里约 3 轮）' }] },
-    ];
-    rows.forEach((r, i) => {
-      const ry = y + 176 + i * 128;
-      const a = popA(bt, r.at, 0.35);
-      if (a <= 0) return;
-      const ox = (1 - EASE.out(seg(bt, r.at, r.at + 0.6))) * 40;
-      withAlpha(a, () => {
-        withScale(x + 76, ry, popS(bt, r.at, 0.6), () => {
-          circle(x + 76, ry, 30, COL.cyan);
-          txt(String(i + 1), x + 76, ry + 1, { size: 32, weight: 800, fam: 'mono', color: '#0b1736', align: 'center' });
-        });
-        ICONS[r.icon](x + 158 + ox, ry, 46, COL.cyanHi, 3, 0);
-        rich(r.main, x + 212 + ox, ry - 16, { size: 50, weight: 900 });
-        rich(r.sub, x + 214 + ox, ry + 30, { size: 26, weight: 700, alpha: 0.85, fam: 'cjk' });
-        if (i < 2) {
-          const ay = ry + 64;
-          ctx.save(); ctx.strokeStyle = 'rgba(63,203,232,0.7)'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-          ctx.beginPath(); ctx.moveTo(x + 66, ay - 6); ctx.lineTo(x + 76, ay + 4); ctx.lineTo(x + 86, ay - 6); ctx.stroke(); ctx.restore();
-        }
-      });
-    });
-    // warning row: the control group (slept, but only one pass in the morning) was no better than the wake group a week later
-    const wa = popA(bt, 142, 0.35);
-    if (wa > 0) withAlpha(wa, () => {
-      const wy = y + 560, s = popS(bt, 142, 0.6);
-      withScale(x + w / 2, wy + 42, 0.9 + 0.1 * s, () => {
-        rrect(x + 36, wy, w - 72, 86, 14, 'rgba(255,111,158,0.12)', 'rgba(255,111,158,0.7)', 2.5);
-        iconPaper(x + 86, wy + 43, 46, COL.pink);
-        line(x + 64, wy + 66, x + 108, wy + 20, COL.pink, 4);
-        txt('早上只过一遍不够', x + 136, wy + 43, { size: 46, weight: 900, color: COL.cream });
-        txt('一周后优势就没了', x + w - 64, wy + 45, { size: 26, weight: 700, color: COL.pink, align: 'right' });
-      });
-    });
-    // "screenshot" flash when the table is complete
-    const fl = win(bt, 146, 147.4, 0.04, 1.2);
-    if (fl > 0) {
-      rrect(x, y, w, h, 18, `rgba(255,255,255,${0.1 * fl})`, `rgba(255,250,235,${0.9 * fl})`, 5);
-    }
-    const fa = popA(bt, 144, 0.6);
-    if (fa > 0) {
-      txt('仅供参考 · 换成背知识点（不是单词），一周后差距不显著', x + 44, y + h - 60, { size: 24, weight: 700, color: COL.gray, alpha: fa });
-      txt('Mazza 2016 · Gais 2006 · Cousins 2021', x + 44, y + h - 26, { size: 20, weight: 500, fam: 'mono', color: COL.grayDim, alpha: fa });
-    }
-    ctx.restore();
-  });
-}
-
-// ---------- foreground for sections ----------
 function drawSections(bt, t, boy) {
   if (bt < 31) return;
   drawHeaders(bt);
-
-  // ① 睡前背什么
-  if (bt < 64) {
-    const bulletA = 1 - seg(bt, 63, 63.8);
-    if (bt >= 34) bulletLine([{ s: '睡前背' }, { s: '难背的生词', color: COL.cyan, glow: 12 }, { s: '，背到全对' }], 'Before bed: the hard new words, until every one is right.',
-      { alpha: bulletA, p: seg(bt, 34, 35.2), typeP: seg(bt, 34.6, 37.5), bt });
-    rcLine(0, 'book', [{ s: '挑出难背的生词' }], 36, bt, { out: 62.6, note: '实验里：16 个从没见过的斯瓦希里语单词' });
-    // the paper's own example pair: nyanya - tomate (tomato)
-    const ex = bt >= 44;
-    rcLine(1, 'paper', [{ s: '遮住答案默：' }, { s: 'nyanya → ', color: COL.cyanHi, fam: 'mono', weight: 800 },
-      ex ? { s: '番茄', color: COL.yellow, glow: 14 } : { s: '？', color: COL.grayDim }], 42, bt,
-    { out: 62.6, note: '实验里的原词（斯瓦希里语）· 错的再来，直到 16 个全对', noteAt: 44.6 });
-    if (ex) sparkleBurst(1112 + 520, 678, seg(bt, 44, 45.4), COL.yellow);
-    rcLine(2, 'moon', [{ s: '全对就合上书，去睡' }], 52, bt, { out: 62.6 });
-    const na = popA(bt, 54, 0.6) * (1 - seg(bt, 62.6, 63.2));
-    if (na > 0) {
-      txt('实验里：晚上 9 点背到全对，然后回家睡觉', RC.icon - 30, 908, { size: 28, weight: 700, color: COL.grayHi, alpha: na });
-      sourceNote('Mazza 等 2016 · 《Psychological Science》', RC.icon - 30, 948, { alpha: na });
-    }
-  }
-  // ② 背完多久睡
-  if (bt >= 64 && bt < 97) {
-    const filled = bt >= 88;
-    const fp = seg(bt, 88, 88.6);
-    const blankA = 0.55 + 0.45 * Math.sin(bt * Math.PI);
-    const spans = [
-      { s: '背完 ' },
-      filled ? { s: '几小时内', color: COL.yellow, glow: 14 } : { s: '？', color: COL.grayDim, alpha: blankA },
-      { s: ' 就睡，别' },
-      filled ? { s: '熬通宵', color: COL.pink, glow: 14 } : { s: '？', color: COL.grayDim, alpha: blankA },
-    ];
-    bulletLine(spans, filled ? 'Sleep within a few hours · no all-nighters' : '', {
-      alpha: popA(bt, 65.5, 0.6) * (1 - seg(bt, 95.4, 96)), p: filled ? seg(bt, 88, 89) : 0, typeP: seg(bt, 88.4, 91), bt, textA: 1,
-    });
-    if (fp > 0 && fp < 1) sparkleBurst(560, 326, fp, COL.yellow);
-    const out = 95.2;
-    gapLine(0, '几小时内', COL.yellow, [{ s: '睡着：' }, { s: '忘得少', color: COL.yellow }], '晚上 8 点背，当晚睡', 70, bt, out);
-    gapLine(1, '熬通宵', COL.pink, [{ s: '再补觉：' }, { s: '补不回来', color: COL.pink }], '背完熬一夜，白天补觉，两天后还是记得少', 78, bt, out);
-    gapLine(2, '14 小时', COL.grayHi, [{ s: '早上背、晚上才睡：忘得多' }], '关键不是几点背，是背完多久睡', 86, bt, out);
-    const na = popA(bt, 71, 0.6) * (1 - seg(bt, out, out + 0.6));
-    if (na > 0) sourceNote('Gais 等 2006 · 《Learning & Memory》 · 美国高中生背德语单词', RC.icon - 30, 948, { alpha: na });
-  }
-  // ③ 醒来干嘛
-  if (bt >= 96 && bt < 128) {
-    const out = 126;
-    if (bt >= 102) bulletLine([{ s: '醒来先' }, { s: '默一遍', color: COL.cyan, glow: 12 }, { s: '，错的背到全对' }], 'Wake up: test yourself, redo the misses until all are right.',
-      { alpha: 1 - seg(bt, out, out + 0.8), p: seg(bt, 102, 103.2), typeP: seg(bt, 102.6, 105), bt });
-    rcLine(0, 'alarm', [{ s: '闹钟响，先默一遍' }], 100.6, bt, { out });
-    rcLine(1, 'book', [{ s: '错的再背，直到全对' }], 103, bt, { out, note: '实验里平均 3 轮；早上背的也能全对，但要 6 轮' });
-    rcLine(2, 'calendar', [{ s: '一周后：' }, { s: '还记得 15 个', color: COL.yellow, glow: 14 }], 117.7, bt, { out, color: COL.yellow });
-    const na = popA(bt, 119, 0.6) * (1 - seg(bt, out, out + 0.6));
-    if (na > 0) {
-      txt('只过一遍的对照组、早上背的组：都只有 11 个', RC.icon - 30, 908, { size: 28, weight: 700, color: COL.grayHi, alpha: na });
-      sourceNote('半年后：8.7 个 vs 早上背的 3.4 个 · Mazza 等 2016', RC.icon - 30, 948, { alpha: na });
-    }
-  }
-  // 照着做
+  drawStep1(bt);
+  drawStep2(bt);
+  drawStep3(bt);
   if (bt >= 126.2) drawTable(bt);
 }

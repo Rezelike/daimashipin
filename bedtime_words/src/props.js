@@ -373,8 +373,16 @@ function drawWordCard(x, y, face, o = {}) {
   if (face === 'lit') litFace();
   else if (face === 'lost') lostFace();
   else if (face === 'half') {
-    lostFace();
-    ctx.save(); ctx.beginPath(); ctx.rect(-w / 2 - 20, -h / 2 - 20, w / 2 + 20, h + 40); ctx.clip(); litFace(); ctx.restore();
+    // left half still lit, right half empty with a small "?" of its own (a "?" cut in half read as a glitch)
+    rrect(-w / 2, -h / 2, w, h, r, 'rgba(255,255,255,0.04)', 'rgba(141,153,181,0.6)', 2);
+    txt('?', w / 4, 1, { size: 26, weight: 900, color: COL.gray, align: 'center' });
+    ctx.save(); ctx.beginPath(); ctx.rect(-w / 2 - 20, -h / 2 - 20, w / 2 + 20, h + 40); ctx.clip();
+    const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+    g.addColorStop(0, colorHi); g.addColorStop(1, color);
+    ctx.save(); ctx.shadowColor = color; ctx.shadowBlur = 14 * glow; rrect(-w / 2, -h / 2, w, h, r, g); ctx.restore();
+    line(-18, -7, -6, -7, 'rgba(11,23,54,0.55)', 5); line(-18, 7, -6, 7, 'rgba(11,23,54,0.55)', 5);
+    ctx.restore();
+    line(0, -h / 2 + 4, 0, h / 2 - 4, 'rgba(243,238,227,0.75)', 2);
   } else {
     rrect(-w / 2, -h / 2, w, h, r, 'rgba(255,255,255,0.05)', 'rgba(200,215,240,0.3)', 2);
     lines('rgba(200,215,240,0.16)');

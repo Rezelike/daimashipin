@@ -222,6 +222,16 @@ function drawHeldBook(cx, cy, w, h, color, flip, openK = 1) {
   }
 }
 
+// a small word card held up in both hands (bedtime_words, after the opening); flip 0..1 turns it over
+function drawHeldCard(cx, cy, flip, color) {
+  const k = Math.abs(Math.cos(Math.PI * flip)), back = flip > 0.5 && flip < 1;
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(Math.max(0.03, k), 1);
+  rrect(-60, -38, 120, 76, 10, back ? '#fff1c9' : '#f7f4ec', 'rgba(120,130,160,0.5)', 2);
+  if (color) rrect(-60, -38, 120, 12, [10, 10, 0, 0], color);
+  line(-34, -4, 34, -4, 'rgba(60,70,100,0.55)', 6); line(-34, 14, 12, 14, 'rgba(60,70,100,0.4)', 6);
+  ctx.restore();
+}
+
 function drawDesk(w) {
   const hw = w / 2;
   ctx.fillStyle = '#82563a'; ctx.fillRect(-hw + 14, 14, w - 28, 96);
@@ -373,7 +383,8 @@ function drawKid(o) {
   if (read > 0.02 && bed < 0.5) {
     const by = lerp(-10, -38, EASE.out(read));
     ctx.save(); ctx.globalAlpha *= clamp(read * 3) * (1 - bed * 2);
-    drawHeldBook(0, by, 134, 72, o.bookColor || '#7b5fd6', o.flip || 0, lerp(0.35, 1, clamp(read * 1.4)));
+    if (o.heldCard) drawHeldCard(0, by - 4, o.flip || 0, o.heldCardColor);
+    else drawHeldBook(0, by, 134, 72, o.bookColor || '#7b5fd6', o.flip || 0, lerp(0.35, 1, clamp(read * 1.4)));
     ctx.restore();
   }
   // sitting up in bed: the hands hold the book in front of the blanket, fading out while he lies down
@@ -388,7 +399,7 @@ function drawKid(o) {
     const bx = o.x + (hx + 70) * o.s, by = o.y + (hy - 40) * o.s;
     for (let i = 0; i < 3; i++) {
       const ph = ((t / (BEAT * 4)) + i / 3) % 1;
-      txt('Z', bx + ph * 46 * o.s + i * 6, by - ph * 90 * o.s, {
+      txt('Z', bx + ph * (o.zzW ?? 46) * o.s + i * 6, by - ph * (o.zzH ?? 90) * o.s, {
         size: (22 + ph * 26) * o.s, weight: 800, fam: 'mono', color: COL.cyanHi,
         alpha: a * Math.sin(Math.PI * ph) * (o.alpha ?? 1), glow: 10,
       });

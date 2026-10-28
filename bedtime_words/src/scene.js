@@ -12,11 +12,11 @@ const BOY = {
   // step ① after 16 个全对 until the alarm in step ③; the table's row 2
   bed: KB([[0, 0], [5.4, 0], [6.4, 1, 'out'], [18, 1], [18.9, 0, 'out'], [50.6, 0], [52, 1], [100.4, 1], [101.2, 0, 'out'],
     [133.9, 0], [135, 1], [138, 1], [138.8, 0, 'out']]),
-  // sitting up in bed with the lamp on from frame 0; once he lies down (bed = 1 at beat 6.4) sit is no longer visible
-  sit: KB([[0, 1], [6.4, 1], [6.5, 0]]),
+  // he is in bed the whole video (2026-10-27 redesign): sitting up to learn, lying down (bed) to sleep
+  sit: KB([[0, 1]]),
   stretch: KB([[20.3, 0], [21.3, 1, 'out'], [23.2, 1], [24, 0]]),
-  read: KB([[0, 1], [4.6, 1], [5.3, 0], [24, 0], [25, 1, 'out'], [49.4, 1], [50.4, 0], [129.4, 0], [130.3, 1, 'out'], [133.2, 1], [134, 0]]),
-  write: KB([[102, 0], [102.9, 1], [125.2, 1], [125.9, 0], [138.7, 0], [139.5, 1], [149, 1], [149.6, 0]]),
+  read: KB([[0, 1], [4.6, 1], [5.3, 0], [24, 0], [25, 1, 'out'], [30, 1], [30.8, 0], [33.4, 0], [34.2, 1, 'out'], [49.4, 1], [50.4, 0],
+    [102, 0], [102.8, 1, 'out'], [114.4, 1], [115.2, 0], [129.4, 0], [130.3, 1, 'out'], [133.2, 1], [134, 0], [138.7, 0], [139.5, 1, 'out'], [149, 1], [149.6, 0]]),
   point: KB([[149.6, 0], [150.4, 1, 'out'], [152, 1], [152.6, 0]]),
   thumb: KB([[121, 0], [121.7, 1, 'back'], [124.6, 1], [125.2, 0], [153, 0], [153.8, 1, 'back']]),
   happy: KB([[10.5, 0], [11, 1], [16, 1], [17, 0.4], [118, 0.4], [118.6, 1], [126, 1], [127, 0.4], [152, 0.4], [152.6, 1]]),
@@ -221,18 +221,23 @@ function drawS1(bt, t, boy) {
     }
     drawTag(x, y, tg.n, tg.s, { alpha: a, scale: sc, hi });
   });
-  // evidence card (12.4 s): what the boy is doing right now pays off — relearning took half the rounds
+  // evidence (12.4 s): rounds to get all 16 right again (Mazza 2016: 3.05 vs 5.80) — one dot per round, one per half beat
   const ea = popA(bt, 26.5, 0.5) * (1 - seg(bt, 30.4, 31.1));
-  if (ea > 0) {
-    const s = popS(bt, 26.5, 0.8);
-    withAlpha(ea, () => withScale(1520, 790, 0.9 + 0.1 * s, () => {
-      rrect(1262, 712, 516, 156, 14, 'rgba(12,26,58,0.9)', 'rgba(63,203,232,0.45)', 2);
-      iconCheck(1304, 752, 44, COL.cyan);
-      txt('早上复习：3 轮就全对', 1342, 752, { size: 34, weight: 900, color: COL.cyan });
-      txt('早上背、晚上复习的：要 6 轮', 1290, 804, { size: 26, weight: 700, color: COL.cream });
-      txt('重新背到全对的平均轮数 · Mazza 等 2016', 1290, 842, { size: 22, weight: 500, color: COL.gray });
-    }));
-  }
+  if (ea > 0) withAlpha(ea, () => {
+    const x = 140, y = 690;
+    rrect(x, y, 520, 200, 16, 'rgba(244,239,230,0.07)', 'rgba(244,239,230,0.35)', 2);
+    txt('重新背到全对，要几轮？', x + 28, y + 40, { size: 32, weight: 900, color: COL.cream });
+    for (const [label, c, n, dy] of [['睡前背', COL.yellow, 3, 92], ['早上背', COL.cyan, 6, 146]]) {
+      txt(label, x + 28, y + dy, { size: 30, weight: 900, color: c });
+      for (let k = 0; k < n; k++) {
+        const sc = popS(bt, 26.5 + k * 0.5, 0.5), cx = x + 160 + k * 44;
+        if (sc > 0) withScale(cx, y + dy, sc, () => circle(cx, y + dy, 14, c));
+      }
+      const va = popA(bt, 26.5 + n * 0.5, 0.4);
+      if (va > 0) txt(`${n} 轮`, x + 150 + n * 44, y + dy + 2, { size: 32, weight: 900, color: c, alpha: va });
+    }
+    txt('Mazza 等 2016 · 两组的平均轮数', x + 28, y + 182, { size: 22, weight: 500, color: COL.gray });
+  });
 }
 
 // ---------- main ----------
@@ -240,11 +245,12 @@ function boyParams(bt, t) {
   const bed = BOY.bed(bt);
   return {
     type: 'boy', x: BOY.x(bt), y: BOY.y(bt), s: BOY.s(bt), t,
-    bed, sit: BOY.sit(bt), stretch: BOY.stretch(bt), read: BOY.read(bt), write: BOY.write(bt),
+    bed, sit: BOY.sit(bt), stretch: BOY.stretch(bt), read: BOY.read(bt),
     point: BOY.point(bt), thumb: BOY.thumb(bt),
     happy: BOY.happy(bt), blink: bed < 0.1 ? blinkAt(bt) : 0, talk: talkAt(bt),
     bubble: bed > 0.8 ? 7 + 6 * (0.5 + 0.5 * Math.sin(t * TAU / (BEAT * 4))) : 0,
-    bookColor: '#7b5fd6', pencil: true,
+    bookColor: '#7b5fd6', heldCard: bt > 8, heldCardColor: COL.yellow,
+    zzH: bt < 17 ? 42 : 90, zzW: bt < 17 ? 80 : 46,  // in the opening the Zz drift sideways, below his card grid
     flip: 0,
   };
 }

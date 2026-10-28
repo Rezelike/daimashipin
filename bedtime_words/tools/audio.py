@@ -268,6 +268,17 @@ def spin(d=0.9, n=22):
     return norm(out)
 
 
+def chirp(n=2):
+    """A bird outside the morning window: quick rising sine sweeps."""
+    out = np.zeros(int(0.34 * SR))
+    for k in range(n):
+        t = T(0.07)
+        s = np.sin(sweep_phase(2900 + 1500 * (t / 0.07) ** 0.7)) * np.sin(np.pi * t / 0.07) ** 2
+        st = int(k * 0.11 * SR)
+        out[st: st + len(s)] += s
+    return norm(out)
+
+
 # ---------------- cue sheet (beat, sound, gain dB, pan -1..1) ----------------
 HIT_DB = 0.0    # frame-0 hit
 BED_DB = 15.0   # boost for the 0-2 s room sounds (they were 11-27 LU below the rest of the mix)
@@ -314,7 +325,8 @@ def cues():
     add(12.5, zz_puff(), -29 + BED_DB, 0.45)  # happy snoring while the result holds
     add(14.5, zz_puff(), -31 + BED_DB, 0.45)
     add(15.5, whoosh(0.5, up=False), -17, -0.6)
-    # 睡前背 — he wakes in the morning and reviews
+    # 睡前背 — he wakes in bed in the morning (a bird at the window) and reviews his cards
+    add(17.5, chirp(), -17, 0.6)
     add(16.6, whoosh(0.28), -18, 0.0)
     for i in range(12):
         add(17.2 + i * 0.22, type_click(), -33, 0.0)
@@ -325,10 +337,12 @@ def cues():
     add(21.5, pop(420, 1250), -12, 0.0)
     add(24.0, page_flip(), -17, 0.0)
     add(25.0, pop(480, 1450), -12, 0.4)
-    add(26.5, blip(1300), -19, 0.5)
+    add(26.5, blip(1300), -19, -0.5)
+    for k in range(6):  # the rounds as dots: 3 for 睡前背, 6 for 早上背, one per half beat
+        add(26.5 + k * 0.5, tick(2400 if k < 3 else 1700), -21, -0.6)
     add(29.2, sparkle(0.5, 6), -24, -0.4)
     add(30.5, whoosh(0.5), -15, -0.2)
-    # ① 睡前背什么 — 9 pm, the clock ticks 5 minutes per beat until 16 个全对
+    # ① 睡前背什么 — 9 pm, one word card at a time onto the 「全对」 pile until 16 个全对
     add(31.8, blip(1800), -20, 0.0)
     add(32.0, whoosh(0.25), -20, 0.0)
     for i in range(10):
@@ -336,7 +350,7 @@ def cues():
     add(34.0, pop(420, 1200), -14, -0.6)
     add(35.0, blip(1600), -22, -0.2)
     for k in range(12):
-        add(36 + k, tick(tock=k % 2 == 1), -17, -0.6)
+        add(36 + k, page_flip(0.08), -21, 0.5)
     add(36.0, pop(380, 1100), -15, 0.5)
     for b in (28.5, 32.5, 36.5, 40.5, 44.5):
         add(b, page_flip(), -23, -0.4)
@@ -347,46 +361,47 @@ def cues():
     add(48.05, pop(380, 1100), -16, 0.2)
     add(50.2, thump(), -11, -0.4)            # closes the book
     add(50.6, whoosh(0.5, up=False, bright=0.6), -16, -0.4)  # blanket up
-    add(52.0, pop(380, 1100), -15, 0.5)
+    add(39.5, bonk(), -14, 0.3)               # 西瓜？ wrong
+    add(41.0, whoosh(0.4, up=False), -20, -0.3)  # back into his hand
+    add(45.5, whoosh(0.3), -20, 0.5)           # into the pile
+    add(52.0, tick(2200), -12, -0.2)           # lamp off
     add(52.3, zz_puff(), -22, -0.4)
     add(54.0, blip(1200), -21, 0.5)
     add(56.0, zz_puff(), -26, -0.4)
     add(60.0, zz_puff(), -26, -0.4)
     add(62.5, whoosh(0.6), -14, 0.0)
-    # ② 背完多久睡 — the dial: 几小时 (good), 熬通宵 and 14 小时 (bad), then the fill-in
+    # ② 背完多久睡 — three bars from 背完 to 睡着: 几小时 (good), 熬通宵 and 14 小时 (bad), then the fill-in
     add(64.0, whoosh(0.25), -20, 0.0)
     add(65.5, pop(400, 1150), -16, -0.5)
     for i, b in enumerate((65.0, 65.4, 65.8)):
         add(b, blip(1000 + i * 150), -24, 0.5)
-    add(67.0, whirr(1.4, 14), -19, -0.1)
+    add(68.5, riser(0.7), -17, 0.2)
     add(70.0, bell(1046.5), -9, 0.0)
     add(70.05, pop(380, 1100), -17, 0.5)
-    add(75.0, whirr(1.4, 18), -19, -0.1)
+    add(76.5, riser(0.7), -17, 0.2)
     add(78.0, bonk(), -13, 0.0)
     add(78.05, pop(420, 1200), -18, 0.5)
-    add(83.0, whirr(1.4, 22), -19, -0.1)
+    add(84.5, riser(0.7), -17, 0.2)
     add(86.0, bonk(), -14, 0.0)
     add(86.05, pop(460, 1300), -18, 0.5)
     add(88.0, chime(1318.5), -9, -0.3)
     add(88.1, sparkle(), -20, -0.4)
     add(91.0, zz_puff(), -26, -0.4)
     add(95.0, whoosh(0.55, up=False), -15, -0.3)
-    # ③ 醒来干嘛 — the bedside alarm, he wakes, tests himself until all are right, one week later
+    # ③ 醒来干嘛 — sunrise, he wakes, tests himself round by round, seven days and nights, one week later
     add(96.0, whoosh(0.25), -20, 0.0)
-    add(98.0, alarm(1.32), -13, -0.1)
+    for b in (97.5, 98.0, 99.0):
+        add(b, chirp(), -16, -0.5)
     add(100.4, boing(), -15, -0.4)
     add(100.45, whoosh(0.4, up=False, bright=0.6), -20, -0.4)
-    add(100.6, pop(380, 1100), -16, 0.5)
-    add(102.0, pop(420, 1200), -14, -0.6)
+    add(102.4, pop(420, 1200), -14, 0.3)  # his 16 cards appear
     add(103.0, pop(380, 1100), -16, 0.5)
     add(103.05, blip(1300), -21, -0.1)        # 第 1 轮 10/16
     add(105.0, blip(1500), -21, -0.1)         # 第 2 轮
     add(107.6, bell(1568, 1.2), -11, -0.1)    # 第 3 轮 全对
-    for b in (104, 108.5, 113, 121.5, 124):
-        add(b, scribble(), -27, -0.4)
-    add(106.0, whoosh(0.25), -19, -0.6)
+    add(111.0, page_flip(0.2), -20, 0.3)  # the cards turn face down for the week
     for k in range(7):
-        add(108 + k, page_flip(0.1), -15, -0.6)
+        add(108 + k, tick(1800), -18, -0.5)  # one day per beat in the window
     add(115.0, thump(180, 60, 0.3), -9, -0.6)
     add(116.0, riser(0.4), -14, -0.4)
     add(117.5, bell(1568), -8, -0.4)
@@ -404,7 +419,7 @@ def cues():
     add(135.4, zz_puff(), -21, -0.5)
     add(138.0, pop(460, 1300), -13, 0.4)
     add(138.1, bell(2093, 0.9), -16, -0.5)
-    add(139.6, scribble(), -25, -0.5)
+    add(139.6, page_flip(), -22, -0.5)
     add(142.0, warn_thud(), -10, 0.4)
     add(142.3, whoosh(0.18), -26, -0.5)
     add(143.2, whoosh(0.18), -26, -0.5)
