@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "2.2"
+  version: "2.3"
 ---
 
 # Vibe knowledge video
@@ -37,6 +37,10 @@ The user cannot see the sandbox: always report file paths / PR links, and put nu
 **Best data so far: 睡还是背** (`sleep_or_cram/`, its own renderer; `sleep_or_cram/README.md` has the beat-by-beat timeline):
 7.2万 plays at 27 h and still rising, 2 s bounce 38.35%, 5 s 37.9%, avg watch 8 s. Follow its structure (lessons 13): two-stage reveal in the hook,
 the figure acts through the answer, no STEP pages, the table builds while the figure acts, no save button.
+**Copy the structure and timing, never the screens** (user, 2026-10-27, on 背单词 built as a re-skin of 睡还是背:
+「和上期做的视频好像啊」 -> 「不要和前面做的那些视频一样」): keep the kids, background, palette, sound recipe and beat grid, but give
+every episode its own props and screen layouts (no reused bars / wall clock / timer ring / alarm / calendar / HUD panel /
+outlined 01 / list table). Example: `bedtime_words/` (word cards, a window for the time of day, flash-card headers).
 Latest engine example: `episodes/if_then_plan/episode.py` (figures acting out each step: seated at desks, walking,
 door, phone; crowds of sprites that light up for the result; fill-in summary template; 3:4 cover; its `cta` scene
 and 「截图保存」 pill are the old ending - drop them, see Build). Experiment bars /
