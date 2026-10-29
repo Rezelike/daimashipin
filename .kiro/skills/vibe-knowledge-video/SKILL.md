@@ -25,12 +25,12 @@ the whole design (two title lines, the proof objects, every label) inside the **
 wide** (= the 3:4 竖封面 crop), with a margin on both sides of the strip and its bottom-left empty (Douyin draws the play
 count at x 7-42 %, y 88.5-95 % of the tile); the sides only continue the dark background, no text (= the 横封面 is the
 whole picture). Tell the user to upload their latest accepted cover (「学累了？先睡一觉」) as the **style** reference - not
-the flat code cover, which makes GPT copy the flat infographic look. Example prompt: `bedtime_words/out/封面提示词.txt` (PR #17, branch `bedtime-words` until merged).
+the flat code cover, which makes GPT copy the flat infographic look. Example prompt: `bedtime_words/out/封面提示词.txt`.
 When the picture comes back, **only check it** (every Chinese character, numbers not swapped, no stray text, nothing
 outside the centre strip, the play-count corner empty) - do not extend, combine or redraw it (`sleep_or_cram/tools/
 one_cover.py` is retired); if something is wrong, give the user a corrected prompt. Remind the user to tick Douyin's AI
 declaration. The code cover stays as the fallback, drawn directly as one 1920x1440 picture with the design in the
-centre 1080 px (`bedtime_words/src/cover.js`, PR #17).
+centre 1080 px (`bedtime_words/src/cover.js`).
 The user cannot see the sandbox: always report file paths / PR links, and put numbers in chat.
 
 **Read `references/lessons.md` first** (real data from past episodes). Engine API: `references/engine.md`.

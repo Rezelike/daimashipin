@@ -230,7 +230,8 @@ Extra facts:
   午睡多久不头昏 moves down the backlog (the pinned comment drafted 10-27 already answers most of it). Proposed: 先看书还是先做题
   (recommended: a lose-then-win reveal like 睡还是背's, a preregistered meta-analysis, three steps) / 边听歌边背书 / 背书要读出声吗 /
   21 天能养成习惯吗 (sources in the backlog). A non-sleep topic in the same format also tests whether the format, not the sleep
-  theme, carried 睡还是背.
+  theme, carried 睡还是背. **2026-10-29 the user picked 边听歌边背书** (「边听歌边背书这个挺好的」; slug `music_study`, branch
+  `music-study`, built from `bedtime_words/`); 先看书还是先做题 stays next in line.
   **背单词 built 2026-10-27** (`bedtime_words/`, PR #17): 「背单词 / 早上还是睡前？」, reveal 1 「都背到全对」 (16 vs 16) at 2.11 s,
   reveal 2 「12 小时后再考」 (7.5 vs 10, Mazza 2016) at 3.98 s; answer 「睡前背，早上复习」; conclusion 「早上默到全对」, not 「复习一遍」:
   Mazza's control group (learned before bed, slept, one pass in the morning) was no better than the wake group a week later.
@@ -241,6 +242,10 @@ Extra facts:
   Fact-check found Gais 2006's students learned **German** words (not English). The boy "goes to bed" where he sits (blanket
   over the desk). New tools there: `tools/sheet.mjs` (numbered, timed preview tiles: point the user at 图 N + seconds) and
   `render.mjs --lint` (text off-screen / on top of each other).
+  **背单词 posted 2026-10-29 ~12:00** (noon, not ~18:00; merged to `main` as #17 the same day). At ~4 h: 1547 views (浏览), 117
+  likes (7.6% - the highest like rate so far; Feynman 3.61% was the best before, though the first hours' viewers are usually the
+  most engaged), 3 comments. 睡还是背 had roughly 3x the plays at the same age (posted 18:09; its big wave came the next day):
+  compare at 24 h (ask for 总览 + 流量分析) before judging the format on it.
   Targets: 2 s bounce ≤ 40%, 5 s ≥ 35%, avg watch ≥ 7 s, plays above the account average (~4,000); watch the save rate (no
   on-screen save prompt). One hit does not predict the next: judge each by its rates, not its plays.
   Still to confirm with the user: whether the posted title / chapter names were typed by hand.
@@ -276,10 +281,23 @@ Extra facts:
   beat prequestions alone. -> steps: answer the chapter's questions first (guess, no peeking); read to find the answers and check
   them; pick the questions on what matters (only the asked content gains). Related to 主动回忆 (testing yourself), but before
   learning instead of after. Hook: 「先看书|还是先做题？」 (9).
-  **边听歌边背书？** *Journal of Cognition* 2023 (PMC10162369): music with lyrics hurt verbal memory, visual memory and reading
-  comprehension (d ≈ -0.3); lo-fi instrumental music had no credible effect, though participants believed it helped. Perham &
-  Currie 2014, *Applied Cognitive Psychology* 28: reading comprehension was worse with lyrical music, liked or disliked, than in
-  quiet or with non-lyrical music (check). Small effects and only 1-2 rules: thin for 3 steps. Hook: 「边听歌|边背书？」 (7).
+  **边听歌边背书？** (picked by the user 2026-10-29; slug `music_study`): Souza & Barbosa 2023, *Journal of Cognition*
+  (PMC10162369; PDF journalofcognition.org/articles/273/files/6453aba34008c.pdf): Portuguese college students online, the same
+  people in silence, with lo-fi hip-hop instrumental music and with popular songs in their own language, 4 tasks (N = 113-123
+  per session): lyrics hurt verbal recall, visual recall and reading comprehension (d ≈ -0.3), arithmetic not credibly
+  (d = -.19); instrumental music neither hurt nor helped; people knew lyrics distract but tended to rate instrumental music as
+  helpful. Take the reveal's proportions from its figures. Vasilev, Kirkby & Angele 2018, *Perspectives on Psychological
+  Science* 13(5):567-597, Bayesian meta-analysis: noise, speech and music all slightly but reliably hurt reading; intelligible
+  speech and lyrical music hurt most. Perham & Vizard 2011, *Applied Cognitive Psychology* 25: recalling a list was equally worse
+  with liked and with disliked music than in quiet. Thompson, Schellenberg & Letnic 2012, *Psychology of Music* 40: instrumental
+  music hurt reading comprehension when it was fast and loud. Sun et al. 2024, *Frontiers in Psychology* 15:1363562 (90 Chinese
+  students; 张学友《吻别》 vs its English version 《Take Me to Your Heart》): lyrics in the language of the text hurt most;
+  habitual music listeners were hurt less - only 15 per group and one cell below the 50% guessing level of its true/false items,
+  so an example, not the headline numbers. Perham & Currie 2014 (reading, liked vs disliked lyrical music): not checked.
+  Steps: no lyrics while memorising or reading (liked songs too); if you want music, instrumental, slow and quiet; calculating is
+  barely affected. Effects are small (d ≈ -0.3): never "music makes you dumb", never "instrumental music raises scores".
+  Hook: 「边听歌|边背书？」 (7); reveal 2 either "switches to instrumental -> level again" or "switches to a favourite song -> still
+  behind" (the storyboard offers both). No real songs in the video (copyright); sound effects only, as always.
   **背书要读出声吗？** production effect (MacLeod et al. 2010, *JEP: LMC*): words read aloud are remembered better than words read
   silently; between-subject meta-analyses: Fawcett 2013, *Acta Psychologica* 142:1-5, g = 0.37 for recognition, updated in 2022
   (PubMed 36521123). Usually larger when only some items are read aloud than between groups - check before claiming "read only
