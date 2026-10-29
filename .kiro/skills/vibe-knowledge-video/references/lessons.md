@@ -226,6 +226,11 @@ Extra facts:
   fonts read from `sleep_or_cram/assets/fonts/`). Order agreed 2026-10-27: the sequel 「背单词：睡前还是早上？」 first (user: "可以";
   slug `bedtime_words`), then 「睡醒更困？午睡多久不头昏」 (the comments' top question, backlog below), then 记忆宫殿 / 先看书还是先做题
   (prequestions) / 习惯 66 天, one per day at ~18:00 (睡还是背's slot, so the slot is not a confound).
+  **Changed 2026-10-28** (user, after 背单词: 「做了两期的有关睡觉的话题了，要不做一个别的？」): the next episode is not about sleep;
+  午睡多久不头昏 moves down the backlog (the pinned comment drafted 10-27 already answers most of it). Proposed: 先看书还是先做题
+  (recommended: a lose-then-win reveal like 睡还是背's, a preregistered meta-analysis, three steps) / 边听歌边背书 / 背书要读出声吗 /
+  21 天能养成习惯吗 (sources in the backlog). A non-sleep topic in the same format also tests whether the format, not the sleep
+  theme, carried 睡还是背.
   **背单词 built 2026-10-27** (`bedtime_words/`, PR #17): 「背单词 / 早上还是睡前？」, reveal 1 「都背到全对」 (16 vs 16) at 2.11 s,
   reveal 2 「12 小时后再考」 (7.5 vs 10, Mazza 2016) at 3.98 s; answer 「睡前背，早上复习」; conclusion 「早上默到全对」, not 「复习一遍」:
   Mazza's control group (learned before bed, slept, one pass in the morning) was no better than the wake group a week later.
@@ -260,6 +265,31 @@ Extra facts:
   10-min one did not. Lovato & Lack 2010 review (PubMed 21075238): 5-15 min naps help almost at once for 1-3 h; > 30 min brings a
   short grogginess, then benefits for hours. -> "need to be sharp right away: 10-20 min; 30-60 min only if you can spare ~30 min to
   wake up"; it completes 睡还是背 (which said 10 min to wake up, 30-60 min to remember) without contradicting it.
+  **先看书还是先做题？** (prequestions / pretesting; recommended 2026-10-28): St. Hilaire et al. 2024, *Psychonomic Bulletin &
+  Review* 31(2), preregistered meta-analysis: answering questions before learning (mostly wrongly) improves memory for the asked
+  content, g = 0.54 (k = 97), not for the rest, g = 0.04 (k = 91). Richland, Kornell & Kao 2009, *JEP: Applied* 15(3):243-257:
+  5 experiments with an essay about vision; answering questions before reading beat extra reading time on the final test in every
+  experiment, even when only the questions missed on the pretest were scored; in Exp. 5 the extra-reading group also saw the
+  questions without answering them and still lost (as the abstract reads - check the paper, and take the reveal's % from it).
+  Pan & Sana 2021, *JEP: Applied* 27(2):237-257: testing before reading did as well as or better than testing after it. 2025
+  multilevel meta-analysis (*Educational Psychology Review*, doi 10.1007/s10648-025-10075-7): prequestions + the correct answers
+  beat prequestions alone. -> steps: answer the chapter's questions first (guess, no peeking); read to find the answers and check
+  them; pick the questions on what matters (only the asked content gains). Related to 主动回忆 (testing yourself), but before
+  learning instead of after. Hook: 「先看书|还是先做题？」 (9).
+  **边听歌边背书？** *Journal of Cognition* 2023 (PMC10162369): music with lyrics hurt verbal memory, visual memory and reading
+  comprehension (d ≈ -0.3); lo-fi instrumental music had no credible effect, though participants believed it helped. Perham &
+  Currie 2014, *Applied Cognitive Psychology* 28: reading comprehension was worse with lyrical music, liked or disliked, than in
+  quiet or with non-lyrical music (check). Small effects and only 1-2 rules: thin for 3 steps. Hook: 「边听歌|边背书？」 (7).
+  **背书要读出声吗？** production effect (MacLeod et al. 2010, *JEP: LMC*): words read aloud are remembered better than words read
+  silently; between-subject meta-analyses: Fawcett 2013, *Acta Psychologica* 142:1-5, g = 0.37 for recognition, updated in 2022
+  (PubMed 36521123). Usually larger when only some items are read aloud than between groups - check before claiming "read only
+  the key parts aloud". Second reveal not found yet. Hook: 「背书|要读出声吗？」 (8).
+  Later: 单词卡一次背完还是分开背 (Kornell 2009, *Applied Cognitive Psychology* 23:1297-1317: one big stack of GRE flashcards
+  beat four small stacks for 90% of participants, yet after the first session 72% believed the small stacks worked better - a
+  strong belief-vs-result reveal, but vocabulary again right after 背单词). Skipped for now: 学多久休息 / 番茄钟 (asked under 睡还是背:
+  「暴学一段时间就开始厌学」), evidence mixed (Biwer et al. 2023, *Br J Educ Psychol*: fixed breaks -> less fatigue, more
+  concentration than self-chosen ones; 2025 and 2026 studies in *Behavioral Sciences*: no difference in learning) - viewers
+  fact-check with 豆包.
   记忆宫殿 (recommended 2026-10-23; Dresler et al. 2017 *Neuron*: 40 days x 30 min, 26 → 62 of 72 words,
   48 after 4 months - the numbers so far from press coverage; Twomey & Kroneisen 2021 meta-analysis g = 0.65); 先猜答案再学
   (prequestion meta-analysis 2023: g = 0.54 for asked content, 0.04 for the rest); 同桌玩电脑 (Sana et al. 2013: -11% / -17%);

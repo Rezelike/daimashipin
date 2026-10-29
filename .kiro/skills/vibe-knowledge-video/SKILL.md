@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "2.3"
+  version: "2.4"
 ---
 
 # Vibe knowledge video
@@ -51,6 +51,9 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
 1. **Topic** — unless the user already chose, propose 3-5 topics in a table scored on:
    save-worthiness (will people 收藏 it to use later?), relevance to the viewer's own life,
    can it be *shown* with code visuals (curve, timer, chart, diagram), fact base solid.
+   Prefer topics that fit the 睡还是背 format: a two-choice question a student would ask, an experiment with two groups, a
+   result that flips or pulls apart after a delay (the two-stage reveal). Vary the theme: after two episodes on one theme,
+   switch (user, 2026-10-28, after 睡还是背 + 背单词: 「做了两期的有关睡觉的话题了，要不做一个别的？」).
    Recommend one. **Gate 1: user picks.**
 2. **Script** — storyboard in chat: scene · bars · seconds · visual · on-screen CN / EN text.
    Structure (current): hook 4 bars → answer + overview 4 → 3 steps × 8 (example inside each step)
