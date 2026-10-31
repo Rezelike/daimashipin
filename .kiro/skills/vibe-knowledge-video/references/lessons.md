@@ -157,6 +157,13 @@ Extra facts:
    Gestures (user, 2026-10-26: "最后这个感觉像是在比中指一样（笑）"): a raised arm with one digit sticking up from a round
    fist reads as a middle finger. Point sideways at the thing (arm at most ~30° above horizontal, index finger along the
    forearm, thumb tucked on top); draw 👍 as a square fist with finger creases and the thumb rising from a top corner, never centred.
+   **User, 2026-10-31: one figure, an adult, no desk** (after 睡还是背 / 背单词 / 边听歌边背书, all two kids seated at desks):
+   「不要在开头放两个小人了，下次换成一个小人。你随便让他摆个什么姿势，就是不要再坐到凳子上来写作业读书啥的，然后拿一本练习题，
+   呼啦呼啦写什么的。总不能按照同一个模板做出来对吧。而且那个人我感觉特别幼稚」, and 「我打算让你一口气先做6条视频，看一下」.
+   -> `kit/figure.js` (branch `six-videos`): an adult rig (~7.5 heads) with a pose library, three looks shown in
+   `kit/design/小人方案.png` for the user to pick (A flat illustration with a small face and no blush, recommended; B neon line;
+   C silhouette with a rim light). The timing skeleton stays (frame-0 question, reveals at ~2 s and ~4 s, the summary last);
+   the stage changes with every video.
 10. **Covers (user, 2026-10-23):** made by the user with GPT from our prompt; **no people on the cover** ("封面不要小人会不会好一点":
    the profile's best covers - brain, curve, books - had none). A cover is read in half a second, so it must say
    (a) the topic in plain words ("总拖延？"), (b) what to do ("写下这一句" + the sentence itself), (c) the proof with its

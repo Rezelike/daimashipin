@@ -3,7 +3,7 @@ name: vibe-knowledge-video
 description: Make a 60-75 s landscape (1920x1080) bilingual Chinese/English knowledge video for Douyin / Xiaohongshu / Bilibili ("Vibe知识大赏" style) entirely with code - dark-tech motion graphics, no voice-over, no music (cut to the beat of a DJ track the user adds) - in the Rezelike/daimashipin repo. Use when the user asks to 做视频 / 做下一期 / 知识视频 / 科普视频 / 选题, to re-cut or re-time an episode, or to review Douyin data (播放量, 完播率, 收藏率) for these videos.
 metadata:
   author: Rezelike
-  version: "2.4"
+  version: "2.5"
 ---
 
 # Vibe knowledge video
@@ -41,6 +41,15 @@ the figure acts through the answer, no STEP pages, the table builds while the fi
 「和上期做的视频好像啊」 -> 「不要和前面做的那些视频一样」): keep the kids, background, palette, sound recipe and beat grid, but give
 every episode its own props and screen layouts (no reused bars / wall clock / timer ring / alarm / calendar / HUD panel /
 outlined 01 / list table). Example: `bedtime_words/` (word cards, a window for the time of day, flash-card headers).
+**One figure, an adult, any pose** (user, 2026-10-31, after the two-kid episodes: 「不要在开头放两个小人了，下次换成一个小人」
+「随便让他摆个什么姿势，就是不要再坐到凳子上写作业读书…拿一本练习题，呼啦呼啦写」「总不能按照同一个模板做出来」「那个人我感觉特别
+幼稚」): one figure on screen, the opening included - show a comparison with objects (two stacks, two meters) or let the same
+person try A, then B; adult proportions, never the round-headed kids of `sleep_or_cram/` / `bedtime_words/` / `music_study/`;
+never seated at a desk or on a stool doing homework, reading or scribbling in a workbook: he stands, walks, points, thinks,
+jumps, lies down, carries and handles the props. Rig: `kit/figure.js` (2D skeleton, pose library, three looks A flat / B neon
+line / C silhouette, comparison `kit/design/小人方案.png`; branch `six-videos` until merged; the user picks the look). Each video
+also gets its own stage (a journey, a game show, a depth gauge, a house cut open, a card table ...), not the same header + panel
+layout with new props.
 Latest engine example: `episodes/if_then_plan/episode.py` (figures acting out each step: seated at desks, walking,
 door, phone; crowds of sprites that light up for the result; fill-in summary template; 3:4 cover; its `cta` scene
 and 「截图保存」 pill are the old ending - drop them, see Build). Experiment bars /
@@ -114,9 +123,8 @@ dictation sheet: `episodes/active_recall/`. Curve / sawtooth / timeline visuals:
   `dissolve` (learned items dissolve while a counter drops: forgetting), `diverge` (two lines from one point
   end far apart: habits, compounding), `timer` (a clock races through an afternoon: focus) — or a custom one
   built the same way: moving on frame 0, events on beats, the reveal lands by beat 8, nothing shakes.
-- **Little people in every scene** (user, 2026-10-23): `engine.figures` — seat them at desks (draw the figure,
-  then `F.desk()` in front), walk them (`walk=` phase, one step per beat), give them props (pen, phone, note,
-  paper), show results as crowds of sprites lighting up (real counts from the paper). Each step acts out one
+- **A person in every scene** (user, 2026-10-23), since 2026-10-31 **one adult figure, never at a desk** (see the
+  defaults above; `kit/figure.js`): walk him (one step per beat), give him props (phone, cards, note), show results as crowds of sprites lighting up (real counts from the paper). Each step acts out one
   everyday scene; the text says the rule, the figure shows it.
 - Put a concrete example inside every step; end on a screenshot-able summary (the last screen), with no prompt on it.
 - Chapter labels are what Douyin lists as chapters: name them by payoff ("3 个写法", "照着填"), never "片头 / 结尾".
