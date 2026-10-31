@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'NotoSansSC'; src: url('../../sleep_or_cram/assets/fonts/NotoSansCJKsc-Medium.otf'); font-weight: 500; }
+  @font-face { font-family: 'NotoSansSC'; src: url('../../sleep_or_cram/assets/fonts/NotoSansCJKsc-Bold.otf'); font-weight: 700; }
+  @font-face { font-family: 'NotoSansSC'; src: url('../../sleep_or_cram/assets/fonts/NotoSansCJKsc-Black.otf'); font-weight: 900; }
+  @font-face { font-family: 'JetBrainsMono'; src: url('../../sleep_or_cram/assets/fonts/JetBrainsMono.ttf'); font-weight: 100 800; }
+  html, body { margin: 0; padding: 0; background: #000; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script src="lib.js"></script>
+<script src="figure.js"></script>
+<script src="props.js"></script>
+<script src="hero.js"></script>
+<script src="scene.js"></script>
+<script src="sections.js"></script>
+<script>
+  const canvas = document.getElementById('c');
+  setCtx(canvas.getContext('2d'));
+  window.fontsReady = (async () => {
+    const loads = [
+      '500 40px NotoSansSC', '700 40px NotoSansSC', '900 40px NotoSansSC',
+      '500 40px JetBrainsMono', '800 40px JetBrainsMono',
+    ].map((f) => document.fonts.load(f, '先看书还是做题猜几道再学新一章 Aa0%'));
+    await Promise.all(loads);
+    await document.fonts.ready;
+    return [...document.fonts].filter((f) => f.status === 'loaded').length;
+  })();
+  window.draw = (t) => { renderFrame(t); return window.__frameInfo || null; };
+  window.lintFrame = (t) => { LINT.on = true; LINT.boxes = []; LINT.panels = []; renderFrame(t); LINT.on = false; return { boxes: LINT.boxes, panels: LINT.panels }; };
+  window.grab = (t, type = 'image/png', q = 0.95) => { renderFrame(t); return canvas.toDataURL(type, q); };
+</script>
+</body>
+</html>
