@@ -10,6 +10,12 @@
 | 费曼学习法（3:51，横屏，中英双语，钢琴 + 小提琴原创配乐） | [`out/feynman.mp4`](out/feynman.mp4) · [封面](out/feynman_cover.png) | [`feynman/`](feynman/README.md) |
 | 60 秒搞懂「防抖 Debounce」 | [`out/debounce.mp4`](out/debounce.mp4) | 见下文 |
 
+## 新对话怎么接手
+
+在 Codex 中以本仓库根目录打开项目后，可以直接说「做下一期视频」、指定一期或给出新选题。根目录 `AGENTS.md` 指向 `CONTEXT.md`、现行制作 Skill 和往期数据；已经记录的固定要求不需要每次重发。若新对话没有打开这个仓库，提供仓库链接或本地路径，并让 AI 先读根目录 `AGENTS.md`。
+
+在 Kiro 中仍按下方的 `vibe-knowledge-video` Skill 使用。两种工具都应先核对目标分支和 PR；本期尚未确定的选题、分镜或新要求由你决定。
+
 ## 做新一期（引擎 + Skill）
 
 - Skill：[`.kiro/skills/vibe-knowledge-video/`](.kiro/skills/vibe-knowledge-video/SKILL.md)。在新的 Kiro 对话里直接说「做下一期视频」，Kiro 会按它的流程执行：选题 → 分镜 → 渲染 → 验证 → 提 PR。它会先读 [`references/lessons.md`](.kiro/skills/vibe-knowledge-video/references/lessons.md) 里往期的抖音数据。
