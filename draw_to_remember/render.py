@@ -330,7 +330,7 @@ def render(ffmpeg):
         p.kill();raise
     final=OUT/"画出来更好记_75s_1080p.mp4"
     # Speech-free effects only. Measured output is checked by verify.py.
-    cmd=[ffmpeg,"-y","-loglevel","error","-i",str(raw),"-i",str(wav),"-map","0:v:0","-map","1:a:0","-c:v","copy","-c:a","aac","-b:a","192k","-af","loudnorm=I=-18:TP=-1.5:LRA=11","-t","75","-movflags","+faststart",str(final)]
+    cmd=[ffmpeg,"-y","-loglevel","error","-i",str(raw),"-i",str(wav),"-map","0:v:0","-map","1:a:0","-c:v","copy","-c:a","aac","-b:a","192k","-af","acompressor=threshold=-23dB:ratio=5:attack=1:release=70,loudnorm=I=-18.4:TP=-2.0:LRA=11","-t","75","-movflags","+faststart",str(final)]
     subprocess.run(cmd,check=True)
     raw.unlink()
     print(final)
