@@ -122,9 +122,9 @@ def figure(im, t, hand="pen", x=178, y=453, scale=1.0):
     bob=math.sin(t*3.7)*2.0
     x,y=int(x),int(y+bob)
     s=scale
-    head=(x, int(y-172*s))
-    # 7.5-head standing silhouette with teal edge and a long coat.
-    d.ellipse((x-17*s,head[1]-18*s,x+17*s,head[1]+18*s),fill=(30,56,67,255),outline=(*CYAN,255),width=max(2,int(3*s)))
+    head=(x, int(y-164*s))
+    # About 7.3 heads tall: adult silhouette with teal edge and a long coat.
+    d.ellipse((x-12*s,head[1]-12*s,x+12*s,head[1]+12*s),fill=(30,56,67,255),outline=(*CYAN,255),width=max(2,int(3*s)))
     d.polygon([(x-25*s,y-148*s),(x+25*s,y-148*s),(x+34*s,y-74*s),(x-34*s,y-74*s)],fill=(28,54,64,255))
     glow_line(im,[(int(x-25*s),int(y-148*s)),(int(x-34*s),int(y-76*s))],CYAN,max(2,int(3*s)),5)
     glow_line(im,[(int(x+25*s),int(y-148*s)),(int(x+34*s),int(y-76*s))],CYAN,max(2,int(3*s)),5)
