@@ -1,38 +1,38 @@
-"""Vibe知识大赏：画出来，更好记？
+"""Original, native 1080p motion-graphics renderer for the drawing effect.
 
-Independent Pillow renderer. No inherited episode code or visual assets.
-Run: python render.py --all [--ffmpeg PATH]
-Output: out/画出来更好记_75s_1080p.mp4, cover.png, storyboard.png.
+Art direction: an ink-and-light atelier with tactile paper, sculpted objects,
+an adult painter, and editorial typography. All frames and sounds are coded.
+Run `python render.py --all --ffmpeg ffmpeg` after replacing the earlier draft.
 """
 from __future__ import annotations
 
 import argparse
 import math
-import os
 import subprocess
-import sys
 import wave
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "out"
 OUT.mkdir(exist_ok=True)
-W, H = 960, 540
-FPS = 30
+W, H, FPS = 1920, 1080, 30
 BPM = 128
 BEAT = 60 / BPM
 FRAMES = 2250
-BG = (8, 13, 26)
-WHITE = (239, 246, 252)
-MUTED = (154, 183, 204)
-CYAN = (67, 225, 224)
-GOLD = (255, 195, 94)
-PINK = (247, 123, 151)
+INK = (9, 18, 29)
+PAPER = (234, 223, 198)
+WHITE = (251, 247, 232)
+SAND = (185, 181, 158)
+GOLD = (249, 188, 87)
+TEAL = (96, 212, 197)
+RED = (204, 83, 73)
+
 FONT_CANDIDATES = [
-    Path(__file__).parent / "assets" / "NotoSansSC-VF.ttf",
+    ROOT / "assets" / "NotoSansSC-VF.ttf",
     Path("C:/Windows/Fonts/NotoSansSC-VF.ttf"),
     Path("C:/Windows/Fonts/msyhbd.ttc"),
     Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
@@ -40,236 +40,322 @@ FONT_CANDIDATES = [
 ]
 FONT_PATH = next((p for p in FONT_CANDIDATES if p.exists()), None)
 if not FONT_PATH:
-    raise RuntimeError("Noto Sans CJK font missing; install fonts-noto-cjk")
-FONT = {s: ImageFont.truetype(str(FONT_PATH), s) for s in (16, 18, 20, 22, 24, 26, 28, 30, 34, 38, 42, 48, 52, 58)}
+    raise RuntimeError("Install Noto Sans CJK or provide a font in assets/")
 
 
-def txt(d, xy, value, size, fill=WHITE, anchor="la", max_width=None):
-    """Draw visible text and fail before shipping if it would be clipped."""
-    font = FONT.setdefault(size, ImageFont.truetype(str(FONT_PATH), size))
-    x, y = xy
-    box = d.textbbox((x, y), value, font=font, anchor=anchor)
-    if box[0] < 0 or box[1] < 0 or box[2] > d.im.size[0] or box[3] > d.im.size[1]:
-        raise ValueError(f"Text out of frame: {value!r}: {box}")
-    if max_width and box[2] - box[0] > max_width:
-        raise ValueError(f"Text too wide: {value!r}: {box[2]-box[0]} > {max_width}")
-    d.text(xy, value, font=font, fill=fill, anchor=anchor, stroke_width=0)
+@lru_cache(maxsize=60)
+def font(size):
+    return ImageFont.truetype(str(FONT_PATH), size)
 
 
-def rr(d, box, radius, fill, outline=None, width=1):
-    d.rounded_rectangle(box, radius, fill=fill, outline=outline, width=width)
+def text(d, x, y, s, size, color=WHITE, anchor="la", width=None):
+    f=font(size)
+    bb=d.textbbox((x,y),s,font=f,anchor=anchor)
+    if bb[0]<0 or bb[1]<0 or bb[2]>d.im.size[0] or bb[3]>d.im.size[1]:
+        raise ValueError(f"Text clipped: {s!r} at {bb}")
+    if width and bb[2]-bb[0]>width:
+        raise ValueError(f"Text too wide: {s!r} at {bb}")
+    d.text((x,y),s,font=f,fill=color,anchor=anchor)
 
 
-def glow_line(im, points, color=CYAN, width=5, glow=13):
-    layer = Image.new("RGBA", im.size)
-    q = ImageDraw.Draw(layer)
-    q.line(points, fill=(*color, 210), width=width, joint="curve")
-    soft = layer.filter(ImageFilter.GaussianBlur(glow))
-    im.alpha_composite(soft)
-    im.alpha_composite(layer)
+def round_rect(d,box,r,fill,outline=None,w=1):
+    d.rounded_rectangle(box,radius=r,fill=fill,outline=outline,width=w)
 
 
-def base(stage):
-    im = Image.new("RGBA", (W, H), (*BG, 255))
-    d = ImageDraw.Draw(im)
-    # Architectural atelier, with depth and an anchored floor; never beat-shaken.
-    for x in range(0, W, 80):
-        d.line((x, 0, x, 540), fill=(15, 32, 49, 255), width=1)
-    for y in range(56, 540, 80):
-        d.line((0, y, W, y), fill=(15, 32, 49, 255), width=1)
-    d.polygon([(0, 485), (960, 485), (960, 540), (0, 540)], fill=(12, 22, 35, 255))
-    d.line((0, 485, 960, 485), fill=(61, 115, 126, 255), width=2)
-    d.line((0, 55, 960, 55), fill=(39, 67, 82, 255), width=1)
-    txt(d, (42, 28), "VIBE / KNOWLEDGE", 18, MUTED, "lm")
-    txt(d, (918, 28), f"{stage}  ·  128 BPM", 18, MUTED, "rm")
+def path_points(cx,cy,rx,ry,n=160):
+    # A hand-drawn apple rather than a generic stock icon.
+    pts=[]
+    for i in range(n+1):
+        a=2*math.pi*i/n
+        r=1-.15*math.cos(2*a)
+        pts.append((int(cx+rx*math.sin(a)*r),int(cy+ry*math.cos(a)*r)))
+    return pts
+
+
+def apple_sketch(im,cx,cy,scale=1,progress=1,color=(59,109,109),stroke=9):
+    d=ImageDraw.Draw(im)
+    pts=path_points(cx,cy,int(100*scale),int(102*scale))
+    p=max(.025,min(1,progress))
+    n=max(3,int(len(pts)*min(p/.78,1)))
+    d.line(pts[:n],fill=color,width=int(stroke*scale),joint="curve")
+    if p>.80:
+        d.line([(cx,cy-int(95*scale)),(cx+int(15*scale),cy-int(151*scale)),(cx+int(56*scale),cy-int(157*scale))],fill=color,width=int(stroke*.7*scale),joint="curve")
+    if p>.92:
+        d.ellipse((cx+int(30*scale),cy-int(166*scale),cx+int(99*scale),cy-int(135*scale)),fill=color)
+
+
+def apple_object(im,cx,cy,scale=1):
+    paste_object(im,0,cx,cy,int(250*scale))
+
+
+def key_object(im,cx,cy,scale=1):
+    paste_object(im,1,cx,cy,int(300*scale))
+
+
+def umbrella_object(im,cx,cy,scale=1):
+    paste_object(im,2,cx,cy,int(330*scale))
+
+
+@lru_cache(maxsize=12)
+def object_asset(index,height):
+    src=Image.open(ROOT/"assets"/"objects_clean.png").convert("RGBA")
+    cw=src.width//3
+    src=src.crop((index*cw,0,(index+1)*cw,src.height))
+    mask=src.getchannel("A").point(lambda a:255 if a>25 else 0)
+    bb=mask.getbbox()
+    if not bb:raise RuntimeError(f"Object {index} has no alpha")
+    src=src.crop(bb)
+    width=round(src.width*height/src.height)
+    return src.resize((width,height),Image.Resampling.LANCZOS)
+
+
+def paste_object(im,index,cx,cy,height):
+    asset=object_asset(index,height)
+    im.alpha_composite(asset,(round(cx-asset.width/2),round(cy-asset.height/2)))
+
+
+def shadow(im,box,blur=30,alpha=85):
+    layer=Image.new("RGBA",im.size)
+    d=ImageDraw.Draw(layer)
+    d.ellipse(box,fill=(0,0,0,alpha))
+    im.alpha_composite(layer.filter(ImageFilter.GaussianBlur(blur)))
+
+
+@lru_cache(maxsize=1)
+def backdrop():
+    im=Image.open(ROOT/"assets"/"atelier_background.png").convert("RGBA")
+    im=im.resize((W,H),Image.Resampling.LANCZOS)
+    # Keep generated material detail, while reserving contrast for the type.
+    veil=Image.new("RGBA",(W,H),(3,11,18,64))
+    im=Image.alpha_composite(im,veil)
+    d=ImageDraw.Draw(im)
+    text(d,112,65,"VIBE 知识大赏",34,GOLD)
+    d.line((112,107,371,107),fill=GOLD,width=3)
     return im
 
 
-def easel(im, x=550, y=305, size=1):
-    d = ImageDraw.Draw(im)
-    ww, hh = int(310 * size), int(315 * size)
-    x0, y0 = int(x - ww / 2), int(y - hh / 2)
-    # Glass slab and easel stand, not a desk.
-    d.polygon([(x0+30,y0+hh), (x0+ww-30,y0+hh), (x0+ww-54,y0+hh+38), (x0+54,y0+hh+38)], fill=(22,47,58,255))
-    rr(d, (x0,y0,x0+ww,y0+hh), 20, (22, 40, 59, 255), (64, 151, 168, 255), 3)
-    rr(d, (x0+18,y0+18,x0+ww-18,y0+hh-18), 13, (12, 24, 39, 255), (41, 82, 98,255), 2)
-    d.ellipse((x0+27,y0+28,x0+37,y0+38), fill=(*CYAN,255))
-    d.ellipse((x0+45,y0+28,x0+55,y0+38), fill=(*GOLD,255))
-    return (x0+18,y0+18,x0+ww-18,y0+hh-18)
+def title(d,cn,en,section=None):
+    if section:
+        text(d,115,161,section,34,GOLD)
+        d.line((115,208,235,208),fill=GOLD,width=4)
+    text(d,112,238,cn,106,WHITE,width=1540)
+    text(d,116,375,en,43,SAND,width=1590)
 
 
-def apple(im, x, y, scale=1.0, progress=1.0, color=GOLD):
-    """Hand-drawn apple appears stroke by stroke; simple enough for four seconds."""
-    p = max(0, min(1, progress))
-    pts=[]
-    for i in range(65):
-        a = math.pi*2*i/64
-        # A sketch-like heart silhouette, not a perfect icon.
-        r = 1 - 0.18*math.cos(2*a)
-        pts.append((int(x+64*scale*r*math.sin(a)), int(y+65*scale*r*math.cos(a))))
-    n=max(2,int(len(pts)*min(p/0.76,1)))
-    glow_line(im,pts[:n],color,int(5*scale),int(10*scale))
-    if p > .74:
-        glow_line(im, [(int(x),int(y-59*scale)),(int(x+8*scale),int(y-91*scale)),(int(x+37*scale),int(y-99*scale))],color,int(4*scale),7)
-    if p > .88:
-        d=ImageDraw.Draw(im)
-        d.ellipse((x+13*scale,y-101*scale,x+52*scale,y-82*scale),fill=(*color,190))
-
-
-def figure(im, t, hand="pen", x=178, y=453, scale=1.0):
-    """One adult-proportion figure, standing or walking through every frame."""
+def paper_board(im,box,accent=GOLD):
+    x0,y0,x1,y1=box
+    shadow(im,(x0+40,y1-5,x1+40,y1+77),27,95)
     d=ImageDraw.Draw(im)
-    bob=math.sin(t*3.7)*2.0
-    x,y=int(x),int(y+bob)
-    s=scale
-    head=(x, int(y-164*s))
-    # About 7.3 heads tall: adult silhouette with teal edge and a long coat.
-    d.ellipse((x-12*s,head[1]-12*s,x+12*s,head[1]+12*s),fill=(30,56,67,255),outline=(*CYAN,255),width=max(2,int(3*s)))
-    d.polygon([(x-25*s,y-148*s),(x+25*s,y-148*s),(x+34*s,y-74*s),(x-34*s,y-74*s)],fill=(28,54,64,255))
-    glow_line(im,[(int(x-25*s),int(y-148*s)),(int(x-34*s),int(y-76*s))],CYAN,max(2,int(3*s)),5)
-    glow_line(im,[(int(x+25*s),int(y-148*s)),(int(x+34*s),int(y-76*s))],CYAN,max(2,int(3*s)),5)
-    stride=math.sin(t*2.4)*7 if t<8 else math.sin(t*1.4)*3
-    d.line((x-14*s,y-76*s,x-17*s+stride,y-4*s),fill=(128,211,211,255),width=max(4,int(9*s)))
-    d.line((x+14*s,y-76*s,x+18*s-stride,y-4*s),fill=(128,211,211,255),width=max(4,int(9*s)))
-    d.line((x-27*s+stride,y-4*s,x-8*s+stride,y-4*s),fill=(*WHITE,255),width=max(3,int(6*s)))
-    d.line((x+14*s-stride,y-4*s,x+34*s-stride,y-4*s),fill=(*WHITE,255),width=max(3,int(6*s)))
-    # Arm reaches to an upright easel; no chair, book, or homework pose.
-    d.line((x+22*s,y-132*s,x+67*s,y-111*s,x+94*s,y-131*s),fill=(133,205,209,255),width=max(4,int(8*s)),joint="curve")
-    d.ellipse((x+88*s,y-138*s,x+101*s,y-125*s),fill=(*WHITE,255))
-    d.line((x-22*s,y-131*s,x-48*s,y-75*s),fill=(110,172,181,255),width=max(4,int(8*s)))
-    if hand=="pen":
-        d.line((x+94*s,y-129*s,x+112*s,y-156*s),fill=(*GOLD,255),width=max(2,int(5*s)))
-        d.ellipse((x+107*s,y-162*s,x+115*s,y-154*s),fill=(*WHITE,255))
-    elif hand=="point":
-        d.line((x+94*s,y-130*s,x+114*s,y-142*s),fill=(*WHITE,255),width=max(2,int(4*s)))
-    d.ellipse((x-48*s,y-3*s,x+48*s,y+4*s),fill=(12,40,49,255))
+    round_rect(d,(x0-12,y0-12,x1+14,y1+19),35,(68,66,58),(137,115,77),4)
+    round_rect(d,(x0,y0,x1,y1),29,PAPER,(248,229,188),6)
+    d.line((x0+35,y0+35,x1-45,y0+35),fill=(199,185,153),width=2)
+    d.line((x0+40,y1-38,x1-40,y1-38),fill=(199,185,153),width=2)
+    for x in (x0+52,x1-52):
+        d.ellipse((x-12,y0-15,x+12,y0+9),fill=(116,89,59),outline=(240,205,129),width=3)
+    d.polygon([(x1-65,y0),(x1,y0),(x1,y0+65)],fill=(207,193,166))
+    return box
 
 
-def header(d, cn, en, accent=CYAN, y=78):
-    txt(d,(46,y),cn,52,WHITE,"la",870)
-    d.line((46,y+67,144,y+67),fill=(*accent,255),width=4)
-    txt(d,(46,y+82),en,24,MUTED,"la",855)
+@lru_cache(maxsize=8)
+def artist_asset(pose,height):
+    name="adult_artist.png" if pose=="paint" else "adult_artist_point.png"
+    src=Image.open(ROOT/"assets"/name).convert("RGBA")
+    mask=src.getchannel("A").point(lambda a:255 if a>10 else 0)
+    bb=mask.getbbox()
+    if not bb:raise RuntimeError(f"Character {name} has no alpha")
+    src=src.crop(bb)
+    width=round(src.width*height/src.height)
+    return src.resize((width,height),Image.Resampling.LANCZOS)
+
+
+def paste_artist(im,t,x,foot=916,pose="paint",scale=1):
+    height=round(550*scale)
+    asset=artist_asset(pose,height)
+    px=round(x-asset.width/2+math.sin(t*1.2)*2)
+    py=round(foot+80-height)
+    d=ImageDraw.Draw(im)
+    d.ellipse((x-90,foot+71,x+90,foot+96),fill=(5,11,16))
+    im.alpha_composite(asset,(px,py))
+
+
+def result_type(d,draw_pct=True):
+    text(d,125,620,"画",48,TEAL)
+    text(d,125,667,"23%",125,TEAL)
+    text(d,433,620,"写",48,SAND)
+    text(d,433,667,"14%",125,SAND)
+    d.line((124,823,740,823),fill=(108,111,100),width=3)
+    text(d,125,844,"66 个易画词 · 短时自由回忆",37,WHITE)
+
+
+@lru_cache(maxsize=36)
+def still(section,state):
+    im=backdrop().copy()
+    d=ImageDraw.Draw(im)
+    if section==0:
+        # Question and physical workspace dominate. Results live on dark floor, not UI cards.
+        text(d,114,211,"画一笔，",115,WHITE)
+        text(d,114,342,"真的更好记？",115,GOLD)
+        text(d,118,500,"Draw it, or write it?",45,SAND)
+        paper_board(im,(1060,245,1780,902))
+        if state>=1:
+            round_rect(d,(139,595,720,715),18,(48,57,57),(182,149,94),3)
+            text(d,171,607,"每个词，只有 4 秒",57,WHITE)
+            text(d,174,675,"4 seconds per word",35,SAND)
+        if state>=2:
+            # The two percentages belong to Experiment 7's two pure-list groups.
+            d.rectangle((108,570,811,895),fill=(15,24,33))
+            result_type(d)
+        if state>=3:
+            text(d,125,920,"画过的词，回忆更多",44,GOLD)
+        if state>=4:
+            text(d,125,1000,"Wammes et al., 2016 · Exp. 7",36,SAND)
+    elif section==1:
+        title(d,"先自己画，再试着想","Draw it yourself, then recall it.","方法 / THE METHOD")
+        paper_board(im,(910,470,1680,872))
+        apple_object(im,1160,692,1.05)
+        if state>=1: text(d,170,602,"挑词",65,WHITE)
+        if state>=2: text(d,170,695,"简画",65,GOLD)
+        if state>=3: text(d,170,788,"回想",65,TEAL)
+        if state>=4: text(d,1100,955,"论文测试的是易画的单词",39,SAND,anchor="ma")
+    elif section==2:
+        title(d,"先挑能画的词","Start with words you can picture.","01 / CHOOSE")
+        # Each life-size object sits on a sculpted plinth; no rectangular flashcards.
+        labs=[("苹果","APPLE",830),("钥匙","KEY",1235),("雨伞","UMBRELLA",1630)]
+        for i,(cn,en,cx) in enumerate(labs):
+            if state<i+1:continue
+            d.ellipse((cx-155,840,cx+155,891),fill=(9,16,23))
+            d.polygon([(cx-135,834),(cx+135,834),(cx+100,905),(cx-100,905)],fill=(73,69,62),outline=(154,126,82))
+            d.line((cx-121,842,cx+121,842),fill=(218,176,102),width=5)
+            if i==0:apple_object(im,cx,680,1.22)
+            if i==1:key_object(im,cx-20,690,1.15)
+            if i==2:umbrella_object(im,cx,692,1.11)
+            text(d,cx,943,cn,54,WHITE,anchor="mm")
+            text(d,cx,999,en,34,SAND,anchor="mm")
+        if state>=4:
+            d.arc((677,494,985,848),200,502,fill=GOLD,width=9)
+            text(d,827,553,"选它",43,GOLD,anchor="mm")
+            text(d,827,1001,"例：苹果、钥匙、雨伞",38,TEAL,anchor="mm")
+    elif section==3:
+        title(d,"只画关键特征","Sketch the identifying features.","02 / SKETCH")
+        paper_board(im,(770,440,1780,900))
+        apple_object(im,1050,679,1.15)
+        d.line((1218,677,1346,677),fill=(161,141,109),width=7)
+        d.polygon([(1336,655),(1367,677),(1336,699)],fill=(161,141,109))
+        if state>=1:
+            text(d,1285,804,"圆 + 叶 = 苹果",52,(50,86,85))
+        if state>=2:
+            text(d,1713,973,"实验 6、7：每词 4 秒",35,SAND,anchor="ra")
+    elif section==4:
+        title(d,"遮住图，自己想","Hide the sketch. Recall the word.","03 / RECALL")
+        paper_board(im,(780,440,1780,905))
+        apple_sketch(im,1270,677,1.15,1,(50,95,94),8)
+        if state>=2:
+            round_rect(d,(899,682,1675,803),23,(29,57,59),(131,190,163),4)
+            text(d,1287,709,"答案：苹果 / APPLE",68,WHITE,anchor="ma")
+        if state>=3:
+            text(d,1784,982,"回想练习是实用延伸；论文测的是回忆成绩",35,SAND,anchor="ra")
+    else:
+        title(d,"画一笔，再回想","Draw a word. Then recall it.","照着做 / IN PRACTICE")
+        paper_board(im,(712,440,1790,930))
+        labels=[("挑词","CHOOSE",890),("简画","SKETCH",1250),("回想","RECALL",1610)]
+        for i,(cn,en,cx) in enumerate(labels):
+            if state<i+1:continue
+            if i==0:apple_object(im,cx,628,.69)
+            elif i==1:apple_sketch(im,cx,640,.72,1,(52,100,100),9)
+            else:
+                d.ellipse((cx-70,565,cx+70,707),outline=(51,99,101),width=8)
+                text(d,cx,620,"?",80,(52,100,100),anchor="mm")
+            text(d,cx,776,cn,56,(45,76,77),anchor="mm")
+            text(d,cx,840,en,35,(94,106,101),anchor="mm")
+        if state>=4:
+            d.line((800,885,1695,885),fill=(145,135,113),width=3)
+            text(d,1247,957,"实验 7：画 23%   /   写 14%",52,TEAL,anchor="ma")
+        if state>=5:
+            text(d,1247,1020,"证据范围：易画单词 · 短时自由回忆",36,SAND,anchor="ma")
+    return im
 
 
 def scene_frame(t):
-    beat=t/BEAT
-    if beat < 16:
-        im=base("01 / 先画还是先写")
-        d=ImageDraw.Draw(im)
-        header(d,"画一笔，更好记？","Draw it, or write it?",GOLD)
-        easel(im,580,316,.90)
-        # From frame 0 the adult is already drawing, and the first stroke is visible.
-        apple(im,580,314,1.03,max(.06,min(1,t/1.8)),GOLD)
-        figure(im,t,"pen",157,469,1.05)
-        if 4.5 <= beat < 8.5:
-            rr(d,(366,411,855,474),16,(22,46,60,255),(69,135,151,255),2)
-            txt(d,(610,440),"每个词，只给 4 秒",30,WHITE,"mm")
-            txt(d,(610,468),"4 seconds per word",18,MUTED,"mm")
-        if beat >= 8.5:
-            # Both measured values are Experiment 7, pure-list groups; no false doubling.
-            rr(d,(326,210,852,407),22,(15,31,47,255),(88,162,173,255),2)
-            txt(d,(452,251),"自己画",28,CYAN,"mm")
-            txt(d,(716,251),"反复写",28,PINK,"mm")
-            txt(d,(452,323),"23%",58,CYAN,"mm")
-            txt(d,(716,323),"14%",58,PINK,"mm")
-            txt(d,(589,388),"66 个易画词 · 短时自由回忆",20,WHITE,"mm")
-        if beat >= 10.5:
-            txt(d,(589,194),"画的词，回忆更多",30,GOLD,"mm")
-        if beat >= 13:
-            txt(d,(805,510),"Wammes et al., 2016 · Exp. 7",18,MUTED,"rm")
-        return im
-    if beat < 32:
-        im=base("02 / 方法")
-        d=ImageDraw.Draw(im)
-        header(d,"先自己画，再试着想","Draw it yourself, then recall it.",CYAN)
-        figure(im,t,"point",188,469,1.05)
-        for idx,(lab,en) in enumerate([("挑词","choose"),("简画","sketch"),("回想","recall")]):
-            if beat >= 17 + idx*3:
-                x=330+idx*173
-                rr(d,(x,243,x+151,331),18,(22,41,59,255),(70,140,155,255),2)
-                txt(d,(x+75,272),lab,30,WHITE,"mm")
-                txt(d,(x+75,310),en,20,MUTED,"mm")
-        if beat>=26.5:
-            txt(d,(239,411),"论文测的是易画的单词",24,GOLD,"mm")
-            txt(d,(239,444),"The study tested drawable words.",18,MUTED,"mm")
-        return im
-    if beat < 64:
-        im=base("03 / 挑词")
-        d=ImageDraw.Draw(im)
-        header(d,"① 挑能画的词","Start with words you can picture.",GOLD)
-        figure(im,t,"point",186,469,1.04)
-        # Gallery plinths replace cards and previous episodes' list layouts.
-        for idx,(cn,en,kind) in enumerate([("苹果","apple",0),("钥匙","key",1),("雨伞","umbrella",2)]):
-            x=370+idx*180
-            if beat >= 34+idx*6:
-                rr(d,(x-67,226,x+67,392),19,(21,40,56,255),(66,124,137,255),2)
-                if kind==0: apple(im,x,282,.35,1,GOLD)
-                elif kind==1:
-                    d.ellipse((x-31,248,x+2,281),outline=(*GOLD,255),width=4)
-                    d.line((x,271,x+37,309,x+43,299),fill=(*GOLD,255),width=5)
-                else:
-                    d.arc((x-46,245,x+46,320),180,360,fill=(*GOLD,255),width=5)
-                    d.line((x,285,x,330,x+21,330),fill=(*GOLD,255),width=5)
-                txt(d,(x,347),cn,30,WHITE,"mm")
-                txt(d,(x,379),en,20,MUTED,"mm")
-        txt(d,(487,455),"例：苹果、钥匙、雨伞",26,CYAN,"mm")
-        return im
-    if beat < 96:
-        im=base("04 / 简画")
-        d=ImageDraw.Draw(im)
-        header(d,"② 画出最明显的特征","Sketch the identifying features.",CYAN)
-        easel(im,598,310,1.02)
-        progress=min(1,max(.05,(beat-66)/16))
-        apple(im,597,307,1.14,progress,CYAN)
-        figure(im,t,"pen",160,469,1.05)
-        if beat>=82:
-            rr(d,(354,420,839,473),15,(22,44,57,255),(67,123,138,255),2)
-            txt(d,(595,447),"苹果 = 圆 + 叶，画得像就够",25,WHITE,"mm")
-        if beat>=89:
-            txt(d,(696,510),"研究中每词仅 4 秒（实验 6、7）",18,MUTED,"rm")
-        return im
-    if beat < 128:
-        im=base("05 / 回想")
-        d=ImageDraw.Draw(im)
-        header(d,"③ 遮住图，自己回想","Hide the sketch. Recall the word.",PINK)
-        easel(im,592,312,1.02)
-        apple(im,592,306,.95,1,GOLD)
-        if beat>=103:
-            # A sliding opaque gallery curtain; the person stays active.
-            curtain=min(1,(beat-103)/11)
-            x0=int(747-292*curtain)
-            rr(d,(x0,153,747,449),13,(35,47,66,255),(109,130,155,255),2)
-            d.line((x0+24,160,x0+24,442),fill=(87,103,130,255),width=2)
-        figure(im,t,"point",165,469,1.05)
-        if beat>=113:
-            rr(d,(352,385,819,456),18,(22,46,58,255),(70,141,151,255),2)
-            txt(d,(585,421),"答案：苹果  /  APPLE",32,GOLD,"mm")
-        if beat>=120:
-            txt(d,(781,508),"回想练习是实用延伸；本研究测的是回忆成绩",18,MUTED,"rm")
-        return im
-    im=base("06 / 照着做")
-    d=ImageDraw.Draw(im)
-    header(d,"挑词 → 简画 → 遮住回想","Choose → sketch → recall",GOLD)
-    figure(im,t,"point",154,470,1.02)
-    # Final art wall is a stable, readable composition, held for the last 7 s.
-    for i,(cn,en) in enumerate([("苹果","APPLE"),("钥匙","KEY"),("雨伞","UMBRELLA")]):
-        if beat>=130+i*5:
-            x=365+i*182
-            rr(d,(x-76,221,x+76,340),20,(22,42,58,255),(80,138,150,255),2)
-            txt(d,(x,260),cn,34,WHITE,"mm")
-            txt(d,(x,311),en,20,MUTED,"mm")
-    if beat>=144:
-        rr(d,(295,365,898,432),18,(30,51,64,255),(111,177,177,255),2)
-        txt(d,(596,390),"4 秒/词：画 23%  ·  写 14%",29,CYAN,"mm")
-        txt(d,(596,418),"Wammes et al., 2016 · 实验 7",18,MUTED,"mm")
-    if beat>=150:
-        txt(d,(596,468),"证据范围：易画单词 · 短时自由回忆",20,WHITE,"mm")
+    b=t/BEAT
+    if b<16:
+        state=sum(b>=v for v in (4.5,8.5,10.5,13))
+        im=still(0,state).copy()
+        apple_sketch(im,1418,591,1.35,max(.08,min(1,t/1.92)),(62,105,99),9)
+        paste_artist(im,t,835,917,"paint",1.0)
+    elif b<32:
+        state=sum(b>=v for v in (17,20,23,26.5))
+        im=still(1,state).copy()
+        paste_artist(im,t,610,918,"point",1.02)
+    elif b<64:
+        state=sum(b>=v for v in (32,38,44,54))
+        im=still(2,state).copy()
+        x=260+min(1,(t-15)/12)*265
+        paste_artist(im,t,x,916,"point",1.0)
+    elif b<96:
+        state=sum(b>=v for v in (82,89))
+        im=still(3,state).copy()
+        apple_sketch(im,1540,669,.93,max(.04,min(1,(b-65)/17)),(51,101,101),9)
+        paste_artist(im,t,565,918,"paint",1.02)
+    elif b<128:
+        state=0 if b<113 else 1 if b<120 else 3
+        # Text on the curtain is drawn after it slides over the page.
+        im=still(4,0).copy()
+        if b>=103:
+            d=ImageDraw.Draw(im)
+            v=min(1,(b-103)/10)
+            x0=int(1770-902*v)
+            round_rect(d,(x0,462,1780,878),20,(32,47,56),(155,141,108),5)
+            for x in range(x0+48,1740,90):
+                d.line((x,472,x,870),fill=(43,60,67),width=3)
+        if state>=1:
+            d=ImageDraw.Draw(im)
+            round_rect(d,(899,682,1675,803),23,(29,57,59),(131,190,163),4)
+            text(d,1287,709,"答案：苹果 / APPLE",68,WHITE,anchor="ma")
+        if state>=3:
+            d=ImageDraw.Draw(im)
+            text(d,1784,982,"回想练习是实用延伸；论文测的是回忆成绩",35,SAND,anchor="ra")
+        paste_artist(im,t,548,918,"point",1.02)
+    else:
+        state=sum(b>=v for v in (130,135,140,144,150))
+        im=still(5,state).copy()
+        paste_artist(im,t,497,919,"point",1.0)
     return im
 
 
+def audio_file():
+    """Deterministic non-musical effects, each aligned to a visual beat."""
+    sr=48000
+    a=np.zeros(sr*75,dtype=np.float64)
+    cues=[(0,"hit"),(4.5,"tick"),(8.5,"chime"),(10.5,"pop"),(13,"pop"),
+          (16,"whoosh"),(17,"pop"),(20,"pop"),(23,"pop"),(26.5,"chime"),
+          (32,"whoosh"),(38,"pop"),(44,"pop"),(54,"chime"),
+          (64,"whoosh"),(66,"draw"),(74,"draw"),(82,"pop"),(89,"tick"),
+          (96,"whoosh"),(103,"slide"),(113,"chime"),(120,"pop"),
+          (128,"whoosh"),(130,"pop"),(135,"pop"),(140,"pop"),(144,"chime"),(150,"pop")]
+    rng=np.random.default_rng(20261109)
+    for beat,kind in cues:
+        start=int(round(beat*BEAT*sr))
+        dur={"hit":.30,"whoosh":.22,"chime":.34,"tick":.09,"pop":.14,"draw":.18,"slide":.24}[kind]
+        n=int(dur*sr);tt=np.arange(n)/sr
+        env=np.exp(-tt*({"hit":13,"chime":9,"whoosh":15,"tick":28,"pop":23,"draw":22,"slide":16}[kind]))
+        if kind=="hit":sig=np.sin(2*np.pi*(80*tt+150*tt*tt))*env+.30*rng.normal(size=n)*env
+        elif kind=="whoosh":sig=rng.normal(size=n)*env*.22
+        elif kind=="chime":sig=(np.sin(2*np.pi*880*tt)+.45*np.sin(2*np.pi*1320*tt))*env*.25
+        elif kind=="tick":sig=rng.normal(size=n)*env*.16
+        elif kind=="pop":sig=np.sin(2*np.pi*(420+beat*2)*tt)*env*.21
+        elif kind=="draw":sig=rng.normal(size=n)*env*.09
+        else:sig=rng.normal(size=n)*env*.13
+        a[start:start+n]+=sig
+    a=np.clip(a*.55,-.84,.84)
+    path=OUT/"effects.wav"
+    with wave.open(str(path),"wb") as f:
+        f.setnchannels(1);f.setsampwidth(2);f.setframerate(sr)
+        f.writeframes((a*32767).astype("<i2").tobytes())
+    return path,cues
+
+
 def find_ffmpeg(cli):
-    if cli:
-        return cli
+    if cli:return cli
     import shutil
     p=shutil.which("ffmpeg")
     if p:return p
@@ -278,115 +364,70 @@ def find_ffmpeg(cli):
     raise RuntimeError("ffmpeg not found; supply --ffmpeg")
 
 
-def audio_file():
-    """Short deterministic per-event effects; no score, melody, or ambience."""
-    sr=48000
-    seconds=75
-    a=np.zeros(sr*seconds,dtype=np.float64)
-    # All cue times are beat positions; each transient starts with its visual event.
-    cues=[(0,"hit"),(4.5,"tick"),(8.5,"chime"),(10.5,"pop"),(13,"pop"),
-          (16,"whoosh"),(17,"pop"),(20,"pop"),(23,"pop"),(26.5,"chime"),
-          (32,"whoosh"),(34,"pop"),(40,"pop"),(46,"pop"),
-          (64,"whoosh"),(66,"draw"),(74,"draw"),(82,"pop"),(89,"tick"),
-          (96,"whoosh"),(103,"slide"),(113,"chime"),(120,"pop"),
-          (128,"whoosh"),(130,"pop"),(135,"pop"),(140,"pop"),(144,"chime"),(150,"pop")]
-    rng=np.random.default_rng(20261107)
-    for beat,kind in cues:
-        start=int(round(beat*BEAT*sr))
-        dur={"hit":.30,"whoosh":.22,"chime":.34,"tick":.09,"pop":.14,"draw":.18,"slide":.24}[kind]
-        n=int(dur*sr); tt=np.arange(n)/sr
-        env=np.exp(-tt*({"hit":13,"chime":9,"whoosh":15,"tick":28,"pop":23,"draw":22,"slide":16}[kind]))
-        if kind=="hit": sig=np.sin(2*np.pi*(80*tt+150*tt*tt))*env + .30*rng.normal(size=n)*env
-        elif kind=="whoosh": sig=rng.normal(size=n)*env*.22
-        elif kind=="chime": sig=(np.sin(2*np.pi*880*tt)+.45*np.sin(2*np.pi*1320*tt))*env*.25
-        elif kind=="tick": sig=rng.normal(size=n)*env*.16
-        elif kind=="pop": sig=np.sin(2*np.pi*(420+beat*2)*tt)*env*.21
-        elif kind=="draw": sig=rng.normal(size=n)*env*.09
-        else: sig=rng.normal(size=n)*env*.13
-        a[start:start+n]+=sig
-    # Conservative peak, then ffmpeg loudnorm measures final integrated loudness.
-    a=np.clip(a*.55,-.84,.84)
-    path=OUT/"effects.wav"
-    with wave.open(str(path),"wb") as f:
-        f.setnchannels(1); f.setsampwidth(2); f.setframerate(sr)
-        f.writeframes((a*32767).astype("<i2").tobytes())
-    return path,cues
-
-
-def render(ffmpeg):
-    wav,cues=audio_file()
-    raw=OUT/"picture_noaudio.mp4"
-    cmd=[ffmpeg,"-y","-loglevel","error","-f","rawvideo","-pix_fmt","rgb24","-s","960x540","-r",str(FPS),"-i","-",
-         "-vf","scale=1920:1080:flags=lanczos,format=yuv420p","-c:v","libx264","-preset","veryfast","-crf","20","-movflags","+faststart","-an",str(raw)]
-    p=subprocess.Popen(cmd,stdin=subprocess.PIPE)
-    try:
-        for n in range(FRAMES):
-            im=scene_frame(n/FPS).convert("RGB")
-            p.stdin.write(im.tobytes())
-            if n%300==0:print(f"frame {n}/{FRAMES}",flush=True)
-        p.stdin.close()
-        if p.wait():raise RuntimeError("picture encode failed")
-    except Exception:
-        p.kill();raise
-    final=OUT/"画出来更好记_75s_1080p.mp4"
-    # Speech-free effects only. Measured output is checked by verify.py.
-    cmd=[ffmpeg,"-y","-loglevel","error","-i",str(raw),"-i",str(wav),"-map","0:v:0","-map","1:a:0","-c:v","copy","-c:a","aac","-b:a","192k","-af","acompressor=threshold=-23dB:ratio=5:attack=1:release=70,loudnorm=I=-18.4:TP=-2.0:LRA=11","-t","75","-movflags","+faststart",str(final)]
-    subprocess.run(cmd,check=True)
-    raw.unlink()
-    print(final)
-    return final
-
-
 def preview():
-    times=[0,2.2,4.2,8.2,15.2,25,30.2,40,45.2,55,60.2,70]
-    sheet=Image.new("RGB",(1440,4*315),(5,12,24))
-    d=ImageDraw.Draw(sheet)
+    times=[0,2.2,4.2,8.2,12.8,15.2,25.5,30.2,40,45.2,55,70.5]
+    sheet=Image.new("RGB",(1440,4*307),(11,18,28));d=ImageDraw.Draw(sheet)
     for i,t in enumerate(times):
         frame=scene_frame(t).convert("RGB").resize((460,259),Image.Resampling.LANCZOS)
-        x=10+(i%3)*480;y=8+(i//3)*315
-        sheet.paste(frame,(x,y+31))
-        d.text((x,y),f"{i+1:02d}  {t:05.1f} s",font=FONT[20],fill=WHITE)
-    path=OUT/"分镜预览.png";sheet.save(path)
-    return path
+        x=10+i%3*480;y=7+i//3*307
+        sheet.paste(frame,(x,y+35))
+        d.text((x,y),f"{i+1:02d}  {t:05.1f} s",font=font(22),fill=WHITE)
+    p=OUT/"分镜预览.png";sheet.save(p)
+    return p
 
 
 def cover():
-    """Single 4:3 upload image; every essential item fits the central 3:4 crop."""
+    # One 4:3 image; all content lives inside x=420..1500 (central 3:4 crop).
     cw,ch=1920,1440
-    im=Image.new("RGB",(cw,ch),(5,10,22))
+    yy,xx=np.mgrid[0:ch,0:cw]
+    r=np.sqrt(((xx-960)/1150)**2+((yy-670)/830)**2)
+    light=np.clip(1-r,0,1)**2
+    a=np.zeros((ch,cw,3),dtype=np.uint8)
+    for k,b,v in ((0,8,31),(1,16,27),(2,25,17)):
+        a[:,:,k]=np.clip(b+light*v,0,255)
+    im=Image.fromarray(a,"RGB").convert("RGBA")
     d=ImageDraw.Draw(im)
-    # Subtle cinematic spotlights and continuous dark side wings.
-    for r in range(700,40,-8):
-        alpha=(700-r)/700
-        col=(int(5+17*alpha),int(10+26*alpha),int(22+35*alpha))
-        d.ellipse((960-r,760-r,960+r,760+r),outline=col,width=8)
-    d.rectangle((0,0,1920,1440),outline=(23,41,52),width=4)
-    # Central safe strip = x 420..1500, but contents inset another 90 px.
-    title=ImageFont.truetype(str(FONT_PATH),108)
-    sub=ImageFont.truetype(str(FONT_PATH),51)
-    small=ImageFont.truetype(str(FONT_PATH),35)
-    d.text((960,139),"想记牢？",font=title,fill=WHITE,anchor="ma")
-    d.text((960,278),"自己画一笔",font=title,fill=(255,202,110),anchor="ma")
-    # Raised translucent specimen plates: brush drawing against repeated writing.
-    d.rounded_rectangle((575,490,945,960),38,fill=(22,45,63),outline=(67,190,192),width=6)
-    d.rounded_rectangle((975,490,1345,960),38,fill=(25,38,55),outline=(113,113,140),width=5)
-    d.ellipse((658,615,862,833),outline=(255,205,110),width=14)
-    d.line((760,621,773,576,825,568),fill=(255,205,110),width=12,joint="curve")
-    d.ellipse((792,548,860,586),fill=(255,205,110))
-    for j in range(5):
-        d.text((1160,610+j*42),"苹果",font=sub,fill=(120-j*12,134-j*10,149-j*8),anchor="mm")
-    d.text((760,913),"画 23%",font=sub,fill=(95,235,224),anchor="mm")
-    d.text((1160,913),"写 14%",font=sub,fill=(229,137,158),anchor="mm")
-    d.text((960,1050),"4 秒/词 · 短时自由回忆",font=sub,fill=WHITE,anchor="mm")
-    d.text((960,1132),"Wammes 等，2016 · 实验 7",font=small,fill=(160,190,207),anchor="mm")
-    d.text((960,1215),"挑词  →  简画  →  遮住回想",font=small,fill=(211,230,233),anchor="mm")
-    # Bottom-left of the central crop (x 420..~870, y 1275..1400) is entirely empty.
-    path=OUT/"封面_横竖通用.png";im.save(path,optimize=True)
-    crop=im.crop((420,0,1500,1440));crop.save(OUT/"竖裁预览.png")
-    # Mechanical crop/text audit for upload readiness.
-    for box in [d.textbbox((960,139),"想记牢？",font=title,anchor="ma"), d.textbbox((960,278),"自己画一笔",font=title,anchor="ma")]:
-        assert box[0]>=500 and box[2]<=1420,box
-    return path
+    text(d,960,93,"想记牢？",105,WHITE,anchor="ma")
+    text(d,960,238,"自己画一笔",108,GOLD,anchor="ma")
+    # Physical paper boards and sculpted apple; no mobile UI or flat chart.
+    paper_board(im,(553,459,943,938))
+    paper_board(im,(975,459,1368,938))
+    apple_object(im,748,683,1.34)
+    for j in range(3):
+        text(d,1170,580+j*92,"苹果",72,(113+j*16,102+j*15,91+j*14),anchor="ma")
+    text(d,747,1001,"画 23%",66,TEAL,anchor="ma")
+    text(d,1170,1001,"写 14%",66,SAND,anchor="ma")
+    d.line((570,1080,1355,1080),fill=(141,132,105),width=4)
+    text(d,960,1104,"4 秒/词 · 短时自由回忆",47,WHITE,anchor="ma")
+    text(d,960,1193,"Wammes 等，2016 · 实验 7",37,SAND,anchor="ma")
+    text(d,960,1268,"挑词 → 简画 → 遮住回想",41,GOLD,anchor="ma")
+    p=OUT/"封面_横竖通用.png";im.convert("RGB").save(p,optimize=True)
+    im.crop((420,0,1500,1440)).convert("RGB").save(OUT/"竖裁预览.png")
+    return p
+
+
+def render(ffmpeg):
+    # Exercise every beat state before opening the encoder so layout errors fail fast.
+    for half_beat in range(320):
+        scene_frame(half_beat*BEAT/2)
+    wav,_=audio_file()
+    picture=OUT/"picture_noaudio.mp4"
+    cmd=[ffmpeg,"-y","-loglevel","error","-f","rawvideo","-pix_fmt","rgb24","-s","1920x1080","-r","30","-i","-",
+         "-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p","-movflags","+faststart","-an",str(picture)]
+    proc=subprocess.Popen(cmd,stdin=subprocess.PIPE)
+    try:
+        for n in range(FRAMES):
+            proc.stdin.write(scene_frame(n/FPS).convert("RGB").tobytes())
+            if n%300==0:print(f"frame {n}/{FRAMES}",flush=True)
+        proc.stdin.close()
+        if proc.wait():raise RuntimeError("FFmpeg picture encode failed")
+    except Exception:
+        proc.kill();raise
+    out=OUT/"画出来更好记_75s_1080p.mp4"
+    cmd=[ffmpeg,"-y","-loglevel","error","-i",str(picture),"-i",str(wav),"-map","0:v:0","-map","1:a:0","-c:v","copy","-c:a","aac","-b:a","192k","-af","acompressor=threshold=-23dB:ratio=5:attack=1:release=70,loudnorm=I=-18.4:TP=-2.0:LRA=11","-t","75","-movflags","+faststart",str(out)]
+    subprocess.run(cmd,check=True)
+    picture.unlink()
+    print(out)
 
 
 def main():
@@ -396,10 +437,10 @@ def main():
     ap.add_argument("--cover",action="store_true")
     ap.add_argument("--render",action="store_true")
     ap.add_argument("--ffmpeg")
-    a=ap.parse_args()
-    if a.all or a.preview:print(preview())
-    if a.all or a.cover:print(cover())
-    if a.all or a.render:render(find_ffmpeg(a.ffmpeg))
+    args=ap.parse_args()
+    if args.all or args.preview:print(preview())
+    if args.all or args.cover:print(cover())
+    if args.all or args.render:render(find_ffmpeg(args.ffmpeg))
 
 
 if __name__=="__main__":main()
