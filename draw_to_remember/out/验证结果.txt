@@ -1,0 +1,10 @@
+PASS · 新一期独立源码实际渲染
+MP4: 画出来更好记_75s_1080p.mp4
+duration: 75.00 s · 2250 frames · 30 fps · 1920×1080
+full decode: OK · size: 3.75 MB (<95 MB)
+audio: short synchronized effects only, no score · I=-19.1 LUFS · true peak=-1.3 dBFS
+beatgrid: 29 effects on integer/half beats at 128 BPM · max error 0.000 beats
+shake: 0.00 mean RGB levels in still margin (<1.0)
+text: frame renderer checks text bbox on every rendered frame; no out-of-frame errors
+cover: 1920×1440 (4:3); centre crop 1080×1440 (3:4); lower-left safe area empty
+source: Wammes et al. 2016 Exp. 7, n=47, 66 drawable words, 4 s/item, 23% vs 14% free recall
