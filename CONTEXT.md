@@ -15,13 +15,14 @@
 
 来源：`.kiro/skills/vibe-knowledge-video/SKILL.md` 的「User defaults」「Workflow」「Content rules」「Rhythm rules」和封面段；技术实现见 `.kiro/skills/vibe-knowledge-video/references/engine.md`，往期数据与解释见 `.kiro/skills/vibe-knowledge-video/references/lessons.md`。本期用户的明确要求可以改变这些默认值。
 
-## 当前状态快照（2026-11-05）
+## 当前状态快照（2026-11-25）
 
+- `isu152-diesel` 分支（未合并）：`isu152_diesel/`，按 `out/96b3fffe34bccddc4e84087a7104acbb.mp4`（归档的 24 秒竖屏视频）的结构复刻的「ISU-152 的柴油机是怎么工作的？」，竖屏 1080×1920、约 26 秒、像素风、首尾循环、只有音效。竖屏、时长、循环结尾、发动机镜头不放人这几处只用于这一期，用户 2026-11-25 看过分镜后确认（「行」）；上面的通用要求没有改。
 - `main` 已合入制作 Skill 2.5；仓库根目录 `README.md` 列出作品、引擎和新一期的用法。已完成作品与输出分散在 `episodes/`、`sleep_or_cram/`、`bedtime_words/` 和 `out/` 等位置。
 - `six-videos` 分支含 `six/plan.md`、六期事实核对材料和 `kit/figure.js`，这些文件不在当前 `main`。`six/plan.md` 的状态行写着等待用户确认，但六期对应的 PR #24–#29 已经创建且仍开放；是否批准分镜、先处理哪条及是否合并，需要以用户的最新决定和 PR 实况核对，不能只读那一行。
 - `.kiro/skills/vibe-knowledge-video/references/lessons.md` 已记录往期平台数据、经验解释和待验证问题。它是本仓库的经验位置；其中的待验证问题不能直接升级为固定规则。
 
-来源：`README.md`、主分支 `.kiro/skills/vibe-knowledge-video/SKILL.md`、`six-videos:six/plan.md`，以及 2026-11-05 查看 GitHub 分支和开放 PR 的结果。PR 与分支状态会变化，继续工作前重新查询。
+来源：`README.md`、主分支 `.kiro/skills/vibe-knowledge-video/SKILL.md`、`six-videos:six/plan.md`，以及 2026-11-05 查看 GitHub 分支和开放 PR 的结果；ISU-152 一条来自 2026-11-25 的对话和 `isu152-diesel:isu152_diesel/README.md`。PR 与分支状态会变化，继续工作前重新查询。
 
 ## 下一步
 
