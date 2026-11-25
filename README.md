@@ -2,6 +2,7 @@
 
 | 作品 | 成片 | 说明 |
 |---|---|---|
+| TT语音参赛片《事成V你50》60 秒样片（1:00，动态分镜：AI 配音 + 代码合成音效和配乐，人物、场景是占位） | [`shicheng_v50/sample_60s.mp4`](shicheng_v50/sample_60s.mp4) · [关键帧](shicheng_v50/sample_60s_keyframes.png) | [`shicheng_v50/`](shicheng_v50/README.md) |
 | TT语音参赛片《事成V你50》11～19 秒选英雄卡预览（0:08，AI 配音 + 代码合成音效，人物是占位剪影） | [`shicheng_v50/hero_select_11-19s.mp4`](shicheng_v50/hero_select_11-19s.mp4) · [无声 GIF](shicheng_v50/hero_select_11-19s_silent.gif) · [关键帧](shicheng_v50/hero_select_11-19s_keyframes.png) | [`shicheng_v50/`](shicheng_v50/README.md) |
 | 「如果…就…」计划（1:15，有音效、无配乐，按 128 BPM 卡点，每段都有小人，3:4 封面） | [`out/if_then_plan.mp4`](out/if_then_plan.mp4) · [竖封面 3:4](out/if_then_plan_cover.png) · [横封面 4:3](out/if_then_plan_cover_4x3.png) · [发布文案](out/if_then_plan_publish.txt) | [`episodes/if_then_plan/`](episodes/if_then_plan/episode.py) · 小人：[`engine/figures.py`](engine/figures.py) |
 | 开场动画样片（0:30，4 种开场动画：对比反转 / 消散 / 分叉 / 计时） | [`out/openers_demo.mp4`](out/openers_demo.mp4) | [`engine/openers.py`](engine/openers.py) |
