@@ -40,6 +40,8 @@ FONT_FILES = {
 
 W, H, FPS, SR = 1280, 720, 30, 44100
 FILM_OFFSET = 11.0          # 这一段在成片里从第11秒开始
+PLACEHOLDER_TAG = '定妆图占位'   # 人物左上角的小标签，设成空字符串就不画
+WATERMARK = '预览版｜人物为占位图'
 CW, CH, SS = 560, 660, 2    # 人物画布尺寸，SS=2 倍画再缩小，边缘更平滑
 CHAR_X, CHAR_Y = 60, H - CH + 40
 
@@ -639,8 +641,8 @@ def render_frame(t, A, vlen):
     frame.paste(A['top'], (0, 0), A['top'])
     frame.paste(A['bottom'], (0, H - A['bottom'].height), A['bottom'])
     d = ImageDraw.Draw(frame, 'RGBA')
-    if alpha > 0:
-        tag = '定妆图占位'
+    if alpha > 0 and PLACEHOLDER_TAG:
+        tag = PLACEHOLDER_TAG
         tw = F('Medium', 16).getlength(tag)
         d.rounded_rectangle((40, 112, 40 + tw + 24, 142), radius=8, fill=(0, 0, 0, 140), outline=(255, 255, 255, 90))
         d.text((52, 127), tag, font=F('Medium', 16), fill=(255, 255, 255, int(210 * alpha)), anchor='lm')
@@ -650,7 +652,8 @@ def render_frame(t, A, vlen):
     if k == 4:
         draw_crow(d, t)
     draw_subtitle(d, t, vlen)
-    d.text((20, 708), '预览版｜人物为占位图', font=F('Medium', 15), fill=(255, 255, 255, 120), anchor='ls')
+    if WATERMARK:
+        d.text((20, 708), WATERMARK, font=F('Medium', 15), fill=(255, 255, 255, 120), anchor='ls')
     fa = 0.9 * (1 - lt / 0.2) ** 2 if lt < 0.2 else 0.0
     if k < 4 and 0 <= lt - lock_time(k) < 0.1:
         fa = max(fa, 0.5 * (1 - (lt - lock_time(k)) / 0.1))

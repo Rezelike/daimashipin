@@ -386,7 +386,7 @@ def fade_cut(x, d_in=0.03, d_out=0.04):
 
 
 # ---------------------------------------------------------------- 混音
-def build_mix(voices, hero_wav, out_path):
+def build_mix(voices, hero_wav, out_path, extra=()):
     n = int(SR * DUR)
     vox, sfx, mus = np.zeros(n), np.zeros(n), np.zeros(n)
     P = hero.place
@@ -455,6 +455,9 @@ def build_mix(voices, hero_wav, out_path):
     P(sfx, sfx_coin(), 55.45, 0.4)
     P(sfx, sfx_dong(), 55.6, 0.8)
     P(mus, fade_cut(pad([261.63, 329.63, 392.0, 523.25], 2.6, 1.4, 0.4, 1.0)), 57.4, 0.35)
+
+    for x, tt, g in extra:
+        P(sfx, x, tt, g)
 
     # 台词出现时，配乐压低
     duck = np.ones(n)

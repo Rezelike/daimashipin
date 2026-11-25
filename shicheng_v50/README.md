@@ -2,13 +2,26 @@
 
 TT语音「你与搭子的群像故事」参赛短片（60 秒）。周四晚上，大聪明把炸鸡外卖填到了南门，离门禁只剩 8 分钟。他在 TT 语音发帖找搭子："事成V你50"。四个社团的陌生人锁定进房，跑的跑，滑的滑，飞的飞，把一桶炸鸡接力运回了宿舍。
 
-## 60 秒样片
+## 60 秒样片 v2（卡通角色版）
+
+- 成片：[`sample_60s_v2.mp4`](sample_60s_v2.mp4)（60 秒，1280×720，30 fps，有声音）
+- 关键帧：[`sample_60s_v2_keyframes.png`](sample_60s_v2_keyframes.png)
+- 代码：[`render_sample_60s_v2.py`](render_sample_60s_v2.py)（镜头和叠加）、[`toon.py`](toon.py)（卡通角色：描边、表情、发型、衣服、道具）、[`toon_scenes.py`](toon_scenes.py)（场景和特效），台词和混音沿用 [`sample_audio.py`](sample_audio.py)
+
+![60 秒样片 v2 关键帧](sample_60s_v2_keyframes.png)
+
+跟 v1 的时间线、台词、配音一样，变的是画面：
+- 12 个有名有姓的卡通角色，每人有自己的发型、衣服和道具（大聪明的格子睡衣、阿飞的 50 号号码布、小K 的头盔和轮滑鞋、老周的反光眼镜、星星的红围巾、宿管阿姨的卷发和钥匙串……）。
+- 30 多种表情：星星眼、爱心眼、哭成面条泪、灵魂出窍、石化裂开、眼镜反光、冒冷汗、黑线、问号等。
+- 场景都重画了：501 寝室（上床下桌、彩灯、海报、白板）、女生楼阳台、南门外卖架、校园路、大坡、岗亭、月下人工湖（倒影、石拱桥、亭子）、8 号楼门口、楼梯间、宿管大厅。
+- 加了漫画效果：集中线、速度线、残影、尘土、火花、彩纸、流星，还有右下角的"谁在说话"头像。
+- 人物、场景和界面仍是代码画的，正式版换成 AI 画面和 TT 语音真实录屏。
+
+## 60 秒样片 v1（剪影版）
 
 - 成片：[`sample_60s.mp4`](sample_60s.mp4)（60 秒，1280×720，30 fps，有声音）
 - 关键帧：[`sample_60s_keyframes.png`](sample_60s_keyframes.png)
 - 代码：[`render_sample_60s.py`](render_sample_60s.py)（镜头和叠加）、[`sample_figures.py`](sample_figures.py)（小人）、[`sample_scenes.py`](sample_scenes.py)（场景和界面）、[`sample_audio.py`](sample_audio.py)（台词、音效、配乐、混音）
-
-![60 秒样片关键帧](sample_60s_keyframes.png)
 
 这是动态分镜样片，用来看节奏、笑点和镜头顺序：人物、场景和手机/TT 界面都是代码画的占位，正式版换成 AI 画面和 TT 语音真实录屏；台词用 edge-tts 在线 AI 配音；音效和配乐都由代码合成。11～19 秒直接用下面的选英雄卡。
 
@@ -45,7 +58,8 @@ TT语音「你与搭子的群像故事」参赛短片（60 秒）。周四晚上
 
 ```bash
 pip install numpy pillow imageio-ffmpeg edge-tts
-python shicheng_v50/render_sample_60s.py              # 60 秒样片 + 关键帧
+python shicheng_v50/render_sample_60s_v2.py           # 60 秒样片 v2（卡通版）+ 关键帧，约 2 分钟
+python shicheng_v50/render_sample_60s.py              # 60 秒样片 v1（剪影版）+ 关键帧
 python shicheng_v50/render_sample_60s.py --preview    # 只出关键帧拼图，几秒钟
 python shicheng_v50/render_hero_select.py             # 只出 11～19 秒选英雄卡
 ```
