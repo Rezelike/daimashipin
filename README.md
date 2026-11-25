@@ -3,6 +3,7 @@
 | 作品 | 成片 | 说明 |
 |---|---|---|
 | 归档视频（0:24） | [MP4 原文件](out/96b3fffe34bccddc4e84087a7104acbb.mp4) | 竖屏 |
+| ISU-152 的柴油机是怎么工作的？（0:26，竖屏 1080×1920，像素风；照上面归档视频的结构复刻：慢放 1/94 → 每次 ×2 讲一点 → 实速，首尾循环；只有音效，128 BPM 卡点） | [`isu152_diesel/out/ISU-152柴油机_26s_1080x1920.mp4`](isu152_diesel/out/ISU-152柴油机_26s_1080x1920.mp4) · [分镜预览](isu152_diesel/out/分镜预览.png) · [发布文案](isu152_diesel/out/发布文案.txt) · [封面提示词](isu152_diesel/out/封面提示词.txt) | [`isu152_diesel/`](isu152_diesel/README.md) |
 | 「如果…就…」计划（1:15，有音效、无配乐，按 128 BPM 卡点，每段都有小人，3:4 封面） | [`out/if_then_plan.mp4`](out/if_then_plan.mp4) · [竖封面 3:4](out/if_then_plan_cover.png) · [横封面 4:3](out/if_then_plan_cover_4x3.png) · [发布文案](out/if_then_plan_publish.txt) | [`episodes/if_then_plan/`](episodes/if_then_plan/episode.py) · 小人：[`engine/figures.py`](engine/figures.py) |
 | 开场动画样片（0:30，4 种开场动画：对比反转 / 消散 / 分叉 / 计时） | [`out/openers_demo.mp4`](out/openers_demo.mp4) | [`engine/openers.py`](engine/openers.py) |
 | 主动回忆（1:15，无配乐，按 128 BPM 卡点，画面不抖，直接结束） | [`out/active_recall.mp4`](out/active_recall.mp4) · [封面](out/active_recall_cover.png) · [发布文案](out/active_recall_publish.txt) | [`episodes/active_recall/`](episodes/active_recall/episode.py) |
