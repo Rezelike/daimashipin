@@ -2,6 +2,8 @@
 
 TT语音「你与搭子的群像故事」参赛短片《事成V你50》（60 秒）里的 11～19 秒。四个陌生人在 TT 语音房间里组队，像无畏契约选英雄一样一张张"锁定"。最后一张是大聪明，锁定失败，一只乌鸦飞过。
 
+![选英雄卡预览（无声）](hero_select_11-19s_silent.gif)
+
 - 成片：[`hero_select_11-19s.mp4`](hero_select_11-19s.mp4)（8 秒，1280×720，30 fps，有声音）
 - 无声 GIF：[`hero_select_11-19s_silent.gif`](hero_select_11-19s_silent.gif)
 - 关键帧：[`hero_select_11-19s_keyframes.png`](hero_select_11-19s_keyframes.png)
