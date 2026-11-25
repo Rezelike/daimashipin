@@ -20,7 +20,7 @@
 - `main` 已合入制作 Skill 2.5；仓库根目录 `README.md` 列出作品、引擎和新一期的用法。已完成作品与输出分散在 `episodes/`、`sleep_or_cram/`、`bedtime_words/` 和 `out/` 等位置。
 - `six-videos` 分支含 `six/plan.md`、六期事实核对材料和 `kit/figure.js`，这些文件不在当前 `main`。`six/plan.md` 的状态行写着等待用户确认，但六期对应的 PR #24–#29 已经创建且仍开放；是否批准分镜、先处理哪条及是否合并，需要以用户的最新决定和 PR 实况核对，不能只读那一行。
 - `.kiro/skills/vibe-knowledge-video/references/lessons.md` 已记录往期平台数据、经验解释和待验证问题。它是本仓库的经验位置；其中的待验证问题不能直接升级为固定规则。
-- （2026-11-25）`shicheng-v50-hero-select` 分支 / PR #32 是 TT语音参赛短片《事成V你50》的代码样片，放在 `shicheng_v50/`，尚未合并。它不是「Vibe知识大赏」剧集：有台词配音和配乐，用卡通角色和多人群像（用户 2026-11-25 要求"场景再丰富一点""情绪丰富一点、表情饱满一点"），不适用上面知识大赏的默认要求。现行版本是 `render_sample_60s_v2.py`，v1 和 11～19 秒选英雄卡也在同一文件夹。剧本 Word 版是 `shicheng_v50/事成V你50_剧本.docx`，由 `make_script_docx.py` 生成，以 v2 样片为准。
+- （2026-11-25）`shicheng-v50-hero-select` 分支 / PR #32 是 TT语音参赛短片《事成V你50》的代码样片，放在 `shicheng_v50/`，尚未合并。它不是「Vibe知识大赏」剧集：有台词配音和配乐，用卡通角色和多人群像（用户 2026-11-25 要求"场景再丰富一点""情绪丰富一点、表情饱满一点"），不适用上面知识大赏的默认要求。现行版本是 `render_sample_60s_v2.py`，v1 和 11～19 秒选英雄卡也在同一文件夹。剧本 Word 版是 `shicheng_v50/事成V你50_剧本.docx`，由 `make_script_docx.py` 生成，镜头和台词时间跟 v2 样片一致。用户要自己用 AI 生成视频，2026-11-25 要求剧本里不放样片截图、只保留一到九部分（"不要把你已经生成的镜头给我，第十点以及之后的全删"）。
 
 来源：`README.md`、主分支 `.kiro/skills/vibe-knowledge-video/SKILL.md`、`six-videos:six/plan.md`，以及 2026-11-05 查看 GitHub 分支和开放 PR 的结果；《事成V你50》一条来自 2026-11-25 的对话和 PR #32。PR 与分支状态会变化，继续工作前重新查询。
 
