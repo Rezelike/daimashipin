@@ -1,0 +1,38 @@
+# Copy this file to .github/workflows/draw-to-remember.yml on the episode branch.
+# GitHub Actions renders the binary in the same branch when local git push is unavailable.
+name: Render draw-to-remember episode
+on:
+  push:
+    branches: [draw-to-remember]
+    paths:
+      - 'draw_to_remember/render.py'
+      - 'draw_to_remember/verify.py'
+      - 'draw_to_remember/requirements.txt'
+      - '.github/workflows/draw-to-remember.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install fonts and ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk ffmpeg
+      - name: Install Python packages
+        run: python -m pip install -r draw_to_remember/requirements.txt
+      - name: Render and verify
+        run: |
+          python draw_to_remember/render.py --all --ffmpeg ffmpeg
+          python draw_to_remember/verify.py --ffmpeg ffmpeg
+      - name: Commit rendered deliverables
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add draw_to_remember/out/*.png draw_to_remember/out/*.mp4 draw_to_remember/out/*.txt
+          git diff --cached --quiet || git commit -m 'Render drawing-effect MP4 and cover'
+          git push
+

@@ -23,7 +23,12 @@
 
 来源：`README.md`、主分支 `.kiro/skills/vibe-knowledge-video/SKILL.md`、`six-videos:six/plan.md`，以及 2026-11-05 查看 GitHub 分支和开放 PR 的结果。PR 与分支状态会变化，继续工作前重新查询。
 
-## 下一步
+## 新一期状态（2026-11-07）
+
+- 新题「画一笔，比反复写更好记？」已在独立分支 `draw-to-remember` 制成，审阅 PR #31：<https://github.com/Rezelike/daimashipin/pull/31>。本期目录 `draw_to_remember/` 含独立源码、实际渲染 MP4、4:3 横竖通用封面、12 格带秒数分镜、发布文案、原文事实边界与验证结果；未合并、未代发。
+- 本期上屏证据为 Wammes、Meade 与 Fernandes 2016 年论文实验 7：47 名大学生，66 个易画词，每词 4 秒，短时自由回忆画组 23%、写组 14%。这不是整章理解或长期记忆的保证。
+
+来源：PR #31、本分支 `draw_to_remember/README.md` 与 `out/验证结果.txt`。\n\n## 下一步
 
 新对话先说明要处理哪一期、哪个 PR，或要做新选题。AI 先读本文件和制作 Skill，检查目标分支及来源；已经记录的通用要求直接沿用，只追问本期真正缺少或互相冲突的信息。涉及新视频时按 Skill 的选题、分镜、预览、渲染和验证流程执行。
 
